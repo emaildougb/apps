@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NCEMS">
+<meta name="theme-color" content="#1C3A1C">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<title>NCEMS Field Reference</title>
+<style>
+  :root {
+    --g-deep:   #1C3A1C;
+    --g-mid:    #2E6B2E;
+    --g-accent: #3A8A3A;
+    --g-pale:   #EBF5EB;
+    --warn:     #B87E0A;
+    --bad:      #C13E3E;
+    --text:     #1A1A1A;
+    --text-muted:#555;
+    --border:   #C5DFC5;
+    --white:    #ffffff;
+    --banner-h: 38px;
+    --tab-h:    62px;
+    --hdr-h:    72px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; width: 100%; overflow: hidden;
+    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', 'Menlo', monospace;
+    background: var(--g-deep);
+    color: var(--text);
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* HEADER */
+  .hdr {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: calc(var(--hdr-h) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
+    color: var(--white);
+    display: flex; align-items: center; gap: 12px;
+    padding-left: 14px; padding-right: 12px;
+    z-index: 30;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  .hdr-logo {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--white); object-fit: cover; flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3);
+  }
+  .hdr-text { flex: 1; min-width: 0; }
+  .hdr-text h1 { font-size: 17px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .hdr-text p  { font-size: 10px; opacity: .7; margin-top: 2px; letter-spacing: 1px; }
+  .info-btn {
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; font-size: 20px; font-weight: 800; font-style: italic;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif;
+  }
+  .info-btn:active { background: rgba(255,255,255,0.3); }
+
+  /* CONTENT */
+  .content {
+    position: fixed;
+    top: calc(var(--hdr-h) + env(safe-area-inset-top));
+    left: 0; right: 0;
+    bottom: calc(var(--banner-h) + var(--tab-h) + env(safe-area-inset-bottom));
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    background: #f0f4f0;
+  }
+  .tab-page { display: none; padding: 4px 0 12px; }
+  .tab-page.active { display: block; }
+
+  .section-label {
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 16px 18px 8px;
+  }
+
+  /* CLINICAL BUTTONS */
+  .clin-list { display: flex; flex-direction: column; gap: 14px; padding: 0 16px 6px; }
+  .clin-btn {
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px 20px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12); cursor: pointer;
+    transition: transform 0.1s; position: relative; overflow: hidden;
+    min-height: 88px; text-decoration: none;
+    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.30);
+  }
+  .clin-btn:active { transform: scale(0.97); }
+  .clin-btn.protocols { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
+  .clin-btn.soon {
+    background: linear-gradient(135deg, #6b756b 0%, #889088 100%);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); cursor: default;
+  }
+  .clin-btn.soon:active { transform: none; }
+  .clin-title {
+    font-size: clamp(26px, 7vw, 36px); font-weight: 800; color: #fff;
+    text-align: center; letter-spacing: 1.5px; text-transform: uppercase;
+    line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .soon-pill {
+    position: absolute; top: 10px; right: 12px;
+    font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(255,255,255,0.85); color: #555; border-radius: 5px; padding: 3px 7px;
+  }
+
+  /* OPS GRID */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 4px; }
+  .grid.single { grid-template-columns: 1fr; }
+  .ops-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 14px; min-height: 96px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+    text-decoration: none; cursor: pointer; transition: transform 0.1s; text-align: center;
+  }
+  .ops-btn:active { transform: scale(0.97); }
+  .ops-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px;
+               text-transform: uppercase; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+  .ops-sub   { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 6px; letter-spacing: .5px; }
+  .ops-btn.wambo { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
+
+  /* LOCK SCREEN */
+  .lock-screen { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 48px 24px 24px; text-align: center; }
+  .lock-icon { font-size: 52px; margin-bottom: 8px; }
+  .lock-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--g-deep); margin-bottom: 4px; }
+  .lock-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; letter-spacing: 1px; }
+  .lock-input {
+    width: 200px; max-width: 80%; padding: 16px; font-size: 34px; font-weight: 800;
+    border: 2px solid var(--border); border-radius: 12px; text-align: center;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: var(--g-deep);
+    letter-spacing: 10px; outline: none; -webkit-appearance: none; appearance: none; background: #fff;
+  }
+  .lock-input:focus { border-color: var(--g-accent); }
+  .lock-input::-webkit-outer-spin-button, .lock-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .lock-btn {
+    margin-top: 18px; width: 200px; max-width: 80%; padding: 16px;
+    background: var(--g-accent); color: #fff; border: none; border-radius: 12px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    font-size: 16px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+  .lock-btn:active { background: var(--g-mid); }
+  .lock-err { margin-top: 14px; min-height: 18px; color: var(--bad);
+    font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+
+  /* BOTTOM TAB BAR */
+  .tabbar {
+    position: fixed;
+    bottom: calc(var(--banner-h) + env(safe-area-inset-bottom));
+    left: 0; right: 0; height: var(--tab-h);
+    background: var(--white); border-top: 1px solid #d8e0d8;
+    display: flex; z-index: 28; box-shadow: 0 -1px 6px rgba(0,0,0,.06);
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer; border: none; background: none;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: #9aa79a;
+  }
+  .tab.active { color: var(--g-mid); }
+  .tab-ico { font-size: 22px; line-height: 1; }
+  .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+  .tab-lock { font-size: 10px; }
+
+  /* NOTICE BANNER — smaller, white, centered, tap to expand */
+  .notice-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: calc(var(--banner-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--g-deep); color: var(--white);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding-left: 30px; padding-right: 30px; z-index: 30;
+    box-shadow: 0 -2px 10px rgba(0,0,0,.25);
+    cursor: pointer;
+  }
+  .notice-dot { width: 7px; height: 7px; border-radius: 50%;
+                background: var(--g-accent); flex-shrink: 0;
+                animation: pulse 2.5s ease-in-out infinite; }
+  .notice-dot.warn { background: var(--warn); }
+  .notice-dot.off  { background: #444; animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.65);} }
+  .notice-text { font-size:12px; white-space:nowrap; overflow:hidden;
+                 text-overflow:ellipsis; opacity:.95; color:#fff; text-align:center; max-width: 80%; }
+  .notice-text.dim { opacity:.4; font-style:italic; }
+
+  /* NOTICE EXPANDED MODAL */
+  .notice-overlay {
+    position: fixed; inset: 0; background: rgba(14,30,14,0.85);
+    z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .notice-overlay.show { display: flex; }
+  .notice-card {
+    background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
+    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4);
+  }
+  .notice-card-head {
+    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
+    color: #fff; padding: 16px 20px; text-align: center;
+    font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .notice-card-head.warn { background: linear-gradient(135deg, #946408 0%, var(--warn) 100%); }
+  .notice-card-body { padding: 24px 22px; text-align: center; font-size: 16px; line-height: 1.6; color: var(--text); }
+  .notice-card-body.dim { color: #999; font-style: italic; }
+  .notice-card-time { font-size: 11px; color: var(--text-muted); margin-top: 14px; letter-spacing: 1px; }
+  .notice-card-close {
+    display: block; width: calc(100% - 44px); margin: 0 22px 22px; padding: 14px;
+    background: #eee; color: var(--text); border: none; border-radius: 10px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    font-size: 15px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+  .notice-card-close:active { background: #ddd; }
+
+  /* INFO MODAL */
+  .info-overlay { position: fixed; inset: 0; background: rgba(14,30,14,0.85);
+    z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .info-overlay.show { display: flex; }
+  .info-card { background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
+    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  .info-head { background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
+    color: #fff; padding: 22px 20px; text-align: center; }
+  .info-logo { width: 72px; height: 72px; border-radius: 50%; background: #fff; object-fit: cover; margin-bottom: 10px; }
+  .info-head h2 { font-size: 16px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+  .info-body { padding: 22px 22px 8px; text-align: center; }
+  .info-line { font-size: 15px; line-height: 1.6; color: var(--text); margin-bottom: 18px; }
+  .info-email {
+    display: inline-block; background: var(--g-pale); color: var(--g-deep);
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;
+    font-size: 14px; font-weight: 800; text-decoration: none; letter-spacing: .5px; word-break: break-all;
+  }
+  .info-email:active { background: #dceadc; }
+  .info-tip { font-size: 12px; line-height: 1.5; color: var(--text-muted);
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
+  .info-close {
+    display: block; width: calc(100% - 44px); margin: 18px 22px 22px; padding: 14px;
+    background: #eee; color: var(--text); border: none; border-radius: 10px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    font-size: 15px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+  .info-close:active { background: #ddd; }
+
+  @media (min-width: 720px) {
+    .clin-btn { min-height: 110px; }
+    .clin-title { font-size: 42px; }
+    .ops-title { font-size: 26px; }
+    .hdr-text h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <img class="hdr-logo" src="logo.png" alt="NCEMS">
+  <div class="hdr-text">
+    <h1>NCEMS Field Reference</h1>
+    <p>North Country EMS &middot; Clark Fire 13</p>
+  </div>
+  <button class="info-btn" onclick="openInfo()">i</button>
+</header>
+
+<div class="content">
+
+  <!-- CLINICAL TAB -->
+  <div class="tab-page active" id="tab-clinical">
+    <div class="section-label">Clinical Reference</div>
+    <div class="clin-list">
+      <a class="clin-btn" href="https://ncemsderek.github.io/Intubation/"><div class="clin-title">Intubation</div></a>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Advanced Airway</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Drip Sets</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Medication List</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Shock</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Sepsis</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Stroke</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Cardiac</div></div>
+    </div>
+    <div class="section-label">Protocols</div>
+    <div class="clin-list">
+      <a class="clin-btn protocols" href="https://ncemsderek.github.io/Protocols/protocol-app.html"><div class="clin-title">Quick Protocols</div></a>
+    </div>
+  </div>
+
+  <!-- OPERATIONS TAB -->
+  <div class="tab-page" id="tab-ops">
+    <div id="ops-lock">
+      <div class="lock-screen">
+        <div class="lock-icon">&#128274;</div>
+        <div class="lock-title">Operations</div>
+        <div class="lock-sub">Enter access code</div>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="lock-input" id="lock-input"
+               onkeydown="if(event.key==='Enter')tryUnlock()">
+        <button class="lock-btn" onclick="tryUnlock()">Unlock</button>
+        <div class="lock-err" id="lock-err"></div>
+      </div>
+    </div>
+    <div id="ops-unlocked" style="display:none;">
+      <div class="section-label">Operations</div>
+      <div class="grid">
+        <a class="ops-btn" href="https://ncemsderek.github.io/onduty-incident-report/">
+          <div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty reports</div>
+        </a>
+        <a class="ops-btn" href="https://ncemsderek.github.io/ncems-ot/">
+          <div class="ops-title">NCEMS<br>OT</div><div class="ops-sub">Overtime sign-up</div>
+        </a>
+      </div>
+      <div class="section-label">Apparatus</div>
+      <div class="grid single">
+        <a class="ops-btn wambo" href="https://ncemsderek.github.io/WAMBOchecker/">
+          <div class="ops-title">WAMBOchecker</div>
+          <div class="ops-sub">Daily checks &middot; M25A &middot; M25B &middot; M19 &middot; M18 &middot; M14</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM TABS -->
+<nav class="tabbar">
+  <button class="tab active" id="t-clinical" onclick="switchTab('clinical')">
+    <span class="tab-ico">&#129658;</span>
+    <span class="tab-lbl">Clinical</span>
+  </button>
+  <button class="tab" id="t-ops" onclick="switchTab('ops')">
+    <span class="tab-ico">&#128203;</span>
+    <span class="tab-lbl">Operations <span class="tab-lock" id="ops-lock-ico">&#128274;</span></span>
+  </button>
+</nav>
+
+<!-- NOTICE BANNER (tap to expand) -->
+<div class="notice-bar" onclick="openNotice()">
+  <div class="notice-dot off" id="noticedot"></div>
+  <div class="notice-text dim" id="noticetext">No active notices</div>
+</div>
+
+<!-- NOTICE EXPANDED MODAL -->
+<div class="notice-overlay" id="notice-overlay">
+  <div class="notice-card">
+    <div class="notice-card-head" id="notice-card-head">&#128226; Notice</div>
+    <div class="notice-card-body dim" id="notice-card-body">No active notices</div>
+    <button class="notice-card-close" onclick="closeNotice()">Close</button>
+  </div>
+</div>
+
+<!-- INFO MODAL -->
+<div class="info-overlay" id="info-overlay">
+  <div class="info-card">
+    <div class="info-head">
+      <img class="info-logo" src="logo.png" alt="NCEMS">
+      <h2>NCEMS Field Reference</h2>
+    </div>
+    <div class="info-body">
+      <p class="info-line">This is a reference guide only &mdash; questions or comments, contact Doug.</p>
+      <a class="info-email" href="mailto:d.boyce@northcountryems.org?subject=NCEMS%20HUB%20APP">d.boyce@northcountryems.org</a>
+      <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
+    </div>
+    <button class="info-close" onclick="closeInfo()">Close</button>
+  </div>
+</div>
+
+<script>
+/* ===== OPS ACCESS CODE — resets every 2 hours or on reopen ===== */
+var OPS_CODE = "5142";
+var UNLOCK_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+var unlockedAt = 0;
+
+function isUnlocked(){
+  return unlockedAt > 0 && (Date.now() - unlockedAt) < UNLOCK_WINDOW_MS;
+}
+function lockOps(){
+  unlockedAt = 0;
+  document.getElementById('ops-lock').style.display = 'block';
+  document.getElementById('ops-unlocked').style.display = 'none';
+  var ico = document.getElementById('ops-lock-ico');
+  if (ico) ico.style.display = 'inline';
+  var inp = document.getElementById('lock-input');
+  if (inp) inp.value = '';
+}
+function showUnlocked(){
+  document.getElementById('ops-lock').style.display = 'none';
+  document.getElementById('ops-unlocked').style.display = 'block';
+  var ico = document.getElementById('ops-lock-ico');
+  if (ico) ico.style.display = 'none';
+}
+
+function switchTab(which){
+  document.getElementById('tab-clinical').classList.toggle('active', which==='clinical');
+  document.getElementById('tab-ops').classList.toggle('active', which==='ops');
+  document.getElementById('t-clinical').classList.toggle('active', which==='clinical');
+  document.getElementById('t-ops').classList.toggle('active', which==='ops');
+  document.querySelector('.content').scrollTop = 0;
+  if (which==='ops'){
+    if (isUnlocked()) { showUnlocked(); }
+    else { lockOps(); setTimeout(function(){ var i=document.getElementById('lock-input'); if(i) i.focus(); }, 100); }
+  }
+}
+
+function tryUnlock(){
+  var val = document.getElementById('lock-input').value.trim();
+  var err = document.getElementById('lock-err');
+  if (val === OPS_CODE){
+    unlockedAt = Date.now();
+    showUnlocked();
+    err.textContent = '';
+  } else {
+    err.textContent = 'Incorrect code';
+    document.getElementById('lock-input').value = '';
+  }
+}
+
+/* re-lock when app returns to foreground if window expired */
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden && !isUnlocked()){
+    lockOps();
+    if (document.getElementById('tab-ops').classList.contains('active')){
+      setTimeout(function(){ var i=document.getElementById('lock-input'); if(i) i.focus(); }, 100);
+    }
+  }
+});
+
+/* INFO MODAL */
+function openInfo(){ document.getElementById('info-overlay').classList.add('show'); }
+function closeInfo(){ document.getElementById('info-overlay').classList.remove('show'); }
+document.getElementById('info-overlay').addEventListener('click', function(e){ if (e.target === this) closeInfo(); });
+
+/* NOTICE MODAL */
+function openNotice(){ document.getElementById('notice-overlay').classList.add('show'); }
+function closeNotice(){ document.getElementById('notice-overlay').classList.remove('show'); }
+document.getElementById('notice-overlay').addEventListener('click', function(e){ if (e.target === this) closeNotice(); });
+
+/* ===== FIREBASE NOTICES ===== */
+(async function(){
+  var FIREBASE_READY = false;
+  var firebaseConfig = {
+    apiKey:            "PASTE_YOUR_KEY_HERE",
+    authDomain:        "PASTE.firebaseapp.com",
+    projectId:         "PASTE_PROJECT_ID",
+    storageBucket:     "PASTE.appspot.com",
+    messagingSenderId: "PASTE_SENDER_ID",
+    appId:             "PASTE_APP_ID"
+  };
+  if (!FIREBASE_READY) return;
+  var fb = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  var fs = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  var db = fs.getFirestore(fb.initializeApp(firebaseConfig));
+  fs.onSnapshot(fs.doc(db, "notices", "active"), function(snap){
+    var dot = document.getElementById("noticedot");
+    var txt = document.getElementById("noticetext");
+    var cardHead = document.getElementById("notice-card-head");
+    var cardBody = document.getElementById("notice-card-body");
+    if (snap.exists() && snap.data().message && snap.data().message.trim()) {
+      var d = snap.data();
+      dot.className = "notice-dot" + (d.urgent ? " warn" : "");
+      txt.className = "notice-text";
+      txt.textContent = d.message;
+      cardHead.className = "notice-card-head" + (d.urgent ? " warn" : "");
+      cardHead.innerHTML = (d.urgent ? "\u26A0 Urgent Notice" : "\uD83D\uDCE2 Notice");
+      cardBody.className = "notice-card-body";
+      var timeStr = "";
+      if (d.timestamp && d.timestamp.toDate) {
+        var dt = d.timestamp.toDate();
+        timeStr = '<div class="notice-card-time">Posted ' + dt.toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
+      }
+      cardBody.innerHTML = d.message + timeStr;
+    } else {
+      dot.className = "notice-dot off";
+      txt.className = "notice-text dim";
+      txt.textContent = "No active notices";
+      cardHead.className = "notice-card-head";
+      cardHead.innerHTML = "\uD83D\uDCE2 Notice";
+      cardBody.className = "notice-card-body dim";
+      cardBody.textContent = "No active notices";
+    }
+  });
+})();
+</script>
+</body>
+</html>

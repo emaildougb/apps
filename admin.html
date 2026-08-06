@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NCEMS Admin">
+<meta name="theme-color" content="#1C3A1C">
+<title>NCEMS Admin</title>
+<style>
+  :root {
+    --g-deep:#1C3A1C; --g-mid:#2E6B2E; --g-accent:#3A8A3A;
+    --g-pale:#EBF5EB; --warn:#B87E0A; --bad:#C13E3E; --white:#fff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(160deg,var(--g-deep) 0%,var(--g-mid) 100%);
+    min-height:100vh;
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:env(safe-area-inset-top) 16px 40px;
+  }
+  .wrap{width:100%;max-width:500px;padding-top:40px;}
+
+  /* LOGIN */
+  #login-screen, #admin-screen { display:none; }
+  #login-screen.show, #admin-screen.show { display:block; }
+
+  .card{
+    background:var(--white);border-radius:18px;
+    padding:28px 22px;box-shadow:0 8px 32px rgba(0,0,0,.25);
+  }
+  .logo{text-align:center;margin-bottom:22px;}
+  .logo .ico{font-size:48px;}
+  .logo h1{color:var(--g-deep);font-size:20px;margin-top:8px;font-weight:700;}
+  .logo p{color:#666;font-size:13px;margin-top:3px;}
+
+  label{display:block;font-size:12px;font-weight:700;color:var(--g-mid);
+        text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;margin-top:16px;}
+  input[type=password],textarea{
+    width:100%;border:2px solid #ddd;border-radius:10px;
+    padding:12px 14px;font-size:15px;outline:none;
+    font-family:inherit;resize:none;
+    transition:border-color .15s;
+  }
+  input[type=password]:focus,textarea:focus{border-color:var(--g-accent);}
+  textarea{min-height:100px;line-height:1.5;}
+
+  .btn{
+    display:block;width:100%;margin-top:20px;
+    background:var(--g-mid);color:var(--white);
+    border:none;border-radius:12px;padding:15px;
+    font-size:16px;font-weight:700;cursor:pointer;
+    transition:background .12s;
+  }
+  .btn:active{background:var(--g-deep);}
+  .btn.danger{background:var(--bad);}
+  .btn.danger:active{background:#9a2a2a;}
+  .btn.secondary{background:#eee;color:var(--g-deep);margin-top:10px;}
+
+  .err{color:var(--bad);font-size:13px;margin-top:10px;text-align:center;min-height:18px;}
+  .ok {color:var(--g-accent);font-size:13px;margin-top:10px;text-align:center;min-height:18px;}
+
+  .current-box{
+    background:var(--g-pale);border-radius:10px;padding:12px 14px;
+    margin-top:16px;border-left:4px solid var(--g-accent);
+  }
+  .current-label{font-size:11px;font-weight:700;color:var(--g-mid);
+                  text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+  .current-msg{font-size:14px;color:#333;line-height:1.4;}
+  .current-msg.none{color:#aaa;font-style:italic;}
+
+  .urgent-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .urgent-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--warn);cursor:pointer;}
+  .urgent-row label{margin:0;font-size:14px;text-transform:none;letter-spacing:0;
+                     font-weight:600;color:#555;cursor:pointer;}
+
+  .not-ready{
+    background:rgba(255,255,255,.08);border-radius:14px;
+    padding:22px;text-align:center;color:rgba(255,255,255,.7);
+    font-size:14px;margin-top:16px;line-height:1.6;
+  }
+  .not-ready strong{color:var(--white);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div id="login-screen" class="show">
+    <div class="card">
+      <div class="logo">
+        <div class="ico">🔒</div>
+        <h1>NCEMS Admin</h1>
+        <p>BC / Chief access only</p>
+      </div>
+      <label for="pw">Password</label>
+      <input type="password" id="pw" placeholder="Enter admin password" autocomplete="current-password">
+      <div class="err" id="login-err"></div>
+      <button class="btn" onclick="doLogin()">Sign In</button>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-screen">
+    <div class="card">
+      <div class="logo">
+        <div class="ico">📢</div>
+        <h1>Push Notice</h1>
+        <p>Message shows instantly on the crew hub</p>
+      </div>
+
+      <div class="current-box">
+        <div class="current-label">Current notice</div>
+        <div class="current-msg none" id="current-msg">No active notice</div>
+      </div>
+
+      <label for="msg">New Notice</label>
+      <textarea id="msg" placeholder="Type your notice here…" maxlength="200"></textarea>
+
+      <div class="urgent-row">
+        <input type="checkbox" id="urgent">
+        <label for="urgent">⚠️ Mark as urgent (amber indicator)</label>
+      </div>
+
+      <div class="err" id="push-err"></div>
+      <div class="ok"  id="push-ok"></div>
+
+      <button class="btn" onclick="pushNotice()">Push to Crew Hub</button>
+      <button class="btn danger" onclick="clearNotice()">Clear Notice</button>
+      <button class="btn secondary" onclick="doLogout()">Sign Out</button>
+    </div>
+
+    <div class="not-ready" id="firebase-warning" style="display:none;">
+      <strong>Firebase not connected yet.</strong><br>
+      Paste your Firebase config into both index.html and admin.html,<br>
+      then set <code>FIREBASE_READY = true</code> in both files.
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  /* ============================================================
+     FIREBASE CONFIG — paste your real values here
+     then set FIREBASE_READY = true
+     ============================================================ */
+  const FIREBASE_READY = false;
+  const ADMIN_PASSWORD = "ncems2026"; // CHANGE THIS before deploying
+
+  const firebaseConfig = {
+    apiKey:            "PASTE_YOUR_KEY_HERE",
+    authDomain:        "PASTE.firebaseapp.com",
+    projectId:         "PASTE_PROJECT_ID",
+    storageBucket:     "PASTE.appspot.com",
+    messagingSenderId: "PASTE_SENDER_ID",
+    appId:             "PASTE_APP_ID"
+  };
+
+  let db, docRef, onSnapshot, setDoc, deleteField, serverTimestamp;
+
+  if (FIREBASE_READY) {
+    const app   = (await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js")).initializeApp(firebaseConfig);
+    const fs    = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    db            = fs.getFirestore(app);
+    docRef        = fs.doc(db, "notices", "active");
+    onSnapshot    = fs.onSnapshot;
+    setDoc        = fs.setDoc;
+    deleteField   = fs.deleteField;
+    serverTimestamp = fs.serverTimestamp;
+  }
+
+  /* expose to onclick handlers */
+  window.FIREBASE_READY = FIREBASE_READY;
+  window.ADMIN_PASSWORD = ADMIN_PASSWORD;
+  window.db = db;
+  window.docRef = docRef;
+
+  window.doLogin = function() {
+    const pw = document.getElementById("pw").value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById("login-screen").classList.remove("show");
+      document.getElementById("admin-screen").classList.add("show");
+      document.getElementById("login-err").textContent = "";
+      if (!FIREBASE_READY) {
+        document.getElementById("firebase-warning").style.display = "block";
+      } else {
+        loadCurrent();
+      }
+    } else {
+      document.getElementById("login-err").textContent = "Wrong password.";
+    }
+  };
+
+  window.doLogout = function() {
+    document.getElementById("admin-screen").classList.remove("show");
+    document.getElementById("login-screen").classList.add("show");
+    document.getElementById("pw").value = "";
+  };
+
+  function loadCurrent() {
+    if (!FIREBASE_READY) return;
+    onSnapshot(docRef, (snap) => {
+      const el = document.getElementById("current-msg");
+      if (snap.exists() && snap.data().message) {
+        el.textContent = snap.data().message;
+        el.className = "current-msg";
+      } else {
+        el.textContent = "No active notice";
+        el.className = "current-msg none";
+      }
+    });
+  }
+
+  window.pushNotice = async function() {
+    const msg = document.getElementById("msg").value.trim();
+    const urgent = document.getElementById("urgent").checked;
+    const errEl = document.getElementById("push-err");
+    const okEl  = document.getElementById("push-ok");
+    errEl.textContent = ""; okEl.textContent = "";
+
+    if (!msg) { errEl.textContent = "Type a message first."; return; }
+
+    if (!FIREBASE_READY) {
+      errEl.textContent = "Firebase not connected yet — see warning below.";
+      return;
+    }
+
+    try {
+      await setDoc(docRef, { message: msg, urgent, timestamp: serverTimestamp() });
+      okEl.textContent = "✓ Notice pushed to crew hub.";
+      document.getElementById("msg").value = "";
+      document.getElementById("urgent").checked = false;
+    } catch(e) {
+      errEl.textContent = "Push failed: " + e.message;
+    }
+  };
+
+  window.clearNotice = async function() {
+    const errEl = document.getElementById("push-err");
+    const okEl  = document.getElementById("push-ok");
+    errEl.textContent = ""; okEl.textContent = "";
+
+    if (!FIREBASE_READY) {
+      errEl.textContent = "Firebase not connected yet.";
+      return;
+    }
+
+    try {
+      await setDoc(docRef, { message: "", urgent: false, timestamp: serverTimestamp() });
+      okEl.textContent = "Notice cleared.";
+    } catch(e) {
+      errEl.textContent = "Clear failed: " + e.message;
+    }
+  };
+
+  /* allow Enter key on password field */
+  document.getElementById("pw").addEventListener("keydown", e => {
+    if (e.key === "Enter") window.doLogin();
+  });
+</script>
+</body>
+</html>
