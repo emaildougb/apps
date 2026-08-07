@@ -4,10 +4,10 @@ Central landing page for North Country EMS crew and admin tools.
 
 ## Links
 
-- Live (hub): [https://ncemsderek.github.io/apps/](https://ncemsderek.github.io/apps/)
-- Live (admin): [https://ncemsderek.github.io/apps/admin.html](https://ncemsderek.github.io/apps/admin.html)
-- Repo: [https://github.com/ncemsderek/apps](https://github.com/ncemsderek/apps)
-- Upload: [https://github.com/ncemsderek/apps/upload/main](https://github.com/ncemsderek/apps/upload/main)
+- Live (hub): [https://emaildougb.github.io/apps/](https://emaildougb.github.io/apps/)
+- Live (admin): [https://emaildougb.github.io/apps/admin.html](https://emaildougb.github.io/apps/admin.html)
+- Repo: [https://github.com/emaildougb/apps](https://github.com/emaildougb/apps)
+- Upload: [https://github.com/emaildougb/apps/upload/main](https://github.com/emaildougb/apps/upload/main)
 
 ## Files (upload ALL of these)
 
@@ -86,4 +86,4 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 
 - Hosted in `apps` repo — never touches root URL
 - iOS home-screen caches hard — delete and re-add icon after every deploy
-- Each individual app still needs its own back button to `https://ncemsderek.github.io/apps/`
+- Each individual app still needs its own back button to `https://emaildougb.github.io/apps/`
