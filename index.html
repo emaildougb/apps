@@ -27,7 +27,7 @@
     --text-muted:#555;
     --border:   #C5DFC5;
     --white:    #ffffff;
-    --banner-h: 38px;
+    --banner-h: 44px;
     --tab-h:    62px;
     --hdr-h:    72px;
   }
@@ -134,6 +134,10 @@
                text-transform: uppercase; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
   .ops-sub   { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 6px; letter-spacing: .5px; }
   .ops-btn.wambo { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
+  .ops-btn.admin-btn {
+    background: linear-gradient(135deg, #5c3a00 0%, #8a5500 100%);
+    border-color: rgba(255,255,255,0.15);
+  }
 
   /* LOCK SCREEN */
   .lock-screen { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
@@ -178,26 +182,33 @@
   .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
   .tab-lock { font-size: 10px; }
 
-  /* NOTICE BANNER — smaller, white, centered, tap to expand */
+  /* NOTICE BANNER */
   .notice-bar {
     position: fixed; bottom: 0; left: 0; right: 0;
     height: calc(var(--banner-h) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--g-deep); color: var(--white);
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    padding-left: 30px; padding-right: 30px; z-index: 30;
+    padding-left: 14px; padding-right: 14px; z-index: 30;
     box-shadow: 0 -2px 10px rgba(0,0,0,.25);
     cursor: pointer;
+    transition: background 0.25s;
   }
+  /* urgent = red bar */
+  .notice-bar.urgent-bar { background: #C13E3E; }
+  /* non-urgent notice = amber bar */
+  .notice-bar.active-bar { background: #B87E0A; }
   .notice-dot { width: 7px; height: 7px; border-radius: 50%;
-                background: var(--g-accent); flex-shrink: 0;
+                background: rgba(255,255,255,0.5); flex-shrink: 0;
                 animation: pulse 2.5s ease-in-out infinite; }
-  .notice-dot.warn { background: var(--warn); }
   .notice-dot.off  { background: #444; animation: none; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.65);} }
-  .notice-text { font-size:12px; white-space:nowrap; overflow:hidden;
-                 text-overflow:ellipsis; opacity:.95; color:#fff; text-align:center; max-width: 80%; }
-  .notice-text.dim { opacity:.4; font-style:italic; }
+  .notice-text {
+    font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; color: #000; text-align: center; max-width: 88%;
+    letter-spacing: .5px;
+  }
+  .notice-text.dim { color: rgba(255,255,255,0.45); font-style: italic; font-weight: 400; font-size: 12px; }
 
   /* NOTICE EXPANDED MODAL */
   .notice-overlay {
@@ -216,6 +227,7 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .notice-card-head.warn { background: linear-gradient(135deg, #946408 0%, var(--warn) 100%); }
+  .notice-card-head.urgent { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); }
   .notice-card-body { padding: 24px 22px; text-align: center; font-size: 16px; line-height: 1.6; color: var(--text); }
   .notice-card-body.dim { color: #999; font-style: italic; }
   .notice-card-time { font-size: 11px; color: var(--text-muted); margin-top: 14px; letter-spacing: 1px; }
@@ -311,18 +323,25 @@
     <div id="ops-unlocked" style="display:none;">
       <div class="section-label">Operations</div>
       <div class="grid">
-        <a class="ops-btn" href="https://emaildougb.github.io/onduty-incident-report/">
+        <a class="ops-btn" href="https://reports.northcountryems.org/">
           <div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty reports</div>
         </a>
-        <a class="ops-btn" href="https://ncemsderek.github.io/ncems-ot/">
+        <a class="ops-btn" href="https://overtime.northcountryems.org/">
           <div class="ops-title">NCEMS<br>OT</div><div class="ops-sub">Overtime sign-up</div>
         </a>
       </div>
       <div class="section-label">Apparatus</div>
       <div class="grid single">
-        <a class="ops-btn wambo" href="https://emaildougb.github.io/equipment-checker/">
+        <a class="ops-btn wambo" href="https://checks.northcountryems.org/">
           <div class="ops-title">EP Checker</div>
           <div class="ops-sub">Daily checks &middot; M25A &middot; M25B &middot; M19 &middot; M18 &middot; M14</div>
+        </a>
+      </div>
+      <div class="section-label">BC / Chief</div>
+      <div class="grid single">
+        <a class="ops-btn admin-btn" href="admin.html">
+          <div class="ops-title">Push Notice</div>
+          <div class="ops-sub">Admin panel &middot; BC and Chief access only</div>
         </a>
       </div>
     </div>
@@ -343,7 +362,7 @@
 </nav>
 
 <!-- NOTICE BANNER (tap to expand) -->
-<div class="notice-bar" onclick="openNotice()">
+<div class="notice-bar" id="notice-bar" onclick="openNotice()">
   <div class="notice-dot off" id="noticedot"></div>
   <div class="notice-text dim" id="noticetext">No active notices</div>
 </div>
@@ -443,46 +462,86 @@ function openNotice(){ document.getElementById('notice-overlay').classList.add('
 function closeNotice(){ document.getElementById('notice-overlay').classList.remove('show'); }
 document.getElementById('notice-overlay').addEventListener('click', function(e){ if (e.target === this) closeNotice(); });
 
-/* ===== FIREBASE NOTICES ===== */
+/* ===== FIREBASE ===== */
 (async function(){
-  var FIREBASE_READY = false;
+  var FIREBASE_READY = true;
   var firebaseConfig = {
-    apiKey:            "PASTE_YOUR_KEY_HERE",
-    authDomain:        "PASTE.firebaseapp.com",
-    projectId:         "PASTE_PROJECT_ID",
-    storageBucket:     "PASTE.appspot.com",
-    messagingSenderId: "PASTE_SENDER_ID",
-    appId:             "PASTE_APP_ID"
+    apiKey:            "AIzaSyCBSmzaXRU6TV1Jen5z4xHKZfG28UHXlkY",
+    authDomain:        "ncems-hub-9111d.firebaseapp.com",
+    projectId:         "ncems-hub-9111d",
+    storageBucket:     "ncems-hub-9111d.firebasestorage.app",
+    messagingSenderId: "282446545601",
+    appId:             "1:282446545601:web:41f89407c2a1a348f24a40"
   };
   if (!FIREBASE_READY) return;
+
   var fb = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
   var fs = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
   var db = fs.getFirestore(fb.initializeApp(firebaseConfig));
+
+  /* --- USAGE TRACKER: bump hub open count --- */
+  try {
+    var today = new Date().toISOString().slice(0,10);
+    var usageRef = fs.doc(db, "usage", "hub");
+    await fs.runTransaction(db, async function(tx){
+      var snap = await tx.get(usageRef);
+      var data = snap.exists() ? snap.data() : { total: 0, days: {} };
+      data.total = (data.total || 0) + 1;
+      data.days = data.days || {};
+      data.days[today] = (data.days[today] || 0) + 1;
+      tx.set(usageRef, data);
+    });
+  } catch(e){ console.warn("Usage track failed", e); }
+
+  /* --- NOTICES: live listener --- */
   fs.onSnapshot(fs.doc(db, "notices", "active"), function(snap){
-    var dot = document.getElementById("noticedot");
-    var txt = document.getElementById("noticetext");
+    var bar      = document.getElementById("notice-bar");
+    var dot      = document.getElementById("noticedot");
+    var txt      = document.getElementById("noticetext");
     var cardHead = document.getElementById("notice-card-head");
     var cardBody = document.getElementById("notice-card-body");
+
     if (snap.exists() && snap.data().message && snap.data().message.trim()) {
       var d = snap.data();
-      dot.className = "notice-dot" + (d.urgent ? " warn" : "");
+
+      /* Banner bar color */
+      bar.classList.remove("urgent-bar", "active-bar");
+      bar.classList.add(d.urgent ? "urgent-bar" : "active-bar");
+
+      /* Dot */
+      dot.className = "notice-dot";
+
+      /* Banner text: black, bigger, bold */
       txt.className = "notice-text";
       txt.textContent = d.message;
-      cardHead.className = "notice-card-head" + (d.urgent ? " warn" : "");
-      cardHead.innerHTML = (d.urgent ? "\u26A0 Urgent Notice" : "\uD83D\uDCE2 Notice");
+
+      /* Modal header */
+      cardHead.classList.remove("warn", "urgent");
+      if (d.urgent) {
+        cardHead.className = "notice-card-head urgent";
+        cardHead.innerHTML = "&#9888; URGENT NOTICE";
+      } else {
+        cardHead.className = "notice-card-head warn";
+        cardHead.innerHTML = "&#128226; Notice";
+      }
+
+      /* Modal body */
       cardBody.className = "notice-card-body";
       var timeStr = "";
       if (d.timestamp && d.timestamp.toDate) {
         var dt = d.timestamp.toDate();
-        timeStr = '<div class="notice-card-time">Posted ' + dt.toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
+        timeStr = '<div class="notice-card-time">Posted ' + dt.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
       }
       cardBody.innerHTML = d.message + timeStr;
+
     } else {
+      /* No notice: restore default dark green bar */
+      bar.classList.remove("urgent-bar", "active-bar");
       dot.className = "notice-dot off";
       txt.className = "notice-text dim";
       txt.textContent = "No active notices";
       cardHead.className = "notice-card-head";
-      cardHead.innerHTML = "\uD83D\uDCE2 Notice";
+      cardHead.innerHTML = "&#128226; Notice";
       cardBody.className = "notice-card-body dim";
       cardBody.textContent = "No active notices";
     }
