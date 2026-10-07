@@ -9,13 +9,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Grounds">
+<meta name="apple-mobile-web-app-title" content="NCEMS">
 <meta name="theme-color" content="#1C3A1C">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
-<title>NCEMS Grounds Tracker</title>
-<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
+<title>NCEMS Field Reference</title>
 <style>
   :root {
     --g-deep:   #1C3A1C;
@@ -28,1200 +27,533 @@
     --text-muted:#555;
     --border:   #C5DFC5;
     --white:    #ffffff;
-    --tab-h:    64px;
+    --banner-h: 44px;
+    --tab-h:    62px;
     --hdr-h:    72px;
-
-    /* status colors */
-    --s-ns:     #8A918A;  --s-ns-bg: #F1F3F1;
-    --s-ip:     #D9A400;  --s-ip-bg: #FFF7DB;
-    --s-done:   #3A8A3A;  --s-done-bg:#E6F4E6;
-    --s-nc:     #C13E3E;  --s-nc-bg: #FBE7E7;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
   html, body {
     height: 100%; width: 100%; overflow: hidden;
     font-family: 'SF Mono', ui-monospace, 'Cascadia Code', 'Menlo', monospace;
-    background: var(--g-deep); color: var(--text);
-    overscroll-behavior: none; -webkit-text-size-adjust: 100%;
+    background: var(--g-deep);
+    color: var(--text);
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
   }
-  button, input, textarea { font-family: inherit; }
 
-  /* HEADER (same family as the hub) */
+  /* HEADER */
   .hdr {
     position: fixed; top: 0; left: 0; right: 0;
     height: calc(var(--hdr-h) + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
     background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
     color: var(--white);
-    display: flex; align-items: center; gap: 10px;
-    padding-left: 10px; padding-right: 10px;
-    z-index: 30; box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    display: flex; align-items: center; gap: 12px;
+    padding-left: 14px; padding-right: 12px;
+    z-index: 30;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
   }
-  .hdr-back {
-    flex-shrink: 0; height: 38px; width: 38px; justify-content: center; border-radius: 50%;
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 1px;
-    display: flex; align-items: center; gap: 4px; text-decoration: none;
+  .hdr-logo {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--white); object-fit: cover; flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,.3);
   }
-  .hdr-back:active { background: rgba(255,255,255,0.3); }
-  .hdr-logo { width: 42px; height: 42px; border-radius: 50%; background: #fff; object-fit: cover; flex-shrink: 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,.3); }
   .hdr-text { flex: 1; min-width: 0; }
-  .hdr-text h1 { font-size: 14px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hdr-text p  { font-size: 10px; opacity: .75; margin-top: 2px; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .icon-btn {
+  .hdr-text h1 { font-size: 17px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .hdr-text p  { font-size: 10px; opacity: .7; margin-top: 2px; letter-spacing: 1px; }
+  .info-btn {
     flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
     background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px; font-weight: 800; font-style: italic;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif;
   }
-  .icon-btn:active { background: rgba(255,255,255,0.3); }
-  .icon-btn svg { width: 20px; height: 20px; }
-  .icon-btn.spin svg { animation: spin 0.9s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .info-i { font-size: 20px; font-weight: 800; font-style: italic; font-family: Georgia, serif; }
+  .info-btn:active { background: rgba(255,255,255,0.3); }
 
   /* CONTENT */
   .content {
     position: fixed;
     top: calc(var(--hdr-h) + env(safe-area-inset-top));
     left: 0; right: 0;
-    bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+    bottom: calc(var(--banner-h) + var(--tab-h) + env(safe-area-inset-bottom));
     overflow-y: auto; -webkit-overflow-scrolling: touch;
     background: #f0f4f0;
   }
-  body.no-tabs .content { bottom: 0; }
-  body.no-tabs .tabbar { display: none; }
-  .page { display: none; padding: 4px 0 24px; }
-  .page.active { display: block; }
+  .tab-page { display: none; padding: 4px 0 12px; }
+  .tab-page.active { display: block; }
 
   .section-label {
-    font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--text-muted); padding: 16px 18px 8px;
-  }
-  .sync-line { font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 16px 0; letter-spacing: .5px; }
-  .sync-line.err { color: var(--bad); font-weight: 700; }
-
-  /* CHIPS */
-  .chips { display: flex; gap: 8px; padding: 12px 16px 4px; flex-wrap: wrap; }
-  .chip {
-    border: 2px solid var(--border); background: #fff; color: var(--g-deep);
-    border-radius: 22px; padding: 10px 16px; font-size: 13px; font-weight: 800; letter-spacing: 1px;
-    text-transform: uppercase; cursor: pointer; min-height: 44px;
-  }
-  .chip.on { background: var(--g-mid); border-color: var(--g-mid); color: #fff; }
-
-  /* SUMMARY TILES */
-  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px 16px 2px; }
-  .sum { background: #fff; border-radius: 10px; padding: 10px 4px; text-align: center; border-top: 5px solid var(--s-ns); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  .sum b { display: block; font-size: 24px; font-weight: 800; line-height: 1; }
-  .sum span { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
-  .sum.od { border-top-color: var(--s-nc); } .sum.od b { color: var(--s-nc); }
-  .sum.ip { border-top-color: var(--s-ip); }
-  .sum.dn { border-top-color: var(--s-done); } .sum.dn b { color: var(--s-done); }
-
-  /* STATION GROUP */
-  .station { margin: 14px 12px 0; }
-  .st-head {
-    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
-    color: #fff; border-radius: 12px 12px 0 0; padding: 12px 14px;
-    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  }
-  .st-name { font-size: 17px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-  .st-addr { font-size: 10px; opacity: .8; letter-spacing: .5px; margin-top: 2px; }
-  .st-count { font-size: 11px; font-weight: 800; letter-spacing: 1px; white-space: nowrap; opacity: .9; }
-  .st-body { background: #fff; border-radius: 0 0 12px 12px; padding: 8px; display: flex; flex-direction: column; gap: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.08); }
-  .st-empty { padding: 14px; font-size: 13px; color: var(--text-muted); text-align: center; }
-
-  /* TASK CARD */
-  .task {
-    border-radius: 10px; border-left: 10px solid var(--s-ns); background: var(--s-ns-bg);
-    overflow: hidden;
-  }
-  .task.ip   { border-left-color: var(--s-ip);   background: var(--s-ip-bg); }
-  .task.done { border-left-color: var(--s-done); background: var(--s-done-bg); }
-  .task.nc   { border-left-color: var(--s-nc);   background: var(--s-nc-bg); }
-  .task-top { padding: 12px 12px 8px; cursor: pointer; }
-  .task-row1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-  .task-title { font-size: 16px; font-weight: 800; line-height: 1.25; color: var(--text); }
-  .pill {
-    flex-shrink: 0; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
-    border-radius: 5px; padding: 4px 7px; color: #fff; background: var(--s-ns); white-space: nowrap;
-  }
-  .pill.ip { background: var(--s-ip); color: #1A1A1A; }
-  .pill.done { background: var(--s-done); }
-  .pill.nc { background: var(--s-nc); }
-  .task-meta { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
-  .task-meta .due-over { color: var(--bad); font-weight: 800; }
-  .task-meta .due-today { color: var(--g-deep); font-weight: 800; }
-  .task-reason { margin-top: 6px; font-size: 12px; color: var(--bad); font-weight: 700; }
-  .task-more { font-size: 11px; color: var(--g-mid); font-weight: 800; letter-spacing: 1px; margin-top: 6px; }
-
-  .acts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 0 8px 8px; }
-  .act {
-    min-height: 56px; border-radius: 10px; border: none; cursor: pointer;
-    font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #fff;
-    box-shadow: 0 3px 8px rgba(0,0,0,.18); transition: transform .1s;
-  }
-  .act:active { transform: scale(0.96); }
-  .act.start { background: linear-gradient(135deg, #B88A00 0%, #D9A400 100%); color: #1A1A1A; }
-  .act.done  { background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%); }
-  .act.nc    { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); font-size: 13px; }
-  .act[disabled] { opacity: .35; box-shadow: none; transform: none; cursor: default; }
-  .done-bar {
-    margin: 0 8px 8px; min-height: 48px; border-radius: 10px; background: var(--s-done); color: #fff;
-    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 16px 18px 8px;
   }
 
-  /* SEARCH */
-  .search-wrap { padding: 12px 16px 0; }
-  .search {
-    width: 100%; padding: 14px 14px; font-size: 16px; border: 2px solid var(--border); border-radius: 12px;
-    background: #fff; outline: none; -webkit-appearance: none; appearance: none;
+  /* CLINICAL BUTTONS */
+  .clin-list { display: flex; flex-direction: column; gap: 14px; padding: 0 16px 6px; }
+  .clin-btn {
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px 20px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12); cursor: pointer;
+    transition: transform 0.1s; position: relative; overflow: hidden;
+    min-height: 88px; text-decoration: none;
+    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.30);
   }
-  .search:focus { border-color: var(--g-accent); }
+  .clin-btn:active { transform: scale(0.97); }
+  .clin-btn.protocols { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
+  .clin-btn.soon {
+    background: linear-gradient(135deg, #6b756b 0%, #889088 100%);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); cursor: default;
+  }
+  .clin-btn.soon:active { transform: none; }
+  .clin-title {
+    font-size: clamp(26px, 7vw, 36px); font-weight: 800; color: #fff;
+    text-align: center; letter-spacing: 1.5px; text-transform: uppercase;
+    line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .soon-pill {
+    position: absolute; top: 10px; right: 12px;
+    font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(255,255,255,0.85); color: #555; border-radius: 5px; padding: 3px 7px;
+  }
 
-  /* SIGN IN / SETUP */
-  .center-card { margin: 40px 20px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.12); text-align: center; }
-  .center-head { background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%); color: #fff; padding: 26px 20px; }
-  .center-head img { width: 84px; height: 84px; border-radius: 50%; background: #fff; object-fit: cover; margin-bottom: 10px; }
-  .center-head h2 { font-size: 18px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
-  .center-body { padding: 22px; font-size: 14px; line-height: 1.6; color: var(--text); }
-  .big-btn {
-    display: block; width: 100%; margin-top: 18px; padding: 18px; min-height: 60px;
-    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%); color: #fff; border: none; border-radius: 12px;
-    font-size: 16px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0,0,0,.2); text-decoration: none;
+  /* OPS GRID */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 4px; }
+  .grid.single { grid-template-columns: 1fr; }
+  .ops-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 14px; min-height: 96px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+    text-decoration: none; cursor: pointer; transition: transform 0.1s; text-align: center;
   }
-  .big-btn:active { transform: scale(0.98); }
-  .big-btn.ghost { background: #eee; color: var(--text); box-shadow: none; }
-  .small-note { font-size: 12px; color: var(--text-muted); margin-top: 14px; line-height: 1.5; }
-  .err-box { margin-top: 14px; padding: 12px; border-radius: 10px; background: var(--s-nc-bg); color: var(--bad); font-size: 13px; font-weight: 700; text-align: left; display: none; word-break: break-word; }
-  .err-box.show { display: block; }
-  .text-in {
-    width: 100%; padding: 14px; font-size: 16px; border: 2px solid var(--border); border-radius: 12px;
-    background: #fff; outline: none; -webkit-appearance: none; appearance: none; margin-top: 12px;
+  .ops-btn:active { transform: scale(0.97); }
+  .ops-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px;
+               text-transform: uppercase; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+  .ops-sub   { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 6px; letter-spacing: .5px; }
+  .ops-btn.wambo { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
+  .ops-btn.admin-btn {
+    background: linear-gradient(135deg, #5c3a00 0%, #8a5500 100%);
+    border-color: rgba(255,255,255,0.15);
   }
-  .text-in:focus { border-color: var(--g-accent); }
 
-  /* BOTTOM TABS */
+  /* LOCK SCREEN */
+  .lock-screen { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 48px 24px 24px; text-align: center; }
+  .lock-icon { font-size: 52px; margin-bottom: 8px; }
+  .lock-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--g-deep); margin-bottom: 4px; }
+  .lock-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; letter-spacing: 1px; }
+  .lock-input {
+    width: 200px; max-width: 80%; padding: 16px; font-size: 34px; font-weight: 800;
+    border: 2px solid var(--border); border-radius: 12px; text-align: center;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: var(--g-deep);
+    letter-spacing: 10px; outline: none; -webkit-appearance: none; appearance: none; background: #fff;
+  }
+  .lock-input:focus { border-color: var(--g-accent); }
+  .lock-input::-webkit-outer-spin-button, .lock-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .lock-btn {
+    margin-top: 18px; width: 200px; max-width: 80%; padding: 16px;
+    background: var(--g-accent); color: #fff; border: none; border-radius: 12px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    font-size: 16px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+  .lock-btn:active { background: var(--g-mid); }
+  .lock-err { margin-top: 14px; min-height: 18px; color: var(--bad);
+    font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+
+  /* BOTTOM TAB BAR */
   .tabbar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
+    position: fixed;
+    bottom: calc(var(--banner-h) + env(safe-area-inset-bottom));
+    left: 0; right: 0; height: var(--tab-h);
     background: var(--white); border-top: 1px solid #d8e0d8;
     display: flex; z-index: 28; box-shadow: 0 -1px 6px rgba(0,0,0,.06);
   }
-  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    cursor: pointer; border: none; background: none; color: #9aa79a; }
+  .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; cursor: pointer; border: none; background: none;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: #9aa79a;
+  }
   .tab.active { color: var(--g-mid); }
-  .tab svg { width: 24px; height: 24px; }
+  .tab-ico { font-size: 22px; line-height: 1; }
   .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+  .tab-lock { font-size: 10px; }
 
-  /* BOTTOM SHEET (task detail) */
-  .scrim { position: fixed; inset: 0; background: rgba(14,30,14,0.6); z-index: 60; display: none; }
-  .scrim.show { display: block; }
-  .sheet {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
-    max-height: calc(100% - 40px - env(safe-area-inset-top)); background: #f0f4f0;
-    border-radius: 18px 18px 0 0; transform: translateY(105%); transition: transform .25s ease;
-    display: flex; flex-direction: column; box-shadow: 0 -8px 30px rgba(0,0,0,.3);
+  /* NOTICE BANNER */
+  .notice-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: calc(var(--banner-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--g-deep); color: var(--white);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding-left: 14px; padding-right: 14px; z-index: 30;
+    box-shadow: 0 -2px 10px rgba(0,0,0,.25);
+    cursor: pointer;
+    transition: background 0.25s;
   }
-  .sheet.show { transform: translateY(0); }
-  .sheet-head {
-    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%); color: #fff;
-    border-radius: 18px 18px 0 0; padding: 14px 14px 14px 18px; display: flex; gap: 10px; align-items: flex-start;
+  /* urgent = red bar */
+  .notice-bar.urgent-bar { background: #C13E3E; }
+  /* non-urgent notice = amber bar */
+  .notice-bar.active-bar { background: #B87E0A; }
+  .notice-dot { width: 7px; height: 7px; border-radius: 50%;
+                background: rgba(255,255,255,0.5); flex-shrink: 0;
+                animation: pulse 2.5s ease-in-out infinite; }
+  .notice-dot.off  { background: #444; animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.65);} }
+  .notice-text {
+    font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; color: #000; text-align: center; max-width: 88%;
+    letter-spacing: .5px;
   }
-  .sheet-title { flex: 1; font-size: 18px; font-weight: 800; line-height: 1.25; }
-  .sheet-sub { font-size: 11px; opacity: .85; margin-top: 4px; letter-spacing: .5px; }
-  .sheet-close { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.3);
-    background: rgba(255,255,255,.15); color: #fff; font-size: 22px; font-weight: 800; cursor: pointer; }
-  .sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); }
-  .blk { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  .blk-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-  .blk-text { font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-  .kv { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .kv div b { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
-  .kv div span { font-size: 14px; font-weight: 700; }
-  .person-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 56px; border-top: 1px solid #eee; }
-  .person-row:first-of-type { border-top: none; }
-  .person-row .who b { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
-  .person-row .who span { font-size: 15px; font-weight: 800; }
-  .change-btn { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--g-pale);
-    color: var(--g-deep); font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
-  .change-btn:active { background: #dceadc; }
-  .reset-link { display: block; width: 100%; margin-top: 8px; min-height: 44px; border: none; background: none;
-    color: var(--text-muted); font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; text-decoration: underline; cursor: pointer; }
-  textarea.note-in {
-    width: 100%; min-height: 90px; padding: 12px; font-size: 16px; border: 2px solid var(--border); border-radius: 10px;
-    outline: none; resize: vertical; -webkit-appearance: none; appearance: none;
-  }
-  textarea.note-in:focus { border-color: var(--g-accent); }
-  .row-btns { display: flex; gap: 8px; margin-top: 8px; }
-  .row-btns .big-btn { margin-top: 0; }
-  .notes-hist { margin-top: 12px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
-    color: var(--text); max-height: 260px; overflow-y: auto; background: #f7f9f7; border-radius: 8px; padding: 10px; }
-  .notes-hist:empty { display: none; }
-  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: #ddd; cursor: pointer; }
-  .photo-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .notice-text.dim { color: rgba(255,255,255,0.45); font-style: italic; font-weight: 400; font-size: 12px; }
 
-  /* MODALS */
-  .overlay { position: fixed; inset: 0; background: rgba(14,30,14,0.85); z-index: 100; display: none;
-    align-items: center; justify-content: center; padding: 18px; }
-  .overlay.show { display: flex; }
-  .modal { background: #fff; border-radius: 16px; max-width: 440px; width: 100%; max-height: 90%; overflow: hidden;
-    display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
-  .modal-head { background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%); color: #fff; padding: 16px 20px; text-align: center;
-    font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
-  .modal-head.red { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); }
-  .modal-body { padding: 18px; overflow-y: auto; }
-  .modal-sub { font-size: 14px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
-  .quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .quick button { border: 2px solid #eed; background: #fafaf5; border-radius: 18px; padding: 9px 12px; min-height: 40px;
-    font-size: 12px; font-weight: 800; cursor: pointer; color: var(--text); }
-  .quick button:active { background: #eee; }
-  .modal-foot { display: flex; gap: 8px; padding: 0 18px 18px; }
-  .modal-foot .big-btn { margin-top: 0; }
-  .big-btn.red { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); }
-  .big-btn[disabled] { opacity: .4; }
-  .ppl-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
-  .ppl { text-align: left; padding: 12px 14px; min-height: 56px; border-radius: 10px; border: 2px solid #e5ebe5; background: #fff; cursor: pointer; }
-  .ppl b { display: block; font-size: 15px; }
-  .ppl span { font-size: 11px; color: var(--text-muted); word-break: break-all; }
-  .ppl.other { border-style: dashed; border-color: var(--warn); background: #FFF8EC; }
-  .ppl.cur { border-color: var(--g-accent); background: var(--g-pale); }
-  .ppl:active { background: #eef3ee; }
-  .info-line { font-size: 14px; line-height: 1.6; margin-bottom: 12px; }
-  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 120; display: none; align-items: center; justify-content: center; padding: 12px; }
-  .lightbox.show { display: flex; }
-  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
-
-  /* TOAST */
-  .toast {
-    position: fixed; left: 12px; right: 12px; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 10px);
-    background: #1A1A1A; color: #fff; border-radius: 12px; padding: 12px 14px; z-index: 200;
-    display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700;
-    transform: translateY(150%); opacity: 0; transition: all .25s; box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  /* NOTICE EXPANDED MODAL */
+  .notice-overlay {
+    position: fixed; inset: 0; background: rgba(14,30,14,0.85);
+    z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px;
   }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.err { background: var(--bad); }
-  .toast-msg { flex: 1; }
-  .toast-act { border: 2px solid rgba(255,255,255,.6); background: none; color: #fff; border-radius: 8px; min-height: 40px; padding: 0 14px;
-    font-weight: 800; letter-spacing: 1px; cursor: pointer; }
-  .demo-flag { background: var(--warn); color: #fff; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 6px; }
+  .notice-overlay.show { display: flex; }
+  .notice-card {
+    background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
+    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4);
+  }
+  .notice-card-head {
+    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
+    color: #fff; padding: 16px 20px; text-align: center;
+    font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .notice-card-head.warn { background: linear-gradient(135deg, #946408 0%, var(--warn) 100%); }
+  .notice-card-head.urgent { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); }
+  .notice-card-body { padding: 24px 22px; text-align: center; font-size: 16px; line-height: 1.6; color: var(--text); }
+  .notice-card-body.dim { color: #999; font-style: italic; }
+  .notice-card-time { font-size: 11px; color: var(--text-muted); margin-top: 14px; letter-spacing: 1px; }
+  .notice-card-close {
+    display: block; width: calc(100% - 44px); margin: 0 22px 22px; padding: 14px;
+    background: #eee; color: var(--text); border: none; border-radius: 10px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    font-size: 15px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+  .notice-card-close:active { background: #ddd; }
+
+  /* INFO MODAL */
+  .info-overlay { position: fixed; inset: 0; background: rgba(14,30,14,0.85);
+    z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .info-overlay.show { display: flex; }
+  .info-card { background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
+    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  .info-head { background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
+    color: #fff; padding: 22px 20px; text-align: center; }
+  .info-logo { width: 72px; height: 72px; border-radius: 50%; background: #fff; object-fit: cover; margin-bottom: 10px; }
+  .info-head h2 { font-size: 16px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+  .info-body { padding: 22px 22px 8px; text-align: center; }
+  .info-line { font-size: 15px; line-height: 1.6; color: var(--text); margin-bottom: 18px; }
+  .info-email {
+    display: inline-block; background: var(--g-pale); color: var(--g-deep);
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;
+    font-size: 14px; font-weight: 800; text-decoration: none; letter-spacing: .5px; word-break: break-all;
+  }
+  .info-email:active { background: #dceadc; }
+  .info-tip { font-size: 12px; line-height: 1.5; color: var(--text-muted);
+    margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
+  .info-close {
+    display: block; width: calc(100% - 44px); margin: 18px 22px 22px; padding: 14px;
+    background: #eee; color: var(--text); border: none; border-radius: 10px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    font-size: 15px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+  }
+  .info-close:active { background: #ddd; }
 
   @media (min-width: 720px) {
-    .station, .summary, .chips, .search-wrap { max-width: 760px; margin-left: auto; margin-right: auto; }
-    .station { margin-top: 16px; }
-    .sheet { max-width: 640px; margin: 0 auto; }
-    .hdr-text h1 { font-size: 20px; }
+    .clin-btn { min-height: 110px; }
+    .clin-title { font-size: 42px; }
+    .ops-title { font-size: 26px; }
+    .hdr-text h1 { font-size: 22px; }
   }
 </style>
 </head>
-<body class="no-tabs">
+<body>
 
 <header class="hdr">
-  <a class="hdr-back" id="hub-link" href="https://hub.northcountryems.org/" aria-label="Back to hub">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-  </a>
   <img class="hdr-logo" src="logo.png" alt="NCEMS">
   <div class="hdr-text">
-    <h1>Grounds Tracker</h1>
-    <p id="hdr-sub">North Country EMS &middot; Facilities</p>
+    <h1>NCEMS Field Reference</h1>
+    <p>North Country EMS &middot; Clark Fire 13</p>
   </div>
-  <button class="icon-btn" id="refresh-btn" onclick="refresh(true)" aria-label="Refresh" style="display:none">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-  </button>
-  <button class="icon-btn" onclick="openInfo()" aria-label="Info"><span class="info-i">i</span></button>
+  <button class="info-btn" onclick="openInfo()">i</button>
 </header>
 
-<div class="content" id="content">
-  <div id="demo-flag" class="demo-flag" style="display:none">DEMO MODE &middot; sample data, nothing is saved to SharePoint</div>
+<div class="content">
 
-  <!-- SETUP NEEDED -->
-  <div class="page" id="pg-setup">
-    <div class="center-card">
-      <div class="center-head"><img src="logo.png" alt=""><h2>Setup needed</h2></div>
-      <div class="center-body">
-        This app needs its Microsoft app registration Client ID before anyone can sign in.
-        <input class="text-in" id="setup-cid" placeholder="Paste Application (client) ID" autocomplete="off" autocapitalize="off" spellcheck="false">
-        <button class="big-btn" onclick="saveSetup()">Save on this phone</button>
-        <a class="big-btn ghost" href="?demo=1">Try the demo</a>
-        <div class="small-note">Best fix: put the Client ID in CONFIG at the top of the script in index.html so every phone gets it. See README.</div>
+  <!-- CLINICAL TAB -->
+  <div class="tab-page active" id="tab-clinical">
+    <div class="section-label">Clinical Reference</div>
+    <div class="clin-list">
+      <a class="clin-btn" href="https://emaildougb.github.io/Intubation/"><div class="clin-title">Intubation</div></a>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Advanced Airway</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Drip Sets</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Medication List</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Shock</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Sepsis</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Stroke</div></div>
+      <div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">Cardiac</div></div>
+    </div>
+    <div class="section-label">Protocols</div>
+    <div class="clin-list">
+      <a class="clin-btn protocols" href="https://emaildougb.github.io/protocol-app/"><div class="clin-title">Quick Protocols</div></a>
+    </div>
+  </div>
+
+  <!-- OPERATIONS TAB -->
+  <div class="tab-page" id="tab-ops">
+    <div id="ops-lock">
+      <div class="lock-screen">
+        <div class="lock-icon">&#128274;</div>
+        <div class="lock-title">Operations</div>
+        <div class="lock-sub">Enter access code</div>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="lock-input" id="lock-input"
+               onkeydown="if(event.key==='Enter')tryUnlock()">
+        <button class="lock-btn" onclick="tryUnlock()">Unlock</button>
+        <div class="lock-err" id="lock-err"></div>
+      </div>
+    </div>
+    <div id="ops-unlocked" style="display:none;">
+      <div class="section-label">Operations</div>
+      <div class="grid">
+        <a class="ops-btn" href="https://reports.northcountryems.org/">
+          <div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty reports</div>
+        </a>
+        <a class="ops-btn" href="https://overtime.northcountryems.org/">
+          <div class="ops-title">NCEMS<br>OT</div><div class="ops-sub">Overtime sign-up</div>
+        </a>
+      </div>
+      <div class="section-label">Apparatus</div>
+      <div class="grid single">
+        <a class="ops-btn wambo" href="https://checks.northcountryems.org/">
+          <div class="ops-title">EP Checker</div>
+          <div class="ops-sub">Daily checks &middot; M25A &middot; M25B &middot; M19 &middot; M18 &middot; M14</div>
+        </a>
+      </div>
+      <div class="section-label">Facilities</div>
+      <div class="grid single">
+        <a class="ops-btn" href="https://emaildougb.github.io/grounds-tracker/">
+          <div class="ops-title">Grounds Tracker</div>
+          <div class="ops-sub">Weekly grounds tasks &middot; Sta 1 &middot; Sta 1.5 &middot; Sta 2</div>
+        </a>
+      </div>
+      <div class="section-label">BC / Chief</div>
+      <div class="grid single">
+        <a class="ops-btn admin-btn" href="admin.html">
+          <div class="ops-title">Push Notice</div>
+          <div class="ops-sub">Admin panel &middot; BC and Chief access only</div>
+        </a>
       </div>
     </div>
   </div>
 
-  <!-- SIGN IN -->
-  <div class="page" id="pg-signin">
-    <div class="center-card">
-      <div class="center-head"><img src="logo.png" alt=""><h2>Grounds Tracker</h2></div>
-      <div class="center-body">
-        Sign in with your North Country EMS Microsoft account. You only do this once on this phone.
-        <button class="big-btn" id="signin-btn" onclick="signIn()">Sign in with Microsoft</button>
-        <div class="err-box" id="signin-err"></div>
-        <div class="small-note">Uses the same login as Outlook and Teams.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- THIS WEEK -->
-  <div class="page" id="pg-week">
-    <div class="chips" id="week-chips"></div>
-    <div class="summary" id="week-summary"></div>
-    <div id="week-list"></div>
-    <div class="sync-line" id="sync-week"></div>
-  </div>
-
-  <!-- ALL TASKS -->
-  <div class="page" id="pg-all">
-    <div class="search-wrap"><input class="search" id="all-search" placeholder="Search tasks" oninput="renderAll()" autocomplete="off"></div>
-    <div class="chips" id="all-chips"></div>
-    <div id="all-list"></div>
-    <div class="sync-line" id="sync-all"></div>
-  </div>
 </div>
 
+<!-- BOTTOM TABS -->
 <nav class="tabbar">
-  <button class="tab active" id="t-week" onclick="switchTab('week')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
-    <span class="tab-lbl">This Week</span>
+  <button class="tab active" id="t-clinical" onclick="switchTab('clinical')">
+    <span class="tab-ico">&#129658;</span>
+    <span class="tab-lbl">Clinical</span>
   </button>
-  <button class="tab" id="t-all" onclick="switchTab('all')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
-    <span class="tab-lbl">All Tasks</span>
+  <button class="tab" id="t-ops" onclick="switchTab('ops')">
+    <span class="tab-ico">&#128203;</span>
+    <span class="tab-lbl">Operations <span class="tab-lock" id="ops-lock-ico">&#128274;</span></span>
   </button>
 </nav>
 
-<!-- TASK DETAIL SHEET -->
-<div class="scrim" id="scrim" onclick="closeSheet()"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true">
-  <div class="sheet-head">
-    <div style="flex:1;min-width:0">
-      <div class="sheet-title" id="sh-title"></div>
-      <div class="sheet-sub" id="sh-sub"></div>
-    </div>
-    <button class="sheet-close" onclick="closeSheet()" aria-label="Close">&times;</button>
-  </div>
-  <div class="sheet-body" id="sh-body"></div>
+<!-- NOTICE BANNER (tap to expand) -->
+<div class="notice-bar" id="notice-bar" onclick="openNotice()">
+  <div class="notice-dot off" id="noticedot"></div>
+  <div class="notice-text dim" id="noticetext">No active notices</div>
 </div>
 
-<!-- NOT DONE MODAL -->
-<div class="overlay" id="nc-ov">
-  <div class="modal">
-    <div class="modal-head red">Not completed</div>
-    <div class="modal-body">
-      <div class="modal-sub" id="nc-task"></div>
-      <div class="blk-label">Why didn't it get done? (required)</div>
-      <div class="quick" id="nc-quick"></div>
-      <input class="text-in" id="nc-reason" maxlength="255" placeholder="Type the reason" oninput="ncCheck()">
-    </div>
-    <div class="modal-foot">
-      <button class="big-btn ghost" onclick="closeNc()">Cancel</button>
-      <button class="big-btn red" id="nc-save" onclick="saveNc()" disabled>Save</button>
-    </div>
+<!-- NOTICE EXPANDED MODAL -->
+<div class="notice-overlay" id="notice-overlay">
+  <div class="notice-card">
+    <div class="notice-card-head" id="notice-card-head">&#128226; Notice</div>
+    <div class="notice-card-body dim" id="notice-card-body">No active notices</div>
+    <button class="notice-card-close" onclick="closeNotice()">Close</button>
   </div>
 </div>
 
-<!-- PEOPLE PICKER -->
-<div class="overlay" id="pp-ov">
-  <div class="modal">
-    <div class="modal-head" id="pp-head">Assigned To</div>
-    <div class="modal-body">
-      <input class="text-in" id="pp-search" placeholder="Search or type a name" oninput="renderPeople()" autocomplete="off" style="margin-top:0">
-      <div class="ppl-list" id="pp-list"></div>
+<!-- INFO MODAL -->
+<div class="info-overlay" id="info-overlay">
+  <div class="info-card">
+    <div class="info-head">
+      <img class="info-logo" src="logo.png" alt="NCEMS">
+      <h2>NCEMS Field Reference</h2>
     </div>
-    <div class="modal-foot"><button class="big-btn ghost" onclick="closePeople()">Cancel</button></div>
+    <div class="info-body">
+      <p class="info-line">This is a reference guide only &mdash; questions or comments, contact Doug.</p>
+      <a class="info-email" href="mailto:d.boyce@northcountryems.org?subject=NCEMS%20HUB%20APP">d.boyce@northcountryems.org</a>
+      <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
+    </div>
+    <button class="info-close" onclick="closeInfo()">Close</button>
   </div>
 </div>
-
-<!-- INFO -->
-<div class="overlay" id="info-ov" onclick="if(event.target===this)closeInfo()">
-  <div class="modal">
-    <div class="modal-head">Grounds Tracker</div>
-    <div class="modal-body" id="info-body"></div>
-    <div class="modal-foot"><button class="big-btn ghost" onclick="closeInfo()">Close</button></div>
-  </div>
-</div>
-
-<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')"><img id="lightbox-img" alt=""></div>
-<input type="file" id="photo-in" accept="image/*" style="display:none" onchange="photoPicked(this)">
-
-<div class="toast" id="toast"><div class="toast-msg" id="toast-msg"></div><button class="toast-act" id="toast-act" style="display:none"></button></div>
 
 <script>
-/* ============================================================
-   NCEMS Grounds Tracker  v1.0
-   Reads and writes the "Grounds Tracker" SharePoint list through
-   Microsoft Graph. Sign-in is MSAL (single page app, no secrets).
-   ============================================================ */
-const VERSION = '1.1';
+/* ===== OPS ACCESS CODE — resets every 2 hours or on reopen ===== */
+var OPS_CODE = "5142";
+var UNLOCK_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+var unlockedAt = 0;
 
-const CONFIG = {
-  clientId:  '',   // <-- paste the Application (client) ID from Entra here
-  tenantId:  '153dc089-095e-4a20-8d10-39321a0aca09',  // North Country EMS tenant
-  siteHost:  'northcountryemsorg.sharepoint.com',
-  sitePath:  '/sites/FacilitiesandGrounds',
-  listId:    'd8b3c948-246c-4371-8b8a-f27f2b1e2cbd',
-  photoFolder: 'Grounds Tracker Photos',   // folder in the site's Documents library
-  otherField: 'AssignedToOther',           // single line text column for type-in assignees (vendor, other dept)
-  hubUrl:    'https://hub.northcountryems.org/',
-  refreshSeconds: 60
-};
-
-const SCOPES = ['Sites.ReadWrite.All'];
-const GRAPH = 'https://graph.microsoft.com/v1.0';
-
-const STATIONS = [
-  { key: 'Station 1 (404 S Parcel)',               name: 'Station 1',         addr: '404 S Parcel' },
-  { key: 'Station 1.5 Admin (300 W Hoag)',         name: 'Station 1.5 Admin', addr: '300 W Hoag' },
-  { key: 'Station 2 (15413 NE Fargher Lake Hwy)',  name: 'Station 2',         addr: '15413 NE Fargher Lake Hwy' }
-];
-const ST = { NS: 'Not Started', IP: 'In Progress', DONE: 'Done', NC: 'Not Completed' };
-const QUICK_REASONS = ['Weather', 'Equipment down', 'Out of supplies', 'Ran out of time', 'Needs a vendor', 'Station busy'];
-
-const DEMO = /[?&]demo=1/.test(location.search);
-const LS = { cache: 'gt_cache_v1', site: 'gt_site_v1', filter: 'gt_filter_v1', cid: 'gt_clientid_v1' };
-
-let msalApp = null, account = null;
-let siteId = null, driveReady = null;
-let tasks = [];                 // mapped list items
-let people = [];                // [{id, name, email}]
-let peopleById = {};
-let myLookupId = null;
-let weekFilter = 'all';         // all | mine
-let allFilter = 'open';         // open | done | nc | all
-let curTab = 'week';
-let lastSync = null, syncErr = '';
-let busy = false;
-let openTaskId = null;
-let photoCache = {};            // taskId -> [{thumb, full, name}]
-let refreshTimer = null;
-let hasOtherCol = null;          // does the AssignedToOther column exist?
-
-/* ---------------- helpers ---------------- */
-const $ = id => document.getElementById(id);
-function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
-function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-
-function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
-function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function sameDay(a, b) { return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
-function parseDate(s) { if (!s) return null; const d = new Date(s); return isNaN(d) ? null : d; }
-// Write dates as local noon so SharePoint never shifts them to the day before/after.
-function localNoonISO(d) { const x = new Date(d); x.setHours(12,0,0,0); return x.toISOString(); }
-const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-function md(d) { return (d.getMonth()+1) + '/' + d.getDate(); }
-function timeStr(d) { let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + String(m).padStart(2,'0') + ' ' + ap; }
-function dueLabel(t) {
-  if (!t.due) return { text: 'No due date', cls: '' };
-  const today = dayStart(new Date()), due = dayStart(t.due);
-  const diff = Math.round((due - today) / 86400000);
-  const open = t.status === ST.NS || t.status === ST.IP;
-  if (diff < 0) return { text: (open ? 'OVERDUE ' : 'Due ') + (open ? (-diff) + 'd' : DOW[due.getDay()] + ' ' + md(due)), cls: open ? 'due-over' : '' };
-  if (diff === 0) return { text: 'Due today', cls: 'due-today' };
-  if (diff === 1) return { text: 'Due tomorrow', cls: '' };
-  return { text: 'Due ' + DOW[due.getDay()] + ' ' + md(due), cls: '' };
+function isUnlocked(){
+  return unlockedAt > 0 && (Date.now() - unlockedAt) < UNLOCK_WINDOW_MS;
 }
-function statusCls(s) { return s === ST.IP ? 'ip' : s === ST.DONE ? 'done' : s === ST.NC ? 'nc' : 'ns'; }
-function assigneeLabel(t) { const a = []; if (t.assignedId) a.push(personName(t.assignedId)); if (t.assignedOther) a.push(t.assignedOther); return a.length ? a.join(' + ') : 'Unassigned'; }
-function personName(id) { if (!id) return 'Unassigned'; const p = peopleById[id]; return p ? p.name : 'User #' + id; }
-function textOf(v) { if (v == null) return ''; if (Array.isArray(v)) return v.map(x => (x && x.LookupValue) || x).join(', '); if (typeof v === 'object') return v.LookupValue || v.Label || ''; return String(v); }
-function personId(f, name) {
-  if (f[name + 'LookupId'] != null && f[name + 'LookupId'] !== '') return String(f[name + 'LookupId']);
-  const v = f[name];
-  if (Array.isArray(v) && v[0]) return String(v[0].LookupId);
-  if (v && typeof v === 'object' && v.LookupId) return String(v.LookupId);
-  return '';
+function lockOps(){
+  unlockedAt = 0;
+  document.getElementById('ops-lock').style.display = 'block';
+  document.getElementById('ops-unlocked').style.display = 'none';
+  var ico = document.getElementById('ops-lock-ico');
+  if (ico) ico.style.display = 'inline';
+  var inp = document.getElementById('lock-input');
+  if (inp) inp.value = '';
 }
-function stationOf(val) {
-  if (!val) return null;
-  const hit = STATIONS.find(s => s.key === val) || STATIONS.find(s => val.toLowerCase().startsWith(s.name.toLowerCase() + ' ') || val.toLowerCase() === s.name.toLowerCase());
-  return hit || null;
-}
-function isHtml(s) { return /<(div|p|br|span)[\s>\/]/i.test(s || ''); }
-function notesToText(s) {
-  if (!s) return '';
-  if (!isHtml(s)) return s;
-  const tmp = document.createElement('div');
-  tmp.innerHTML = s.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(div|p)>/gi, '\n');
-  return tmp.textContent.replace(/\n{3,}/g, '\n\n').trim();
+function showUnlocked(){
+  document.getElementById('ops-lock').style.display = 'none';
+  document.getElementById('ops-unlocked').style.display = 'block';
+  var ico = document.getElementById('ops-lock-ico');
+  if (ico) ico.style.display = 'none';
 }
 
-function mapItem(it) {
-  const f = it.fields || {};
-  if (f.AssignedTo && Array.isArray(f.AssignedTo)) f.AssignedTo.forEach(p => rememberPerson(p));
-  if (f.ResponsibleParty && Array.isArray(f.ResponsibleParty)) f.ResponsibleParty.forEach(p => rememberPerson(p));
-  return {
-    id: String(it.id),
-    title: f.Title || '(untitled task)',
-    station: f.Station || '',
-    due: parseDate(f.DueDate),
-    status: f.TaskStatus || ST.NS,
-    assignedId: personId(f, 'AssignedTo'),
-    assignedOther: f[CONFIG.otherField] || '',
-    respId: personId(f, 'ResponsibleParty'),
-    reason: f.ReasonNotCompleted || '',
-    completedOn: parseDate(f.CompletedOn),
-    notes: f.WorkNotes || '',
-    frequency: textOf(f.Frequency),
-    category: textOf(f.Category),
-    instructions: notesToText(textOf(f.Instructions)),
-    modified: parseDate(it.lastModifiedDateTime)
-  };
-}
-function rememberPerson(p) {
-  if (!p || !p.LookupId) return;
-  const id = String(p.LookupId);
-  if (!peopleById[id]) { const o = { id, name: p.LookupValue || ('User #' + id), email: p.Email || '' }; peopleById[id] = o; }
-}
-
-/* ---------------- toast ---------------- */
-let toastT = null;
-function toast(msg, opts) {
-  opts = opts || {};
-  const t = $('toast'), a = $('toast-act');
-  $('toast-msg').textContent = msg;
-  t.classList.toggle('err', !!opts.err);
-  if (opts.action) { a.textContent = opts.action; a.style.display = ''; a.onclick = () => { hideToast(); opts.onAction(); }; }
-  else a.style.display = 'none';
-  t.classList.add('show');
-  clearTimeout(toastT);
-  toastT = setTimeout(hideToast, opts.ms || (opts.action ? 7000 : 3000));
-}
-function hideToast() { $('toast').classList.remove('show'); }
-
-/* ---------------- pages / tabs ---------------- */
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  $('pg-' + name).classList.add('active');
-  const tabbed = name === 'week' || name === 'all';
-  document.body.classList.toggle('no-tabs', !tabbed);
-  $('refresh-btn').style.display = tabbed ? '' : 'none';
-}
-function switchTab(t) {
-  curTab = t;
-  $('t-week').classList.toggle('active', t === 'week');
-  $('t-all').classList.toggle('active', t === 'all');
-  showPage(t);
-  render();
-  $('content').scrollTop = 0;
-}
-
-/* ---------------- auth ---------------- */
-function clientId() { return CONFIG.clientId || lsGet(LS.cid, ''); }
-function redirectUri() { return location.origin + location.pathname.replace(/index\.html$/, ''); }
-
-async function initAuth() {
-  if (typeof msal === 'undefined') throw new Error('Could not load Microsoft sign-in. Check the internet connection and reopen the app.');
-  msalApp = new msal.PublicClientApplication({
-    auth: {
-      clientId: clientId(),
-      authority: 'https://login.microsoftonline.com/' + CONFIG.tenantId,
-      redirectUri: redirectUri(),
-      navigateToLoginRequestUrl: false
-    },
-    cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true }
-  });
-  await msalApp.initialize();
-  const res = await msalApp.handleRedirectPromise();
-  if (res && res.account) account = res.account;
-  else account = msalApp.getActiveAccount() || msalApp.getAllAccounts()[0] || null;
-  if (account) msalApp.setActiveAccount(account);
-}
-
-function signIn() {
-  $('signin-err').classList.remove('show');
-  msalApp.loginRedirect({ scopes: SCOPES, prompt: 'select_account' }).catch(e => showSigninErr(e));
-}
-function showSigninErr(e) { const b = $('signin-err'); b.textContent = (e && (e.errorMessage || e.message)) || String(e); b.classList.add('show'); }
-function signOut() {
-  if (DEMO) { location.href = location.pathname; return; }
-  localStorage.removeItem(LS.cache); localStorage.removeItem(LS.site);
-  msalApp.logoutRedirect({ account, postLogoutRedirectUri: redirectUri() });
-}
-
-async function getToken() {
-  try {
-    const r = await msalApp.acquireTokenSilent({ scopes: SCOPES, account });
-    return r.accessToken;
-  } catch (e) {
-    if (e instanceof msal.InteractionRequiredAuthError || /interaction_required|login_required|consent_required/.test(e.errorCode || '')) {
-      await msalApp.acquireTokenRedirect({ scopes: SCOPES, account });
-      return new Promise(() => {}); // page is leaving
-    }
-    throw e;
+function switchTab(which){
+  document.getElementById('tab-clinical').classList.toggle('active', which==='clinical');
+  document.getElementById('tab-ops').classList.toggle('active', which==='ops');
+  document.getElementById('t-clinical').classList.toggle('active', which==='clinical');
+  document.getElementById('t-ops').classList.toggle('active', which==='ops');
+  document.querySelector('.content').scrollTop = 0;
+  if (which==='ops'){
+    if (isUnlocked()) { showUnlocked(); }
+    else { lockOps(); setTimeout(function(){ var i=document.getElementById('lock-input'); if(i) i.focus(); }, 100); }
   }
 }
 
-/* ---------------- Graph ---------------- */
-async function graph(path, opts) {
-  opts = opts || {};
-  const url = path.startsWith('http') ? path : GRAPH + path;
-  const token = await getToken();
-  const headers = Object.assign({ Authorization: 'Bearer ' + token }, opts.headers || {});
-  if (opts.json !== undefined) { headers['Content-Type'] = 'application/json'; }
-  const res = await fetch(url, { method: opts.method || 'GET', headers, body: opts.json !== undefined ? JSON.stringify(opts.json) : opts.body });
-  if (res.status === 204) return null;
-  if (!res.ok) {
-    let msg = 'HTTP ' + res.status;
-    try { const j = await res.json(); if (j.error && j.error.message) msg = j.error.message; } catch (e) {}
-    const err = new Error(friendlyErr(res.status, msg)); err.status = res.status; throw err;
-  }
-  const ct = res.headers.get('content-type') || '';
-  return ct.includes('json') ? res.json() : res;
-}
-function friendlyErr(status, msg) {
-  if (status === 403) return 'No permission. Your account needs edit rights on the Grounds Tracker list. (' + msg + ')';
-  if (/not recognized|does not exist/i.test(msg) && msg.indexOf(CONFIG.otherField) >= 0) return 'The ' + CONFIG.otherField + ' column is missing from the SharePoint list. See README.';
-  if (status === 404) return 'Not found. (' + msg + ')';
-  if (status === 429 || status === 503) return 'SharePoint is busy. Try again in a minute.';
-  return msg;
-}
-async function graphAll(path) {
-  let out = [], next = path;
-  while (next) { const j = await graph(next); out = out.concat(j.value || []); next = j['@odata.nextLink'] || null; }
-  return out;
-}
-
-async function getSiteId() {
-  if (siteId) return siteId;
-  const cached = lsGet(LS.site, null);
-  if (cached && cached.path === CONFIG.siteHost + CONFIG.sitePath) { siteId = cached.id; return siteId; }
-  const j = await graph('/sites/' + CONFIG.siteHost + ':' + CONFIG.sitePath + '?$select=id');
-  siteId = j.id;
-  lsSet(LS.site, { path: CONFIG.siteHost + CONFIG.sitePath, id: siteId });
-  return siteId;
-}
-
-const API = {
-  async tasks() {
-    const sid = await getSiteId();
-    const items = await graphAll('/sites/' + sid + '/lists/' + CONFIG.listId + '/items?$expand=fields&$top=999');
-    return items.map(mapItem);
-  },
-  async people() {
-    const sid = await getSiteId();
-    let uilId = null;
-    try {
-      const lists = await graph('/sites/' + sid + '/lists?$select=id,name,displayName,system&$top=999');
-      const hit = (lists.value || []).find(l => l.name === 'users' || l.displayName === 'User Information List');
-      if (hit) uilId = hit.id;
-    } catch (e) {}
-    if (!uilId) uilId = encodeURIComponent('User Information List');
-    const items = await graphAll('/sites/' + sid + '/lists/' + uilId + '/items?$expand=fields($select=Title,EMail,UserName,ContentType)&$top=999');
-    return items
-      .map(it => ({ id: String(it.id), name: (it.fields && it.fields.Title) || '', email: (it.fields && (it.fields.EMail || it.fields.UserName)) || '', type: it.fields && it.fields.ContentType }))
-      .filter(p => p.name && p.email && p.type !== 'DomainGroup' && p.type !== 'SharePointGroup' && !/^(app@sharepoint|SharePoint App)/i.test(p.name));
-  },
-  async hasColumn(name) {
-    const sid = await getSiteId();
-    const j = await graph('/sites/' + sid + '/lists/' + CONFIG.listId + '/columns?$select=name&$top=999');
-    return (j.value || []).some(c => c.name === name);
-  },
-  async update(id, fields) {
-    const sid = await getSiteId();
-    return graph('/sites/' + sid + '/lists/' + CONFIG.listId + '/items/' + id + '/fields', { method: 'PATCH', json: fields });
-  },
-  async photos(id) {
-    const sid = await getSiteId();
-    const path = encodeURIComponent(CONFIG.photoFolder) + '/' + encodeURIComponent('Task ' + id);
-    try {
-      const j = await graph('/sites/' + sid + '/drive/root:/' + path + ':/children?$expand=thumbnails&$top=200');
-      return (j.value || []).filter(f => f.file).map(f => {
-        const th = (f.thumbnails && f.thumbnails[0]) || {};
-        return { name: f.name, thumb: th.medium ? th.medium.url : '', full: th.large ? th.large.url : (th.medium ? th.medium.url : ''), web: f.webUrl, when: f.createdDateTime };
-      }).sort((a, b) => (b.when || '').localeCompare(a.when || ''));
-    } catch (e) { if (e.status === 404) return []; throw e; }
-  },
-  async uploadPhoto(id, blob, name) {
-    const sid = await getSiteId();
-    const path = encodeURIComponent(CONFIG.photoFolder) + '/' + encodeURIComponent('Task ' + id) + '/' + encodeURIComponent(name);
-    return graph('/sites/' + sid + '/drive/root:/' + path + ':/content?@microsoft.graph.conflictBehavior=rename', { method: 'PUT', body: blob, headers: { 'Content-Type': 'image/jpeg' } });
-  }
-};
-
-/* ---------------- demo data (?demo=1) ---------------- */
-function setupDemo() {
-  const t = dayStart(new Date());
-  const d = n => addDays(t, n).toISOString();
-  const P = [['11','Doug Boyce','d.boyce@northcountryems.org'],['12','Dennis Madler','d.madler@northcountryems.org'],['13','Derek Langdon','d.langdon@northcountryems.org'],['14','Tyler Komm','t.komm@northcountryems.org'],['15','Bryce Shirley','b.shirley@northcountryems.org']];
-  const demoPeople = P.map(p => ({ id: p[0], name: p[1], email: p[2] }));
-  let n = 1;
-  const mk = (title, st, due, status, a, r, extra) => ({ id: String(n++), fields: Object.assign({ Title: title, Station: STATIONS[st].key, DueDate: d(due), TaskStatus: status, AssignedToLookupId: a, ResponsiblePartyLookupId: r, Frequency: 'Weekly', Category: 'Grounds', Instructions: '' }, extra || {}) });
-  const items = [
-    mk('Mow front lawn and edge sidewalk', 0, 0, ST.NS, '14', '12', { Instructions: 'Mow front and side lawn. Edge along the sidewalk and apron. Blow clippings off the apron so they do not get tracked into the bay.' }),
-    mk('Empty exterior trash cans', 0, -2, ST.NS, '14', '12', { Frequency: 'Weekly' }),
-    mk('Check apron drains for debris', 0, 2, ST.IP, '14', '12', { Category: 'Drainage' }),
-    mk('Blow leaves off back lot', 0, 4, ST.NS, '14', '11'),
-    mk('Weed planter beds by entry', 1, 1, ST.NS, '14', '12', { Category: 'Landscaping' }),
-    mk('Sweep front walkway and ramp', 1, -1, ST.DONE, '14', '12', { CompletedOn: d(0) }),
-    mk('Refill ice melt bins', 1, 3, ST.NS, '14', '11', { Frequency: 'Monthly', Category: 'Seasonal' }),
-    mk('Mow and string trim', 2, 0, ST.NC, '14', '12', { ReasonNotCompleted: 'Mower belt broke, part on order' }),
-    mk('Clean out gutters', 2, 5, ST.NS, '', '12', { Frequency: 'Monthly', Category: 'Building exterior', AssignedToOther: 'Rain City Gutters (vendor)' }),
-    mk('Inspect parking lot lights', 2, -4, ST.IP, '14', '13', { Frequency: 'Monthly', WorkNotes: '10/01 3:10 PM  Tyler Komm: Two pole lights out on the north side. Need the lift.' }),
-    mk('Pressure wash bay apron', 2, 12, ST.NS, '14', '12', { Frequency: 'Quarterly' })
-  ];
-  let demoPhotos = {};
-  API.tasks = async () => { await sleep(250); return items.map(it => mapItem(JSON.parse(JSON.stringify(it)))); };
-  API.people = async () => demoPeople;
-  API.hasColumn = async () => true;
-  API.update = async (id, fields) => { await sleep(300); const it = items.find(i => i.id === id); Object.assign(it.fields, fields); return it.fields; };
-  API.photos = async id => demoPhotos[id] || [];
-  API.uploadPhoto = async (id, blob, name) => { await sleep(500); const u = URL.createObjectURL(blob); (demoPhotos[id] = demoPhotos[id] || []).unshift({ name, thumb: u, full: u }); return {}; };
-  account = { name: 'Tyler Komm', username: 't.komm@northcountryems.org' };
-  $('demo-flag').style.display = '';
-}
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-/* ---------------- data load ---------------- */
-function loadCache() {
-  const c = lsGet(LS.cache, null);
-  if (!c || !account || c.user !== account.username) return false;
-  tasks = (c.tasks || []).map(t => Object.assign({}, t, { due: parseDate(t.due), completedOn: parseDate(t.completedOn), modified: parseDate(t.modified) }));
-  people = c.people || []; peopleById = {}; people.forEach(p => peopleById[p.id] = p);
-  lastSync = c.at ? new Date(c.at) : null;
-  findMe();
-  return true;
-}
-function saveCache() {
-  if (DEMO) return;
-  lsSet(LS.cache, { user: account.username, at: lastSync ? lastSync.toISOString() : null, tasks, people });
-}
-function findMe() {
-  const me = (account && account.username || '').toLowerCase();
-  const hit = people.find(p => (p.email || '').toLowerCase() === me);
-  myLookupId = hit ? hit.id : null;
-}
-
-async function refresh(manual) {
-  if (busy) return;
-  busy = true;
-  $('refresh-btn').classList.add('spin');
-  try {
-    const [t, p] = await Promise.all([API.tasks(), people.length && !manual ? Promise.resolve(null) : API.people().catch(() => null)]);
-    tasks = t;
-    if (hasOtherCol === null) { try { hasOtherCol = await API.hasColumn(CONFIG.otherField); } catch (e) {} }
-    if (p) { people = p; }
-    people.forEach(x => peopleById[x.id] = x);
-    findMe();
-    lastSync = new Date(); syncErr = '';
-    saveCache();
-    if (manual) toast('Up to date');
-  } catch (e) {
-    syncErr = e.message || String(e);
-    if (manual) toast(syncErr, { err: true, ms: 6000 });
-  } finally {
-    busy = false;
-    $('refresh-btn').classList.remove('spin');
-    render();
-    if (openTaskId) renderSheet();
-  }
-}
-
-function startAutoRefresh() {
-  clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => { if (document.visibilityState === 'visible') refresh(false); }, CONFIG.refreshSeconds * 1000);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && (!lastSync || Date.now() - lastSync > 15000)) refresh(false);
-  });
-}
-
-/* ---------------- filters ---------------- */
-function isOpen(t) { return t.status === ST.NS || t.status === ST.IP; }
-function inWeek(t) {
-  const today = dayStart(new Date()), end = addDays(today, 7);
-  if (t.due) {
-    const due = dayStart(t.due);
-    if (due >= today && due < end) return true;          // due in the next 7 days
-    if (due < today && isOpen(t)) return true;            // overdue and still open
-  }
-  if (t.status === ST.DONE && t.completedOn && sameDay(t.completedOn, today)) return true;  // finished today
-  return false;
-}
-function isMine(t) { return myLookupId && (t.assignedId === myLookupId || t.respId === myLookupId); }
-function isOverdue(t) { return t.due && dayStart(t.due) < dayStart(new Date()) && isOpen(t); }
-function sortTasks(a, b) {
-  const oa = isOverdue(a) ? 0 : 1, ob = isOverdue(b) ? 0 : 1;
-  if (oa !== ob) return oa - ob;
-  const da = a.due ? a.due.getTime() : Infinity, db = b.due ? b.due.getTime() : Infinity;
-  if (da !== db) return da - db;
-  return a.title.localeCompare(b.title);
-}
-
-/* ---------------- render ---------------- */
-function render() {
-  if (curTab === 'week') renderWeek(); else renderAll();
-  const s = lastSync ? 'Updated ' + timeStr(lastSync) : '';
-  ['sync-week', 'sync-all'].forEach(id => {
-    const el = $(id);
-    el.className = 'sync-line' + (syncErr ? ' err' : '');
-    el.textContent = syncErr ? 'Could not update: ' + syncErr + (s ? ' · showing data from ' + timeStr(lastSync) : '') : s + ' · auto refresh every ' + CONFIG.refreshSeconds + 's';
-  });
-  $('hdr-sub').textContent = (account ? account.name : 'North Country EMS') + (DEMO ? ' · demo' : '');
-}
-
-function chipHtml(list, cur, fn) {
-  return list.map(c => '<button class="chip' + (c[0] === cur ? ' on' : '') + '" onclick="' + fn + '(\'' + c[0] + '\')">' + esc(c[1]) + '</button>').join('');
-}
-function setWeekFilter(f) { weekFilter = f; lsSet(LS.filter, f); renderWeek(); }
-function setAllFilter(f) { allFilter = f; renderAll(); }
-
-function renderWeek() {
-  const mineCount = tasks.filter(t => inWeek(t) && isMine(t)).length;
-  $('week-chips').innerHTML = chipHtml([['all', 'Everyone'], ['mine', 'Mine (' + mineCount + ')']], weekFilter, 'setWeekFilter');
-  let list = tasks.filter(inWeek);
-  if (weekFilter === 'mine') list = list.filter(isMine);
-  const od = list.filter(isOverdue).length;
-  const ip = list.filter(t => t.status === ST.IP).length;
-  const dn = list.filter(t => t.status === ST.DONE).length;
-  const op = list.filter(t => t.status === ST.NS).length;
-  $('week-summary').innerHTML =
-    '<div class="sum od"><b>' + od + '</b><span>Overdue</span></div>' +
-    '<div class="sum"><b>' + op + '</b><span>To do</span></div>' +
-    '<div class="sum ip"><b>' + ip + '</b><span>Working</span></div>' +
-    '<div class="sum dn"><b>' + dn + '</b><span>Done</span></div>';
-  let empty = '';
-  if (weekFilter === 'mine' && !myLookupId && people.length) empty = 'Could not match your account to a SharePoint user yet. Tap Everyone.';
-  $('week-list').innerHTML = stationGroups(list, empty || 'Nothing due this week');
-}
-
-function renderAll() {
-  $('all-chips').innerHTML = chipHtml([['open', 'Open'], ['nc', 'Not done'], ['done', 'Done'], ['all', 'All']], allFilter, 'setAllFilter');
-  const q = ($('all-search').value || '').trim().toLowerCase();
-  let list = tasks.filter(t =>
-    allFilter === 'open' ? isOpen(t) : allFilter === 'done' ? t.status === ST.DONE : allFilter === 'nc' ? t.status === ST.NC : true);
-  if (q) list = list.filter(t => (t.title + ' ' + t.category + ' ' + t.station + ' ' + assigneeLabel(t)).toLowerCase().includes(q));
-  $('all-list').innerHTML = stationGroups(list, 'No tasks match');
-}
-
-function stationGroups(list, emptyMsg) {
-  const groups = STATIONS.map(s => ({ s, items: [] }));
-  const other = {};
-  list.forEach(t => {
-    const s = stationOf(t.station);
-    if (s) groups.find(g => g.s === s).items.push(t);
-    else { const k = t.station || 'No station'; (other[k] = other[k] || { s: { name: k, addr: '' }, items: [] }).items.push(t); }
-  });
-  const all = groups.concat(Object.values(other));
-  if (!list.length) return '<div class="station"><div class="st-body" style="border-radius:12px"><div class="st-empty">' + esc(emptyMsg) + '</div></div></div>';
-  return all.map(g => {
-    g.items.sort(sortTasks);
-    const open = g.items.filter(isOpen).length, done = g.items.filter(t => t.status === ST.DONE).length;
-    return '<div class="station"><div class="st-head"><div><div class="st-name">' + esc(g.s.name) + '</div>' +
-      (g.s.addr ? '<div class="st-addr">' + esc(g.s.addr) + '</div>' : '') + '</div>' +
-      '<div class="st-count">' + open + ' open &middot; ' + done + ' done</div></div><div class="st-body">' +
-      (g.items.length ? g.items.map(cardHtml).join('') : '<div class="st-empty">Nothing here</div>') + '</div></div>';
-  }).join('');
-}
-
-function cardHtml(t) {
-  const c = statusCls(t.status), due = dueLabel(t);
-  const meta = ['<span class="' + due.cls + '">' + esc(due.text) + '</span>'];
-  if (t.category) meta.push(esc(t.category));
-  meta.push('To: ' + esc(assigneeLabel(t)));
-  let acts;
-  if (t.status === ST.DONE) {
-    acts = '<div class="done-bar">Done' + (t.completedOn ? ' &middot; ' + md(t.completedOn) : '') + '</div>';
+function tryUnlock(){
+  var val = document.getElementById('lock-input').value.trim();
+  var err = document.getElementById('lock-err');
+  if (val === OPS_CODE){
+    unlockedAt = Date.now();
+    showUnlocked();
+    err.textContent = '';
   } else {
-    acts = '<div class="acts">' +
-      '<button class="act start" ' + (t.status === ST.IP ? 'disabled' : '') + ' onclick="doStart(\'' + t.id + '\')">' + (t.status === ST.IP ? 'Started' : 'Start') + '</button>' +
-      '<button class="act done" onclick="doDone(\'' + t.id + '\')">Done</button>' +
-      '<button class="act nc" onclick="openNc(\'' + t.id + '\')">Not done?</button></div>';
+    err.textContent = 'Incorrect code';
+    document.getElementById('lock-input').value = '';
   }
-  return '<div class="task ' + c + '" id="task-' + t.id + '">' +
-    '<div class="task-top" onclick="openSheet(\'' + t.id + '\')">' +
-      '<div class="task-row1"><div class="task-title">' + esc(t.title) + '</div><span class="pill ' + c + '">' + esc(t.status) + '</span></div>' +
-      '<div class="task-meta">' + meta.join(' &middot; ') + '</div>' +
-      (t.status === ST.NC && t.reason ? '<div class="task-reason">Why: ' + esc(t.reason) + '</div>' : '') +
-      '<div class="task-more">DETAILS, NOTES, PHOTOS &rsaquo;</div>' +
-    '</div>' + acts + '</div>';
 }
 
-/* ---------------- actions ---------------- */
-function findTask(id) { return tasks.find(t => t.id === id); }
+/* re-lock when app returns to foreground if window expired */
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden && !isUnlocked()){
+    lockOps();
+    if (document.getElementById('tab-ops').classList.contains('active')){
+      setTimeout(function(){ var i=document.getElementById('lock-input'); if(i) i.focus(); }, 100);
+    }
+  }
+});
 
-// Apply a change locally right away, then save. Roll back if SharePoint says no.
-async function applyChange(id, localPatch, fields, okMsg, undo) {
-  const t = findTask(id); if (!t) return;
-  const before = Object.assign({}, t);
-  Object.assign(t, localPatch);
-  render(); if (openTaskId === id) renderSheet();
+/* INFO MODAL */
+function openInfo(){ document.getElementById('info-overlay').classList.add('show'); }
+function closeInfo(){ document.getElementById('info-overlay').classList.remove('show'); }
+document.getElementById('info-overlay').addEventListener('click', function(e){ if (e.target === this) closeInfo(); });
+
+/* NOTICE MODAL */
+function openNotice(){ document.getElementById('notice-overlay').classList.add('show'); }
+function closeNotice(){ document.getElementById('notice-overlay').classList.remove('show'); }
+document.getElementById('notice-overlay').addEventListener('click', function(e){ if (e.target === this) closeNotice(); });
+
+/* ===== FIREBASE ===== */
+(async function(){
+  var FIREBASE_READY = true;
+  var firebaseConfig = {
+    apiKey:            "AIzaSyCBSmzaXRU6TV1Jen5z4xHKZfG28UHXlkY",
+    authDomain:        "ncems-hub-9111d.firebaseapp.com",
+    projectId:         "ncems-hub-9111d",
+    storageBucket:     "ncems-hub-9111d.firebasestorage.app",
+    messagingSenderId: "282446545601",
+    appId:             "1:282446545601:web:41f89407c2a1a348f24a40"
+  };
+  if (!FIREBASE_READY) return;
+
+  var fb = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  var fs = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  var db = fs.getFirestore(fb.initializeApp(firebaseConfig));
+
+  /* --- USAGE TRACKER: bump hub open count --- */
   try {
-    await API.update(id, fields);
-    t.modified = new Date();
-    saveCache();
-    if (okMsg) toast(okMsg, undo ? { action: 'Undo', onAction: () => undo(before) } : {});
-    return true;
-  } catch (e) {
-    Object.assign(t, before);
-    render(); if (openTaskId === id) renderSheet();
-    toast('Not saved: ' + (e.message || e), { err: true, ms: 7000 });
-    return false;
-  }
-}
-function revertTo(id, before) {
-  applyChange(id, { status: before.status, completedOn: before.completedOn, reason: before.reason },
-    { TaskStatus: before.status, CompletedOn: before.completedOn ? localNoonISO(before.completedOn) : null, ReasonNotCompleted: before.reason || null }, 'Undone');
-}
-function doStart(id) {
-  applyChange(id, { status: ST.IP }, { TaskStatus: ST.IP }, 'Marked In Progress', b => revertTo(id, b));
-}
-function doDone(id) {
-  const now = new Date();
-  applyChange(id, { status: ST.DONE, completedOn: now }, { TaskStatus: ST.DONE, CompletedOn: localNoonISO(now) }, 'Marked Done', b => revertTo(id, b));
-}
-function doReset(id) {
-  applyChange(id, { status: ST.NS, completedOn: null }, { TaskStatus: ST.NS, CompletedOn: null }, 'Set back to Not Started', b => revertTo(id, b));
-}
+    var today = new Date().toISOString().slice(0,10);
+    var usageRef = fs.doc(db, "usage", "hub");
+    await fs.runTransaction(db, async function(tx){
+      var snap = await tx.get(usageRef);
+      var data = snap.exists() ? snap.data() : { total: 0, days: {} };
+      data.total = (data.total || 0) + 1;
+      data.days = data.days || {};
+      data.days[today] = (data.days[today] || 0) + 1;
+      tx.set(usageRef, data);
+    });
+  } catch(e){ console.warn("Usage track failed", e); }
 
-/* Not done? */
-let ncId = null;
-function openNc(id) {
-  ncId = id;
-  const t = findTask(id);
-  $('nc-task').textContent = t ? t.title : '';
-  $('nc-reason').value = t && t.status === ST.NC ? t.reason : '';
-  $('nc-quick').innerHTML = QUICK_REASONS.map(r => '<button onclick="pickReason(this)">' + esc(r) + '</button>').join('');
-  ncCheck();
-  $('nc-ov').classList.add('show');
-  setTimeout(() => $('nc-reason').focus(), 50);
-}
-function pickReason(btn) {
-  const inp = $('nc-reason'), r = btn.textContent;
-  inp.value = inp.value.trim() ? inp.value.trim() + ', ' + r.toLowerCase() : r;
-  ncCheck(); inp.focus();
-}
-function ncCheck() { $('nc-save').disabled = !$('nc-reason').value.trim(); }
-function closeNc() { $('nc-ov').classList.remove('show'); $('nc-reason').blur(); ncId = null; }
-function saveNc() {
-  const reason = $('nc-reason').value.trim();
-  if (!reason || !ncId) return;
-  const id = ncId; closeNc();
-  applyChange(id, { status: ST.NC, reason }, { TaskStatus: ST.NC, ReasonNotCompleted: reason }, 'Marked Not Completed', b => revertTo(id, b));
-}
+  /* --- NOTICES: live listener --- */
+  fs.onSnapshot(fs.doc(db, "notices", "active"), function(snap){
+    var bar      = document.getElementById("notice-bar");
+    var dot      = document.getElementById("noticedot");
+    var txt      = document.getElementById("noticetext");
+    var cardHead = document.getElementById("notice-card-head");
+    var cardBody = document.getElementById("notice-card-body");
 
-/* People picker */
-let ppTask = null, ppField = null;
-function openPeople(id, field) {
-  ppTask = id; ppField = field;
-  $('pp-head').textContent = field === 'AssignedTo' ? 'Assigned To' : 'Responsible for Follow-up';
-  $('pp-search').value = '';
-  renderPeople();
-  $('pp-ov').classList.add('show');
-  if (!people.length) API.people().then(p => { people = p; people.forEach(x => peopleById[x.id] = x); findMe(); renderPeople(); }).catch(e => toast(e.message, { err: true }));
-}
-function renderPeople() {
-  const t = findTask(ppTask); if (!t) return;
-  const cur = ppField === 'AssignedTo' ? t.assignedId : t.respId;
-  const isAssign = ppField === 'AssignedTo';
-  const raw = $('pp-search').value.trim();
-  const q = $('pp-search').value.trim().toLowerCase();
-  const list = people.filter(p => !q || (p.name + ' ' + p.email).toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
-  $('pp-list').innerHTML = (list.length ? list.map(p =>
-    '<button class="ppl' + (p.id === cur ? ' cur' : '') + '" onclick="pickPerson(\'' + p.id + '\')"><b>' + esc(p.name) + (p.id === cur ? ' &#10003;' : '') + '</b><span>' + esc(p.email) + '</span></button>').join('')
-    : '<div class="st-empty">' + (people.length ? 'No match' : 'Loading people...') + '</div>') +
-    (isAssign && raw ? (hasOtherCol === false
-        ? '<div class="ppl" style="cursor:default"><b>Type-in names are off</b><span>Add the ' + esc(CONFIG.otherField) + ' column to the SharePoint list first (see README)</span></div>'
-        : '<button class="ppl other" onclick="pickOther()"><b>Assign to &ldquo;' + esc(raw) + '&rdquo;</b><span>Type-in name (vendor, other department). No email goes out.</span></button>') : '') +
-    ((cur || (isAssign && t.assignedOther)) ? '<button class="ppl" onclick="pickPerson(\'\')"><b>Clear (nobody)</b></button>' : '');
-}
-function pickOther() {
-  const name = $('pp-search').value.trim().slice(0, 255); if (!name) return;
-  const id = ppTask; closePeople();
-  const fields = { AssignedToLookupId: null }; fields[CONFIG.otherField] = name;
-  applyChange(id, { assignedId: '', assignedOther: name }, fields, 'Assigned to ' + name);
-}
-function closePeople() { $('pp-ov').classList.remove('show'); $('pp-search').blur(); }
-function pickPerson(pid) {
-  const id = ppTask, field = ppField; closePeople();
-  const t = findTask(id); if (!t) return;
-  const key = field === 'AssignedTo' ? 'assignedId' : 'respId';
-  const clearOther = field === 'AssignedTo' && t.assignedOther;
-  if ((t[key] || '') === pid && !clearOther) return;
-  const fields = {}; fields[field + 'LookupId'] = pid ? pid : null;
-  if (clearOther) fields[CONFIG.otherField] = null;
-  const label = field === 'AssignedTo' ? 'Assigned to ' : 'Follow-up: ';
-  const patch = {}; patch[key] = pid; if (clearOther) patch.assignedOther = '';
-  applyChange(id, patch, fields, label + (pid ? personName(pid) : 'nobody'));
-}
+    if (snap.exists() && snap.data().message && snap.data().message.trim()) {
+      var d = snap.data();
 
-/* Work notes */
-async function addNote() {
-  const id = openTaskId; const t = findTask(id); if (!t) return;
-  const box = $('note-in'); const txt = box.value.trim(); if (!txt) return;
-  const now = new Date();
-  const line = String(now.getMonth()+1).padStart(2,'0') + '/' + String(now.getDate()).padStart(2,'0') + ' ' + timeStr(now) + '  ' + (account ? account.name : '') + ': ' + txt;
-  const old = t.notes || '';
-  const next = isHtml(old) ? '<div>' + esc(line) + '</div>' + old : (old ? line + '\n' + old : line);
-  $('note-btn').disabled = true;
-  const ok = await applyChange(id, { notes: next }, { WorkNotes: next }, 'Note saved');
-  if (ok) { const b = $('note-in'); if (b) b.value = ''; }
-  const nb = $('note-btn'); if (nb) nb.disabled = false;
-}
+      /* Banner bar color */
+      bar.classList.remove("urgent-bar", "active-bar");
+      bar.classList.add(d.urgent ? "urgent-bar" : "active-bar");
 
-/* Photos */
-function pickPhoto() { const i = $('photo-in'); i.value = ''; i.click(); }
-async function photoPicked(input) {
-  const file = input.files && input.files[0]; if (!file || !openTaskId) return;
-  const id = openTaskId, t = findTask(id);
-  const st = $('photo-status'); if (st) st.textContent = 'Uploading photo...';
-  try {
-    const blob = await shrinkImage(file);
-    const now = new Date();
-    const name = 'Task' + id + '_' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0') + '.jpg';
-    await API.uploadPhoto(id, blob, name);
-    // Drop a line in Work Notes so the change shows up in the log and alerts flow.
-    const line = String(now.getMonth()+1).padStart(2,'0') + '/' + String(now.getDate()).padStart(2,'0') + ' ' + timeStr(now) + '  ' + (account ? account.name : '') + ': [Photo added] ' + name;
-    const old = t.notes || '';
-    const next = isHtml(old) ? '<div>' + esc(line) + '</div>' + old : (old ? line + '\n' + old : line);
-    await applyChange(id, { notes: next }, { WorkNotes: next }, 'Photo saved');
-    delete photoCache[id];
-    loadPhotos(id);
-  } catch (e) {
-    toast('Photo not saved: ' + (e.message || e), { err: true, ms: 7000 });
-    const s2 = $('photo-status'); if (s2) s2.textContent = '';
-  }
-}
-function shrinkImage(file) {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const max = 1600, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-      const c = document.createElement('canvas');
-      c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url);
-      c.toBlob(b => resolve(b || file), 'image/jpeg', 0.82);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-    img.src = url;
+      /* Dot */
+      dot.className = "notice-dot";
+
+      /* Banner text: black, bigger, bold */
+      txt.className = "notice-text";
+      txt.textContent = d.message;
+
+      /* Modal header */
+      cardHead.classList.remove("warn", "urgent");
+      if (d.urgent) {
+        cardHead.className = "notice-card-head urgent";
+        cardHead.innerHTML = "&#9888; URGENT NOTICE";
+      } else {
+        cardHead.className = "notice-card-head warn";
+        cardHead.innerHTML = "&#128226; Notice";
+      }
+
+      /* Modal body */
+      cardBody.className = "notice-card-body";
+      var timeStr = "";
+      if (d.timestamp && d.timestamp.toDate) {
+        var dt = d.timestamp.toDate();
+        timeStr = '<div class="notice-card-time">Posted ' + dt.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
+      }
+      cardBody.innerHTML = d.message + timeStr;
+
+    } else {
+      /* No notice: restore default dark green bar */
+      bar.classList.remove("urgent-bar", "active-bar");
+      dot.className = "notice-dot off";
+      txt.className = "notice-text dim";
+      txt.textContent = "No active notices";
+      cardHead.className = "notice-card-head";
+      cardHead.innerHTML = "&#128226; Notice";
+      cardBody.className = "notice-card-body dim";
+      cardBody.textContent = "No active notices";
+    }
   });
-}
-async function loadPhotos(id) {
-  if (!photoCache[id]) {
-    try { photoCache[id] = await API.photos(id); }
-    catch (e) { const s = $('photo-status'); if (s && openTaskId === id) s.textContent = 'Could not load photos: ' + e.message; return; }
-  }
-  if (openTaskId !== id) return;
-  const g = $('photo-grid'), s = $('photo-status');
-  if (!g) return;
-  const list = photoCache[id];
-  g.innerHTML = list.map((p, i) => '<img src="' + esc(p.thumb) + '" alt="" onclick="showPhoto(' + i + ')">').join('');
-  if (s) s.textContent = list.length ? list.length + ' photo' + (list.length > 1 ? 's' : '') : 'No photos yet';
-}
-function showPhoto(i) {
-  const p = (photoCache[openTaskId] || [])[i]; if (!p) return;
-  $('lightbox-img').src = p.full || p.thumb; $('lightbox').classList.add('show');
-}
-
-/* ---------------- detail sheet ---------------- */
-function openSheet(id) {
-  openTaskId = id;
-  renderSheet();
-  $('scrim').classList.add('show'); $('sheet').classList.add('show');
-  $('sh-body').scrollTop = 0;
-  loadPhotos(id);
-}
-function closeSheet() {
-  $('scrim').classList.remove('show'); $('sheet').classList.remove('show');
-  openTaskId = null;
-  if (document.activeElement) document.activeElement.blur();
-}
-function renderSheet() {
-  const t = findTask(openTaskId); if (!t) { closeSheet(); return; }
-  const keepNote = $('note-in') ? $('note-in').value : '';
-  const s = stationOf(t.station), c = statusCls(t.status), due = dueLabel(t);
-  $('sh-title').textContent = t.title;
-  $('sh-sub').textContent = (s ? s.name + ' · ' + s.addr : (t.station || 'No station')) + ' · ' + due.text;
-
-  let h = '';
-  // status + buttons
-  h += '<div class="blk"><div class="blk-label">Status</div>' +
-    '<div style="margin-bottom:10px"><span class="pill ' + c + '" style="font-size:12px;padding:6px 10px">' + esc(t.status) + '</span>' +
-    (t.completedOn && t.status === ST.DONE ? ' <span style="font-size:13px;font-weight:700;margin-left:6px">Completed ' + md(t.completedOn) + '</span>' : '') + '</div>' +
-    (t.status === ST.NC && t.reason ? '<div class="task-reason" style="margin:0 0 10px;font-size:14px">Why: ' + esc(t.reason) + '</div>' : '') +
-    '<div class="acts" style="padding:0">' +
-      '<button class="act start" ' + (t.status === ST.IP ? 'disabled' : '') + ' onclick="doStart(\'' + t.id + '\')">' + (t.status === ST.IP ? 'Started' : 'Start') + '</button>' +
-      '<button class="act done" ' + (t.status === ST.DONE ? 'disabled' : '') + ' onclick="doDone(\'' + t.id + '\')">Done</button>' +
-      '<button class="act nc" onclick="openNc(\'' + t.id + '\')">Not done?</button></div>' +
-    (t.status !== ST.NS ? '<button class="reset-link" onclick="doReset(\'' + t.id + '\')">Set back to Not Started</button>' : '') +
-    '</div>';
-
-  if (t.instructions) h += '<div class="blk"><div class="blk-label">Instructions</div><div class="blk-text">' + esc(t.instructions) + '</div></div>';
-
-  h += '<div class="blk"><div class="kv">' +
-    '<div><b>Due</b><span>' + (t.due ? DOW[t.due.getDay()] + ' ' + md(t.due) : 'None') + '</span></div>' +
-    '<div><b>Frequency</b><span>' + esc(t.frequency || '-') + '</span></div>' +
-    '<div><b>Category</b><span>' + esc(t.category || '-') + '</span></div>' +
-    '<div><b>Completed on</b><span>' + (t.completedOn ? md(t.completedOn) : '-') + '</span></div>' +
-    '</div></div>';
-
-  h += '<div class="blk"><div class="blk-label">People</div>' +
-    '<div class="person-row"><div class="who"><b>Assigned To</b><span>' + esc(assigneeLabel(t)) + '</span></div>' +
-      '<button class="change-btn" onclick="openPeople(\'' + t.id + '\',\'AssignedTo\')">Change</button></div>' +
-    '<div class="person-row"><div class="who"><b>Responsible for Follow-up</b><span>' + esc(personName(t.respId)) + '</span></div>' +
-      '<button class="change-btn" onclick="openPeople(\'' + t.id + '\',\'ResponsibleParty\')">Change</button></div>' +
-    '</div>';
-
-  h += '<div class="blk"><div class="blk-label">Work Notes</div>' +
-    '<textarea class="note-in" id="note-in" placeholder="What did you do or find?"></textarea>' +
-    '<div class="row-btns"><button class="big-btn" id="note-btn" onclick="addNote()">Add Note</button></div>' +
-    '<div class="notes-hist">' + esc(notesToText(t.notes)) + '</div></div>';
-
-  h += '<div class="blk"><div class="blk-label">Photos</div>' +
-    '<button class="big-btn" style="margin-top:0" onclick="pickPhoto()">Add Photo</button>' +
-    '<div class="photos" id="photo-grid"></div><div class="photo-status" id="photo-status">Loading photos...</div></div>';
-
-  $('sh-body').innerHTML = h;
-  if (keepNote) $('note-in').value = keepNote;
-  if (photoCache[t.id]) loadPhotos(t.id);
-}
-
-/* ---------------- info ---------------- */
-function openInfo() {
-  const who = account ? esc(account.name) + '<br><span style="font-size:12px;color:#555">' + esc(account.username) + '</span>' : 'Not signed in';
-  $('info-body').innerHTML =
-    '<div class="info-line"><b>Version ' + VERSION + '</b><br>Grounds tasks for Station 1, Station 1.5 Admin and Station 2. Changes save straight to the Grounds Tracker list in SharePoint, so alerts and the log still run.</div>' +
-    '<div class="info-line">Signed in as:<br><b>' + who + '</b></div>' +
-    '<div class="info-line" style="font-size:12px;color:#555">Colors: gray not started, yellow in progress, green done, red not completed. The list refreshes every ' + CONFIG.refreshSeconds + ' seconds and when you open the app.</div>' +
-    '<div class="info-line" style="font-size:12px;color:#555">Questions? Contact Doug: <a href="mailto:d.boyce@northcountryems.org?subject=GROUNDS%20TRACKER%20APP">d.boyce@northcountryems.org</a></div>' +
-    (account ? '<button class="big-btn red" onclick="signOut()">Sign out</button>' : '');
-  $('info-ov').classList.add('show');
-}
-function closeInfo() { $('info-ov').classList.remove('show'); }
-
-/* ---------------- setup ---------------- */
-function saveSetup() {
-  const v = $('setup-cid').value.trim();
-  if (!/^[0-9a-f-]{36}$/i.test(v)) { toast('That does not look like a Client ID', { err: true }); return; }
-  lsSet(LS.cid, v); location.reload();
-}
-
-/* ---------------- boot ---------------- */
-async function boot() {
-  $('hub-link').href = CONFIG.hubUrl;
-  weekFilter = lsGet(LS.filter, 'all');
-  if (DEMO) {
-    setupDemo();
-    showPage('week'); switchTab('week');
-    await refresh(false);
-    findMe(); render();
-    return;
-  }
-  if (!clientId()) { showPage('setup'); return; }
-  try { await initAuth(); }
-  catch (e) { showPage('signin'); showSigninErr(e); return; }
-  if (!account) { showPage('signin'); return; }
-  loadCache();
-  switchTab('week');
-  await refresh(false);
-  startAutoRefresh();
-}
-window.addEventListener('DOMContentLoaded', () => { boot().catch(e => { showPage('signin'); showSigninErr(e); }); });
+})();
 </script>
 </body>
 </html>
