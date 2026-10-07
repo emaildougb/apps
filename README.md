@@ -21,7 +21,7 @@ Central landing page for North Country EMS crew and admin tools.
 ## Page layout
 
 **Page 1 (swipe):** Clinical reference (big SF Mono, one per row) + Quick Protocols
-**Page 2 (swipe):** Operations + Apparatus (WAMBOchecker)
+**Operations tab (code locked):** Operations (Incident Report, NCEMS OT) · Apparatus (EP Checker) · Facilities (Grounds Tracker) · BC / Chief (Push Notice)
 Tap the dots under the header or swipe to switch. Notice banner pinned at bottom on both.
 
 ## Clinical card order (Page 1)
@@ -35,6 +35,11 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 3. Change `ADMIN_PASSWORD` in `admin.html` before deploying
 
 ## Changelog
+
+### v1.10
+- Operations tab: new Facilities section with a Grounds Tracker button (https://emaildougb.github.io/grounds-tracker/), between Apparatus and BC / Chief
+- Grounds Tracker has its own Microsoft sign-in, so the link is protected even outside the 5142 gate
+- Playwright smoke test: unlock with 5142, Grounds Tracker button shows and links correctly
 
 ### v1.8
 - Added a line to the info panel: apps open in a Safari window; for full-screen, add them to the home screen individually
