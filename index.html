@@ -15,21 +15,22 @@
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <title>NCEMS Field Reference</title>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
 <style>
   :root {
-    --g-deep:   #1C3A1C;
-    --g-mid:    #2E6B2E;
-    --g-accent: #3A8A3A;
-    --g-pale:   #EBF5EB;
-    --warn:     #B87E0A;
-    --bad:      #C13E3E;
-    --text:     #1A1A1A;
+    --g-deep:    #1C3A1C;
+    --g-mid:     #2E6B2E;
+    --g-accent:  #3A8A3A;
+    --g-pale:    #EBF5EB;
+    --warn:      #B87E0A;
+    --bad:       #C13E3E;
+    --text:      #1A1A1A;
     --text-muted:#555;
-    --border:   #C5DFC5;
-    --white:    #ffffff;
-    --banner-h: 44px;
-    --tab-h:    62px;
-    --hdr-h:    72px;
+    --border:    #C5DFC5;
+    --white:     #ffffff;
+    --banner-h:  44px;
+    --tab-h:     62px;
+    --hdr-h:     72px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
   html, body {
@@ -61,14 +62,25 @@
   .hdr-text { flex: 1; min-width: 0; }
   .hdr-text h1 { font-size: 17px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
   .hdr-text p  { font-size: 10px; opacity: .7; margin-top: 2px; letter-spacing: 1px; }
+  .hdr-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .info-btn {
-    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+    width: 38px; height: 38px; border-radius: 50%;
     background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
     color: #fff; font-size: 20px; font-weight: 800; font-style: italic;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     font-family: Georgia, serif;
   }
   .info-btn:active { background: rgba(255,255,255,0.3); }
+  .signout-btn {
+    height: 34px; border-radius: 8px; padding: 0 12px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    display: none;
+  }
+  .signout-btn:active { background: rgba(255,255,255,0.25); }
+  .signout-btn.visible { display: flex; align-items: center; }
 
   /* CONTENT */
   .content {
@@ -89,7 +101,7 @@
     padding: 16px 18px 8px;
   }
 
-  /* CLINICAL BUTTONS */
+  /* CLINICAL / BIG BUTTONS */
   .clin-list { display: flex; flex-direction: column; gap: 14px; padding: 0 16px 6px; }
   .clin-btn {
     display: flex; align-items: center; justify-content: center;
@@ -133,36 +145,108 @@
   .ops-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px;
                text-transform: uppercase; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
   .ops-sub   { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 6px; letter-spacing: .5px; }
-  .ops-btn.wambo { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
+  .ops-btn.dark  { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
   .ops-btn.admin-btn {
     background: linear-gradient(135deg, #5c3a00 0%, #8a5500 100%);
     border-color: rgba(255,255,255,0.15);
   }
 
-  /* LOCK SCREEN */
-  .lock-screen { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-    padding: 48px 24px 24px; text-align: center; }
-  .lock-icon { font-size: 52px; margin-bottom: 8px; }
-  .lock-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--g-deep); margin-bottom: 4px; }
-  .lock-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; letter-spacing: 1px; }
-  .lock-input {
-    width: 200px; max-width: 80%; padding: 16px; font-size: 34px; font-weight: 800;
-    border: 2px solid var(--border); border-radius: 12px; text-align: center;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: var(--g-deep);
-    letter-spacing: 10px; outline: none; -webkit-appearance: none; appearance: none; background: #fff;
+  /* INCIDENT REPORT PAGE */
+  .ir-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding: 32px 24px 24px; gap: 20px;
   }
-  .lock-input:focus { border-color: var(--g-accent); }
-  .lock-input::-webkit-outer-spin-button, .lock-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .lock-btn {
-    margin-top: 18px; width: 200px; max-width: 80%; padding: 16px;
-    background: var(--g-accent); color: #fff; border: none; border-radius: 12px;
+  .ir-card {
+    width: 100%; max-width: 480px; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.22); text-decoration: none;
+    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; cursor: pointer; transition: transform 0.1s;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .ir-card:active { transform: scale(0.97); }
+  .ir-icon { font-size: 52px; margin-bottom: 12px; }
+  .ir-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: 2px;
+              text-transform: uppercase; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+  .ir-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 8px; letter-spacing: 1px; }
+
+  /* OPS SIGN-IN GATE */
+  .ops-signin {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding: 48px 24px 24px; text-align: center;
+  }
+  .ops-signin-icon { font-size: 52px; margin-bottom: 12px; }
+  .ops-signin-title { font-size: 18px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--g-deep); margin-bottom: 6px; }
+  .ops-signin-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; letter-spacing: 1px; }
+  .ms-signin-btn {
+    display: flex; align-items: center; gap: 12px;
+    background: #0078d4; color: #fff; border: none; border-radius: 12px;
+    padding: 16px 28px; font-size: 16px; font-weight: 800; cursor: pointer;
     font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-    font-size: 16px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
+    letter-spacing: 1px; box-shadow: 0 4px 16px rgba(0,120,212,0.35);
+    transition: transform 0.1s;
   }
-  .lock-btn:active { background: var(--g-mid); }
-  .lock-err { margin-top: 14px; min-height: 18px; color: var(--bad);
-    font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+  .ms-signin-btn:active { transform: scale(0.97); }
+  .ms-logo { width: 22px; height: 22px; flex-shrink: 0; }
+  .ops-signin-err { margin-top: 16px; color: var(--bad); font-size: 13px;
+    font-weight: 700; letter-spacing: 1px; min-height: 18px; }
+
+  /* GREETING STRIP */
+  .greeting-strip {
+    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
+    color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: none;
+  }
+  .greeting-strip.visible { display: block; }
+
+  /* PUSH NOTICE ADMIN PANEL (inline in Ops tab) */
+  .admin-panel {
+    margin: 0 16px 12px; border-radius: 12px; overflow: hidden;
+    border: 1px solid rgba(139,90,0,0.3);
+    background: linear-gradient(135deg, #3d2600 0%, #5c3a00 100%);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    display: none;
+  }
+  .admin-panel.visible { display: block; }
+  .admin-panel-head {
+    padding: 12px 16px; font-size: 11px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase; color: rgba(255,200,100,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .admin-panel-body { padding: 14px 16px; }
+  .admin-textarea {
+    width: 100%; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1); color: #fff; font-size: 14px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
+    padding: 12px; resize: none; outline: none; height: 80px;
+  }
+  .admin-textarea::placeholder { color: rgba(255,255,255,0.4); }
+  .admin-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+  .admin-urgent-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 800; color: rgba(255,200,100,0.85);
+    letter-spacing: 1px; cursor: pointer;
+  }
+  .admin-urgent-label input { width: 16px; height: 16px; cursor: pointer; }
+  .admin-btns { display: flex; gap: 8px; margin-left: auto; }
+  .admin-post-btn {
+    padding: 10px 18px; background: #B87E0A; color: #fff; border: none;
+    border-radius: 8px; font-size: 13px; font-weight: 800; letter-spacing: 1px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; cursor: pointer;
+  }
+  .admin-post-btn:active { background: #946408; }
+  .admin-clear-btn {
+    padding: 10px 14px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+    font-size: 13px; font-weight: 800; letter-spacing: 1px;
+    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; cursor: pointer;
+  }
+  .admin-clear-btn:active { background: rgba(255,255,255,0.2); }
+  .admin-status { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 8px;
+    letter-spacing: .5px; min-height: 16px; }
 
   /* BOTTOM TAB BAR */
   .tabbar {
@@ -180,7 +264,6 @@
   .tab.active { color: var(--g-mid); }
   .tab-ico { font-size: 22px; line-height: 1; }
   .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
-  .tab-lock { font-size: 10px; }
 
   /* NOTICE BANNER */
   .notice-bar {
@@ -188,27 +271,24 @@
     height: calc(var(--banner-h) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--g-deep); color: var(--white);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    display: none; align-items: center; justify-content: center; gap: 8px;
     padding-left: 14px; padding-right: 14px; z-index: 30;
     box-shadow: 0 -2px 10px rgba(0,0,0,.25);
     cursor: pointer;
     transition: background 0.25s;
   }
-  /* urgent = red bar */
+  .notice-bar.has-notice { display: flex; }
   .notice-bar.urgent-bar { background: #C13E3E; }
-  /* non-urgent notice = amber bar */
   .notice-bar.active-bar { background: #B87E0A; }
   .notice-dot { width: 7px; height: 7px; border-radius: 50%;
-                background: rgba(255,255,255,0.5); flex-shrink: 0;
+                background: rgba(255,255,255,0.7); flex-shrink: 0;
                 animation: pulse 2.5s ease-in-out infinite; }
-  .notice-dot.off  { background: #444; animation: none; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.65);} }
   .notice-text {
     font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; color: #000; text-align: center; max-width: 88%;
+    text-overflow: ellipsis; color: #fff; text-align: center; max-width: 88%;
     letter-spacing: .5px;
   }
-  .notice-text.dim { color: rgba(255,255,255,0.45); font-style: italic; font-weight: 400; font-size: 12px; }
 
   /* NOTICE EXPANDED MODAL */
   .notice-overlay {
@@ -226,10 +306,9 @@
     font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .notice-card-head.warn { background: linear-gradient(135deg, #946408 0%, var(--warn) 100%); }
+  .notice-card-head.warn   { background: linear-gradient(135deg, #946408 0%, var(--warn) 100%); }
   .notice-card-head.urgent { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); }
   .notice-card-body { padding: 24px 22px; text-align: center; font-size: 16px; line-height: 1.6; color: var(--text); }
-  .notice-card-body.dim { color: #999; font-style: italic; }
   .notice-card-time { font-size: 11px; color: var(--text-muted); margin-top: 14px; letter-spacing: 1px; }
   .notice-card-close {
     display: block; width: calc(100% - 44px); margin: 0 22px 22px; padding: 14px;
@@ -257,6 +336,15 @@
     font-size: 14px; font-weight: 800; text-decoration: none; letter-spacing: .5px; word-break: break-all;
   }
   .info-email:active { background: #dceadc; }
+
+  /* Active notice section inside info modal */
+  .info-notice-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
+  .info-notice-label { font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .info-notice-msg { font-size: 14px; line-height: 1.5; color: var(--text); }
+  .info-notice-msg.dim { color: #aaa; font-style: italic; font-size: 13px; }
+  .info-notice-urgent { color: var(--bad); font-weight: 800; }
+
   .info-tip { font-size: 12px; line-height: 1.5; color: var(--text-muted);
     margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
   .info-close {
@@ -283,7 +371,10 @@
     <h1>NCEMS Field Reference</h1>
     <p>North Country EMS &middot; Clark Fire 13</p>
   </div>
-  <button class="info-btn" onclick="openInfo()">i</button>
+  <div class="hdr-right">
+    <button class="signout-btn" id="signout-btn" onclick="msalSignOut()">Sign Out</button>
+    <button class="info-btn" onclick="openInfo()">i</button>
+  </div>
 </header>
 
 <div class="content">
@@ -307,51 +398,79 @@
     </div>
   </div>
 
+  <!-- INCIDENT REPORT TAB -->
+  <div class="tab-page" id="tab-ir">
+    <div class="ir-wrap">
+      <a class="ir-card" href="https://reports.northcountryems.org/">
+        <div class="ir-icon">&#128203;</div>
+        <div class="ir-title">Incident Report</div>
+        <div class="ir-sub">On-duty report system</div>
+      </a>
+    </div>
+  </div>
+
   <!-- OPERATIONS TAB -->
   <div class="tab-page" id="tab-ops">
-    <div id="ops-lock">
-      <div class="lock-screen">
-        <div class="lock-icon">&#128274;</div>
-        <div class="lock-title">Operations</div>
-        <div class="lock-sub">Enter access code</div>
-        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="lock-input" id="lock-input"
-               onkeydown="if(event.key==='Enter')tryUnlock()">
-        <button class="lock-btn" onclick="tryUnlock()">Unlock</button>
-        <div class="lock-err" id="lock-err"></div>
+
+    <!-- Sign-in gate (shown when not authenticated) -->
+    <div id="ops-signin-gate">
+      <div class="ops-signin">
+        <div class="ops-signin-icon">&#128274;</div>
+        <div class="ops-signin-title">Operations</div>
+        <div class="ops-signin-sub">NCEMS agency sign-in required</div>
+        <button class="ms-signin-btn" onclick="msalSignIn()">
+          <svg class="ms-logo" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+          </svg>
+          Sign in with Microsoft
+        </button>
+        <div class="ops-signin-err" id="ops-signin-err"></div>
       </div>
     </div>
-    <div id="ops-unlocked" style="display:none;">
+
+    <!-- Ops content (shown when authenticated) -->
+    <div id="ops-content" style="display:none;">
+      <div class="greeting-strip visible" id="greeting-strip">Welcome</div>
+
+      <!-- BC/Chief admin panel — visible only for authorized accounts -->
+      <div class="admin-panel" id="admin-panel">
+        <div class="admin-panel-head">&#128226; Push Notice &mdash; BC / Chief</div>
+        <div class="admin-panel-body">
+          <textarea class="admin-textarea" id="admin-msg" placeholder="Type a notice for all crew..."></textarea>
+          <div class="admin-row">
+            <label class="admin-urgent-label">
+              <input type="checkbox" id="admin-urgent"> URGENT
+            </label>
+            <div class="admin-btns">
+              <button class="admin-clear-btn" onclick="clearNotice()">Clear</button>
+              <button class="admin-post-btn" onclick="postNotice()">Post</button>
+            </div>
+          </div>
+          <div class="admin-status" id="admin-status"></div>
+        </div>
+      </div>
+
       <div class="section-label">Operations</div>
       <div class="grid">
-        <a class="ops-btn" href="https://reports.northcountryems.org/">
-          <div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty reports</div>
-        </a>
         <a class="ops-btn" href="https://overtime.northcountryems.org/">
           <div class="ops-title">NCEMS<br>OT</div><div class="ops-sub">Overtime sign-up</div>
+        </a>
+        <a class="ops-btn dark" href="https://emaildougb.github.io/grounds-tracker/">
+          <div class="ops-title">Grounds<br>Tracker</div><div class="ops-sub">Facilities &amp; grounds</div>
         </a>
       </div>
       <div class="section-label">Apparatus</div>
       <div class="grid single">
-        <a class="ops-btn wambo" href="https://checks.northcountryems.org/">
-          <div class="ops-title">EP Checker</div>
+        <a class="ops-btn" href="https://checks.northcountryems.org/">
+          <div class="ops-title">Apparatus Checker</div>
           <div class="ops-sub">Daily checks &middot; M25A &middot; M25B &middot; M19 &middot; M18 &middot; M14</div>
         </a>
       </div>
-      <div class="section-label">Facilities</div>
-      <div class="grid single">
-        <a class="ops-btn" href="https://emaildougb.github.io/grounds-tracker/">
-          <div class="ops-title">Grounds Tracker</div>
-          <div class="ops-sub">Weekly grounds tasks &middot; Sta 1 &middot; Sta 1.5 &middot; Sta 2</div>
-        </a>
-      </div>
-      <div class="section-label">BC / Chief</div>
-      <div class="grid single">
-        <a class="ops-btn admin-btn" href="admin.html">
-          <div class="ops-title">Push Notice</div>
-          <div class="ops-sub">Admin panel &middot; BC and Chief access only</div>
-        </a>
-      </div>
     </div>
+
   </div>
 
 </div>
@@ -362,23 +481,27 @@
     <span class="tab-ico">&#129658;</span>
     <span class="tab-lbl">Clinical</span>
   </button>
-  <button class="tab" id="t-ops" onclick="switchTab('ops')">
+  <button class="tab" id="t-ir" onclick="switchTab('ir')">
     <span class="tab-ico">&#128203;</span>
-    <span class="tab-lbl">Operations <span class="tab-lock" id="ops-lock-ico">&#128274;</span></span>
+    <span class="tab-lbl">Report</span>
+  </button>
+  <button class="tab" id="t-ops" onclick="switchTab('ops')">
+    <span class="tab-ico">&#128274;</span>
+    <span class="tab-lbl">Operations</span>
   </button>
 </nav>
 
-<!-- NOTICE BANNER (tap to expand) -->
+<!-- NOTICE BANNER (only shown when there's an active notice) -->
 <div class="notice-bar" id="notice-bar" onclick="openNotice()">
-  <div class="notice-dot off" id="noticedot"></div>
-  <div class="notice-text dim" id="noticetext">No active notices</div>
+  <div class="notice-dot" id="noticedot"></div>
+  <div class="notice-text" id="noticetext"></div>
 </div>
 
 <!-- NOTICE EXPANDED MODAL -->
 <div class="notice-overlay" id="notice-overlay">
   <div class="notice-card">
     <div class="notice-card-head" id="notice-card-head">&#128226; Notice</div>
-    <div class="notice-card-body dim" id="notice-card-body">No active notices</div>
+    <div class="notice-card-body" id="notice-card-body"></div>
     <button class="notice-card-close" onclick="closeNotice()">Close</button>
   </div>
 </div>
@@ -391,8 +514,12 @@
       <h2>NCEMS Field Reference</h2>
     </div>
     <div class="info-body">
-      <p class="info-line">This is a reference guide only &mdash; questions or comments, contact Doug.</p>
+      <p class="info-line">Questions or comments, contact Doug.</p>
       <a class="info-email" href="mailto:d.boyce@northcountryems.org?subject=NCEMS%20HUB%20APP">d.boyce@northcountryems.org</a>
+      <div class="info-notice-section">
+        <div class="info-notice-label">Active Notice</div>
+        <div class="info-notice-msg dim" id="info-notice-msg">No active notices</div>
+      </div>
       <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
     </div>
     <button class="info-close" onclick="closeInfo()">Close</button>
@@ -400,76 +527,178 @@
 </div>
 
 <script>
-/* ===== OPS ACCESS CODE — resets every 2 hours or on reopen ===== */
-var OPS_CODE = "5142";
-var UNLOCK_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
-var unlockedAt = 0;
+/* ===================================================
+   MSAL — Microsoft agency sign-in for Operations tab
+   Hub app registration: hub.northcountryems.org
+   Tenant: North Country EMS
+   TODO: paste your Application (client) ID below
+   =================================================== */
+var MSAL_CONFIG = {
+  clientId: 'YOUR-HUB-CLIENT-ID',   // <-- paste after Azure app registration
+  tenantId: '153dc089-095e-4a20-8d10-39321a0aca09'
+};
 
-function isUnlocked(){
-  return unlockedAt > 0 && (Date.now() - unlockedAt) < UNLOCK_WINDOW_MS;
-}
-function lockOps(){
-  unlockedAt = 0;
-  document.getElementById('ops-lock').style.display = 'block';
-  document.getElementById('ops-unlocked').style.display = 'none';
-  var ico = document.getElementById('ops-lock-ico');
-  if (ico) ico.style.display = 'inline';
-  var inp = document.getElementById('lock-input');
-  if (inp) inp.value = '';
-}
-function showUnlocked(){
-  document.getElementById('ops-lock').style.display = 'none';
-  document.getElementById('ops-unlocked').style.display = 'block';
-  var ico = document.getElementById('ops-lock-ico');
-  if (ico) ico.style.display = 'none';
+// Accounts allowed to see the Push Notice admin panel
+var ADMIN_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'b.shirley@northcountryems.org'];
+
+var msalApp = null;
+var msalAccount = null;
+
+function getFirstName(account) {
+  if (!account || !account.name) return '';
+  return account.name.trim().split(/\s+/)[0];
 }
 
-function switchTab(which){
-  document.getElementById('tab-clinical').classList.toggle('active', which==='clinical');
-  document.getElementById('tab-ops').classList.toggle('active', which==='ops');
-  document.getElementById('t-clinical').classList.toggle('active', which==='clinical');
-  document.getElementById('t-ops').classList.toggle('active', which==='ops');
-  document.querySelector('.content').scrollTop = 0;
-  if (which==='ops'){
-    if (isUnlocked()) { showUnlocked(); }
-    else { lockOps(); setTimeout(function(){ var i=document.getElementById('lock-input'); if(i) i.focus(); }, 100); }
-  }
+function isAdminAccount(account) {
+  if (!account) return false;
+  var email = (account.username || '').toLowerCase();
+  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === email; });
 }
 
-function tryUnlock(){
-  var val = document.getElementById('lock-input').value.trim();
-  var err = document.getElementById('lock-err');
-  if (val === OPS_CODE){
-    unlockedAt = Date.now();
-    showUnlocked();
-    err.textContent = '';
+async function initMsal() {
+  if (typeof msal === 'undefined') throw new Error('Could not load Microsoft sign-in. Check internet and try again.');
+  msalApp = new msal.PublicClientApplication({
+    auth: {
+      clientId: MSAL_CONFIG.clientId,
+      authority: 'https://login.microsoftonline.com/' + MSAL_CONFIG.tenantId,
+      redirectUri: location.origin + location.pathname.replace(/index\.html$/, ''),
+      navigateToLoginRequestUrl: false
+    },
+    cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true }
+  });
+  await msalApp.initialize();
+  var res = await msalApp.handleRedirectPromise();
+  if (res && res.account) {
+    msalAccount = res.account;
+    showOpsContent();
   } else {
-    err.textContent = 'Incorrect code';
-    document.getElementById('lock-input').value = '';
+    msalAccount = msalApp.getActiveAccount() || msalApp.getAllAccounts()[0] || null;
+    if (msalAccount) {
+      showOpsContent();
+    }
+    // else: stay on sign-in gate
   }
 }
 
-/* re-lock when app returns to foreground if window expired */
-document.addEventListener('visibilitychange', function(){
-  if (!document.hidden && !isUnlocked()){
-    lockOps();
-    if (document.getElementById('tab-ops').classList.contains('active')){
-      setTimeout(function(){ var i=document.getElementById('lock-input'); if(i) i.focus(); }, 100);
+function msalSignIn() {
+  var errEl = document.getElementById('ops-signin-err');
+  errEl.textContent = '';
+  if (!msalApp) {
+    initMsal().catch(function(e){
+      errEl.textContent = e.message || String(e);
+    });
+    return;
+  }
+  msalApp.loginRedirect({ scopes: ['User.Read'], prompt: 'select_account' });
+}
+
+function msalSignOut() {
+  msalAccount = null;
+  hideOpsContent();
+  if (msalApp) {
+    msalApp.logoutRedirect({ postLogoutRedirectUri: location.href });
+  }
+}
+
+function showOpsContent() {
+  document.getElementById('ops-signin-gate').style.display = 'none';
+  document.getElementById('ops-content').style.display = 'block';
+
+  // Greeting
+  var name = getFirstName(msalAccount);
+  var strip = document.getElementById('greeting-strip');
+  strip.textContent = name ? 'Welcome, ' + name : 'Welcome';
+
+  // Sign-out button in header
+  document.getElementById('signout-btn').classList.add('visible');
+
+  // Update ops tab icon to unlocked
+  document.getElementById('t-ops').querySelector('.tab-ico').textContent = '\u{1F513}'; // open lock
+
+  // Admin panel — only for authorized accounts
+  if (isAdminAccount(msalAccount)) {
+    document.getElementById('admin-panel').classList.add('visible');
+  }
+}
+
+function hideOpsContent() {
+  document.getElementById('ops-signin-gate').style.display = 'block';
+  document.getElementById('ops-content').style.display = 'none';
+  document.getElementById('signout-btn').classList.remove('visible');
+  document.getElementById('t-ops').querySelector('.tab-ico').textContent = '\u{1F512}'; // lock
+  document.getElementById('admin-panel').classList.remove('visible');
+}
+
+/* Run MSAL init on load — handles the redirect return silently */
+if (MSAL_CONFIG.clientId && MSAL_CONFIG.clientId !== 'YOUR-HUB-CLIENT-ID') {
+  initMsal().catch(function(e){
+    document.getElementById('ops-signin-err').textContent = e.message || String(e);
+  });
+}
+
+/* ===== TAB SWITCHING ===== */
+function switchTab(which) {
+  ['clinical','ir','ops'].forEach(function(t){
+    document.getElementById('tab-' + t).classList.toggle('active', t === which);
+    document.getElementById('t-' + t).classList.toggle('active', t === which);
+  });
+  document.querySelector('.content').scrollTop = 0;
+  if (which === 'ops' && !msalAccount) {
+    // trigger MSAL init so redirect is handled on first tap
+    if (MSAL_CONFIG.clientId && MSAL_CONFIG.clientId !== 'YOUR-HUB-CLIENT-ID' && !msalApp) {
+      initMsal().catch(function(e){
+        document.getElementById('ops-signin-err').textContent = e.message || String(e);
+      });
     }
   }
-});
+}
 
-/* INFO MODAL */
-function openInfo(){ document.getElementById('info-overlay').classList.add('show'); }
-function closeInfo(){ document.getElementById('info-overlay').classList.remove('show'); }
+/* ===== INFO MODAL ===== */
+function openInfo() { document.getElementById('info-overlay').classList.add('show'); }
+function closeInfo() { document.getElementById('info-overlay').classList.remove('show'); }
 document.getElementById('info-overlay').addEventListener('click', function(e){ if (e.target === this) closeInfo(); });
 
-/* NOTICE MODAL */
-function openNotice(){ document.getElementById('notice-overlay').classList.add('show'); }
-function closeNotice(){ document.getElementById('notice-overlay').classList.remove('show'); }
+/* ===== NOTICE MODAL ===== */
+function openNotice() { document.getElementById('notice-overlay').classList.add('show'); }
+function closeNotice() { document.getElementById('notice-overlay').classList.remove('show'); }
 document.getElementById('notice-overlay').addEventListener('click', function(e){ if (e.target === this) closeNotice(); });
 
-/* ===== FIREBASE ===== */
+/* ===== PUSH NOTICE ADMIN ===== */
+var db = null;
+var fsModule = null;
+
+function postNotice() {
+  if (!db || !fsModule) { setAdminStatus('Firebase not connected'); return; }
+  var msg = document.getElementById('admin-msg').value.trim();
+  if (!msg) { setAdminStatus('Enter a message first'); return; }
+  var urgent = document.getElementById('admin-urgent').checked;
+  setAdminStatus('Posting...');
+  fsModule.setDoc(fsModule.doc(db, 'notices', 'active'), {
+    message: msg,
+    urgent: urgent,
+    timestamp: fsModule.serverTimestamp(),
+    postedBy: msalAccount ? msalAccount.username : 'unknown'
+  }).then(function(){
+    setAdminStatus('Posted.');
+    document.getElementById('admin-msg').value = '';
+    document.getElementById('admin-urgent').checked = false;
+  }).catch(function(e){ setAdminStatus('Error: ' + e.message); });
+}
+
+function clearNotice() {
+  if (!db || !fsModule) { setAdminStatus('Firebase not connected'); return; }
+  setAdminStatus('Clearing...');
+  fsModule.setDoc(fsModule.doc(db, 'notices', 'active'), { message: '' })
+    .then(function(){ setAdminStatus('Cleared.'); })
+    .catch(function(e){ setAdminStatus('Error: ' + e.message); });
+}
+
+function setAdminStatus(msg) {
+  var el = document.getElementById('admin-status');
+  if (el) el.textContent = msg;
+}
+
+/* ===== FIREBASE — notices listener + usage tracker ===== */
 (async function(){
   var FIREBASE_READY = true;
   var firebaseConfig = {
@@ -484,9 +713,10 @@ document.getElementById('notice-overlay').addEventListener('click', function(e){
 
   var fb = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
   var fs = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-  var db = fs.getFirestore(fb.initializeApp(firebaseConfig));
+  db = fs.getFirestore(fb.initializeApp(firebaseConfig));
+  fsModule = fs;
 
-  /* --- USAGE TRACKER: bump hub open count --- */
+  /* Usage tracker */
   try {
     var today = new Date().toISOString().slice(0,10);
     var usageRef = fs.doc(db, "usage", "hub");
@@ -500,27 +730,26 @@ document.getElementById('notice-overlay').addEventListener('click', function(e){
     });
   } catch(e){ console.warn("Usage track failed", e); }
 
-  /* --- NOTICES: live listener --- */
+  /* Notices live listener */
   fs.onSnapshot(fs.doc(db, "notices", "active"), function(snap){
     var bar      = document.getElementById("notice-bar");
-    var dot      = document.getElementById("noticedot");
     var txt      = document.getElementById("noticetext");
     var cardHead = document.getElementById("notice-card-head");
     var cardBody = document.getElementById("notice-card-body");
+    var infoMsg  = document.getElementById("info-notice-msg");
 
     if (snap.exists() && snap.data().message && snap.data().message.trim()) {
       var d = snap.data();
 
-      /* Banner bar color */
+      /* Banner */
       bar.classList.remove("urgent-bar", "active-bar");
+      bar.classList.add("has-notice");
       bar.classList.add(d.urgent ? "urgent-bar" : "active-bar");
-
-      /* Dot */
-      dot.className = "notice-dot";
-
-      /* Banner text: black, bigger, bold */
-      txt.className = "notice-text";
       txt.textContent = d.message;
+
+      /* Tab bar bottom offset — push tabs up when banner visible */
+      document.querySelector('.tabbar').style.bottom =
+        'calc(' + getComputedStyle(document.documentElement).getPropertyValue('--banner-h') + ' + env(safe-area-inset-bottom))';
 
       /* Modal header */
       cardHead.classList.remove("warn", "urgent");
@@ -533,24 +762,25 @@ document.getElementById('notice-overlay').addEventListener('click', function(e){
       }
 
       /* Modal body */
-      cardBody.className = "notice-card-body";
       var timeStr = "";
       if (d.timestamp && d.timestamp.toDate) {
         var dt = d.timestamp.toDate();
-        timeStr = '<div class="notice-card-time">Posted ' + dt.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
+        timeStr = '<div class="notice-card-time">Posted ' +
+          dt.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
       }
+      cardBody.className = "notice-card-body" + (d.urgent ? " notice-card-body--urgent" : "");
       cardBody.innerHTML = d.message + timeStr;
 
+      /* Info modal notice */
+      infoMsg.className = d.urgent ? "info-notice-msg info-notice-urgent" : "info-notice-msg";
+      infoMsg.textContent = d.message;
+
     } else {
-      /* No notice: restore default dark green bar */
-      bar.classList.remove("urgent-bar", "active-bar");
-      dot.className = "notice-dot off";
-      txt.className = "notice-text dim";
-      txt.textContent = "No active notices";
-      cardHead.className = "notice-card-head";
-      cardHead.innerHTML = "&#128226; Notice";
-      cardBody.className = "notice-card-body dim";
-      cardBody.textContent = "No active notices";
+      /* No notice */
+      bar.classList.remove("has-notice", "urgent-bar", "active-bar");
+      document.querySelector('.tabbar').style.bottom = 'env(safe-area-inset-bottom)';
+      infoMsg.className = "info-notice-msg dim";
+      infoMsg.textContent = "No active notices";
     }
   });
 })();
