@@ -435,24 +435,6 @@
     <div id="ops-content" style="display:none;">
       <div class="greeting-strip visible" id="greeting-strip">Welcome</div>
 
-      <!-- BC/Chief admin panel — visible only for authorized accounts -->
-      <div class="admin-panel" id="admin-panel">
-        <div class="admin-panel-head">&#128226; Push Notice &mdash; BC / Chief</div>
-        <div class="admin-panel-body">
-          <textarea class="admin-textarea" id="admin-msg" placeholder="Type a notice for all crew..."></textarea>
-          <div class="admin-row">
-            <label class="admin-urgent-label">
-              <input type="checkbox" id="admin-urgent"> URGENT
-            </label>
-            <div class="admin-btns">
-              <button class="admin-clear-btn" onclick="clearNotice()">Clear</button>
-              <button class="admin-post-btn" onclick="postNotice()">Post</button>
-            </div>
-          </div>
-          <div class="admin-status" id="admin-status"></div>
-        </div>
-      </div>
-
       <div class="section-label">Operations</div>
       <div class="grid">
         <a class="ops-btn" href="https://overtime.northcountryems.org/">
@@ -521,6 +503,24 @@
         <div class="info-notice-msg dim" id="info-notice-msg">No active notices</div>
       </div>
       <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
+
+      <!-- Push Notice admin — BC/Chief only, shown after sign-in -->
+      <div class="info-admin-section" id="info-admin-section" style="display:none;">
+        <div class="info-notice-section" style="border-top:1px solid #eee; margin-top:18px; padding-top:14px;">
+          <div class="info-notice-label">Push Notice &mdash; BC / Chief</div>
+          <textarea class="admin-textarea" id="admin-msg" placeholder="Type a notice for all crew..." style="margin-top:10px; background:#f5f5f5; color:#1a1a1a; border:1px solid #ccc;"></textarea>
+          <div class="admin-row" style="margin-top:10px;">
+            <label class="admin-urgent-label" style="color:#8a5500;">
+              <input type="checkbox" id="admin-urgent"> URGENT
+            </label>
+            <div class="admin-btns">
+              <button class="admin-clear-btn" onclick="clearNotice()" style="background:#eee; color:#333; border:1px solid #ccc;">Clear</button>
+              <button class="admin-post-btn" onclick="postNotice()">Post</button>
+            </div>
+          </div>
+          <div class="admin-status" id="admin-status" style="color:#555;"></div>
+        </div>
+      </div>
     </div>
     <button class="info-close" onclick="closeInfo()">Close</button>
   </div>
@@ -534,7 +534,7 @@
    TODO: paste your Application (client) ID below
    =================================================== */
 var MSAL_CONFIG = {
-  clientId: '54eb93f5-05e0-42ca-a49d-f4df05c3331c',   // <-- paste after Azure app registration
+  clientId: '54eb93f5-05e0-42ca-a49d-f4df05c3331c',
   tenantId: '153dc089-095e-4a20-8d10-39321a0aca09'
 };
 
@@ -615,9 +615,9 @@ function showOpsContent() {
   // Update ops tab icon to unlocked
   document.getElementById('t-ops').querySelector('.tab-ico').textContent = '\u{1F513}'; // open lock
 
-  // Admin panel — only for authorized accounts
+  // Push Notice admin section inside info modal — only for authorized accounts
   if (isAdminAccount(msalAccount)) {
-    document.getElementById('admin-panel').classList.add('visible');
+    document.getElementById('info-admin-section').style.display = 'block';
   }
 }
 
@@ -626,7 +626,7 @@ function hideOpsContent() {
   document.getElementById('ops-content').style.display = 'none';
   document.getElementById('signout-btn').classList.remove('visible');
   document.getElementById('t-ops').querySelector('.tab-ico').textContent = '\u{1F512}'; // lock
-  document.getElementById('admin-panel').classList.remove('visible');
+  document.getElementById('info-admin-section').style.display = 'none';
 }
 
 /* Run MSAL init on load — handles the redirect return silently */
