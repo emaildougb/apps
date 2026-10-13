@@ -266,6 +266,10 @@
   .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
 
   /* NOTICE BANNER */
+  .update-bar { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 74px); z-index: 60; display: none;
+    background: #1F5C8B; color: #fff; border: none; border-radius: 12px; padding: 14px 16px; font-family: inherit; font-size: 13px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 6px 18px rgba(0,0,0,.3); cursor: pointer; text-align: center; }
+  .update-bar.show { display: block; }
   .notice-bar {
     position: fixed; bottom: 0; left: 0; right: 0;
     height: calc(var(--banner-h) + env(safe-area-inset-bottom));
@@ -381,6 +385,7 @@
 
   <!-- CLINICAL TAB -->
   <div class="tab-page active" id="tab-clinical">
+    <div id="clinical-sections">
     <div class="section-label">Clinical Reference</div>
     <div class="clin-list">
       <a class="clin-btn" href="https://emaildougb.github.io/Intubation/"><div class="clin-title">Intubation</div></a>
@@ -396,11 +401,12 @@
     <div class="clin-list">
       <a class="clin-btn protocols" href="https://emaildougb.github.io/protocol-app/"><div class="clin-title">Quick Protocols</div></a>
     </div>
+    </div>
   </div>
 
   <!-- INCIDENT REPORT TAB -->
   <div class="tab-page" id="tab-ir">
-    <div class="ir-wrap">
+    <div class="ir-wrap" id="report-section">
       <a class="ir-card" href="https://reports.northcountryems.org/">
         <div class="ir-icon">&#128203;</div>
         <div class="ir-title">Incident Report</div>
@@ -434,6 +440,7 @@
     <!-- Ops content (shown when authenticated) -->
     <div id="ops-content" style="display:none;">
       <div class="greeting-strip visible" id="greeting-strip">Welcome</div>
+      <div id="ops-sections">
 
       <div class="section-label">Operations</div>
       <div class="grid">
@@ -451,11 +458,24 @@
           <div class="ops-sub">Daily checks &middot; M25A &middot; M25B &middot; M19 &middot; M18 &middot; M14</div>
         </a>
       </div>
+      <!-- CG Staff: only shown to command staff accounts (CG_STAFF_EMAILS) -->
+      <div id="cg-staff-section" style="display:none;">
+        <div class="section-label">BC / Chief</div>
+        <div class="grid single">
+          <a class="ops-btn dark" href="https://emaildougb.github.io/cg-staff/">
+            <div class="ops-title">CG Staff</div>
+            <div class="ops-sub">Dashboard &middot; Shift Ops board &middot; briefing</div>
+          </a>
+        </div>
+      </div>
+      </div>
     </div>
 
   </div>
 
 </div>
+
+<button class="update-bar" id="update-bar" onclick="applyUpdate()">New version available. Tap to refresh</button>
 
 <!-- BOTTOM TABS -->
 <nav class="tabbar">
@@ -533,6 +553,66 @@
    Tenant: North Country EMS
    TODO: paste your Application (client) ID below
    =================================================== */
+/* ===== VERSION + SELF UPDATE =====
+   Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
+   check the live file and offer a one tap refresh, so nobody re-adds the icon. */
+var HUB_VERSION = '1.12';
+function checkForUpdate() {
+  fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
+    var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
+    if (m && m[1] !== HUB_VERSION) document.getElementById('update-bar').classList.add('show');
+  }).catch(function(){});
+}
+function applyUpdate() { location.replace(location.pathname + '?r=' + Date.now()); }
+
+/* ===== APP LIST (apps.json) =====
+   Buttons come from apps.json so adding, removing or renaming an app is a one file edit.
+   If apps.json can't load (no signal), the last good copy on the phone is used,
+   and if there is none, the buttons built into this page stay. */
+var APPS = null;
+function escH(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function lines(s) { return escH(s).replace(/\n/g, '<br>'); }
+function canSee(b) {
+  var a = b.audience || 'all';
+  if (a === 'all') return true;
+  if (a === 'signedin') return !!msalAccount;
+  if (a === 'cgstaff') return typeof isCgStaff === 'function' && isCgStaff(msalAccount);
+  if (a === 'admin') return typeof isAdminAccount === 'function' && isAdminAccount(msalAccount);
+  return false;
+}
+function clinBtn(b) {
+  if (b.soon || !b.url) return '<div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">' + lines(b.title) + '</div></div>';
+  return '<a class="clin-btn' + (b.style === 'dark' ? ' protocols' : '') + '" href="' + escH(b.url) + '"><div class="clin-title">' + lines(b.title) + '</div></a>';
+}
+function opsBtn(b) {
+  return '<a class="ops-btn' + (b.style === 'dark' ? ' dark' : '') + '" href="' + escH(b.url) + '"><div class="ops-title">' + lines(b.title) + '</div>' + (b.sub ? '<div class="ops-sub">' + escH(b.sub) + '</div>' : '') + '</a>';
+}
+function renderApps() {
+  if (!APPS) return;
+  try {
+    if (APPS.clinical) document.getElementById('clinical-sections').innerHTML = APPS.clinical.map(function(sec){
+      var bs = (sec.buttons || []).filter(canSee); if (!bs.length) return '';
+      return '<div class="section-label">' + escH(sec.label) + '</div><div class="clin-list">' + bs.map(clinBtn).join('') + '</div>';
+    }).join('');
+    if (APPS.report && APPS.report.url) document.getElementById('report-section').innerHTML =
+      '<a class="ir-card" href="' + escH(APPS.report.url) + '"><div class="ir-icon">&#128203;</div><div class="ir-title">' + escH(APPS.report.title || 'Incident Report') + '</div><div class="ir-sub">' + escH(APPS.report.sub || '') + '</div></a>';
+    if (APPS.operations) document.getElementById('ops-sections').innerHTML = APPS.operations.map(function(sec){
+      var bs = (sec.buttons || []).filter(canSee); if (!bs.length) return '';
+      return '<div class="section-label">' + escH(sec.label) + '</div><div class="grid' + (bs.length === 1 ? ' single' : '') + '">' + bs.map(opsBtn).join('') + '</div>';
+    }).join('');
+  } catch (e) { console.warn('apps.json render failed', e); }
+}
+function loadApps() {
+  try { var c = localStorage.getItem('ncems_hub_apps_v1'); if (c && !APPS) { APPS = JSON.parse(c); renderApps(); } } catch (e) {}
+  fetch('apps.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
+    if (!j || (!j.clinical && !j.operations)) return;
+    APPS = j; try { localStorage.setItem('ncems_hub_apps_v1', JSON.stringify(j)); } catch (e) {}
+    renderApps();
+  }).catch(function(){});
+}
+loadApps(); checkForUpdate();
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) { loadApps(); checkForUpdate(); } });
+
 var MSAL_CONFIG = {
   clientId: '54eb93f5-05e0-42ca-a49d-f4df05c3331c',
   tenantId: '153dc089-095e-4a20-8d10-39321a0aca09'
@@ -540,6 +620,14 @@ var MSAL_CONFIG = {
 
 // Accounts allowed to see the Push Notice admin panel
 var ADMIN_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'b.shirley@northcountryems.org'];
+
+// Accounts that see the CG Staff button (same list as CONFIG.staff in the cg-staff app)
+var CG_STAFF_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'd.madler@northcountryems.org', 'b.shirley@northcountryems.org', 'c.andrus@northcountryems.org', 'n.stafford@northcountryems.org'];
+function isCgStaff(account) {
+  if (!account) return false;
+  var email = (account.username || '').toLowerCase();
+  return CG_STAFF_EMAILS.indexOf(email) >= 0;
+}
 
 var msalApp = null;
 var msalAccount = null;
@@ -619,6 +707,10 @@ function showOpsContent() {
   if (isAdminAccount(msalAccount)) {
     document.getElementById('info-admin-section').style.display = 'block';
   }
+
+  // CG Staff button — command staff only (static fallback; apps.json uses audience "cgstaff")
+  var cgs = document.getElementById('cg-staff-section'); if (cgs) cgs.style.display = isCgStaff(msalAccount) ? 'block' : 'none';
+  renderApps();
 }
 
 function hideOpsContent() {
@@ -627,6 +719,8 @@ function hideOpsContent() {
   document.getElementById('signout-btn').classList.remove('visible');
   document.getElementById('t-ops').querySelector('.tab-ico').textContent = '\u{1F512}'; // lock
   document.getElementById('info-admin-section').style.display = 'none';
+  var cgs = document.getElementById('cg-staff-section'); if (cgs) cgs.style.display = 'none';
+  renderApps();
 }
 
 /* Run MSAL init on load — handles the redirect return silently */

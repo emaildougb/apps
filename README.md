@@ -12,6 +12,7 @@ Central landing page for North Country EMS crew and admin tools.
 ## Files (upload ALL of these)
 
 - `index.html` — crew-facing hub
+- `apps.json` — the button list (edit this to add, remove or rename apps)
 - `admin.html` — BC/Chief login to push notices
 - `logo.png` — NCEMS round logo (header)
 - `apple-touch-icon.png` — iOS home-screen + tab icon
@@ -21,8 +22,31 @@ Central landing page for North Country EMS crew and admin tools.
 ## Page layout
 
 **Page 1 (swipe):** Clinical reference (big SF Mono, one per row) + Quick Protocols
-**Operations tab (code locked):** Operations (Incident Report, NCEMS OT) · Apparatus (EP Checker) · Facilities (Grounds Tracker) · BC / Chief (Push Notice)
+**Operations tab (Microsoft sign-in):** Operations (NCEMS OT, Facilities & Grounds) · Apparatus (Apparatus Checker) · BC / Chief (CG Staff, command staff accounts only)
+**Report tab:** Incident Report
+**Push Notice:** in the (i) info panel, admin accounts only
 Tap the dots under the header or swipe to switch. Notice banner pinned at bottom on both.
+
+## Home screen address
+
+Tell everyone to save **https://hub.northcountryems.org/** to their home screen. Never hand out the github.io address. If the hub ever moves hosts, only the DNS record changes and nobody re-saves anything.
+
+## Adding, removing or renaming an app (no index.html change)
+
+1. Open `apps.json` in the repo and click the pencil
+2. Copy an existing button line and change `title`, `sub` and `url`
+   - `\n` in a title makes a line break (`"NCEMS\nOT"`)
+   - `"style": "dark"` for the darker green card
+   - `"soon": true` (and no url) for a grey Coming Soon card
+   - `"audience"`: `all` (default), `signedin`, `cgstaff` (command staff only), `admin` (push notice admins)
+3. Commit. Every phone picks it up the next time the hub opens or comes back to the front. No re-adding the icon.
+
+If `apps.json` has a typo or can't load, phones keep the last good list, or the buttons built into `index.html`.
+
+## Updating index.html (rare)
+
+1. Bump `HUB_VERSION` near the top of the script (`'1.12'` to `'1.13'`)
+2. Upload. Open hubs show a blue "New version available. Tap to refresh" bar. One tap and they're current. No delete and re-add.
 
 ## Clinical card order (Page 1)
 
@@ -35,6 +59,18 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 3. Change `ADMIN_PASSWORD` in `admin.html` before deploying
 
 ## Changelog
+
+### v1.12
+- Buttons now come from `apps.json`, so adding or changing an app is a one file edit, no hub code change
+- Last good `apps.json` is kept on the phone for no signal; built-in buttons stay as a final fallback
+- Self update: the hub checks the live `HUB_VERSION` when it opens and when it comes back to the front, and shows a one tap refresh bar if there's a newer version
+- Playwright smoke test: 10/10 (CG Staff shows only for command staff, apps.json edits show up, offline fallback, update bar)
+
+### v1.11
+- Operations tab: new BC / Chief section with a CG Staff button (https://emaildougb.github.io/cg-staff/) under Apparatus
+- Only shows for command staff accounts in `CG_STAFF_EMAILS` (Doug, Derek, Dennis, Bryce, Chuck, Nick). Everyone else never sees it
+- The CG Staff app checks the login again on its own, so the button is not the lock
+- Playwright smoke test: button hidden for crew, shown for CG Staff, links correctly
 
 ### v1.10
 - Operations tab: new Facilities section with a Grounds Tracker button (https://emaildougb.github.io/grounds-tracker/), between Apparatus and BC / Chief
@@ -90,5 +126,5 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 ## Notes
 
 - Hosted in `apps` repo — never touches root URL
-- iOS home-screen caches hard — delete and re-add icon after every deploy
+- iOS home-screen caching is handled by the update bar (v1.12). Only delete and re-add the icon if the bar never shows
 - Each individual app still needs its own back button to `https://emaildougb.github.io/apps/`
