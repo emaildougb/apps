@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
-<title>NCEMS Field Reference</title>
+<title>NCEMS Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
 <style>
   :root {
@@ -61,8 +61,19 @@
   }
   .hdr-text { flex: 1; min-width: 0; }
   .hdr-text h1 { font-size: 17px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-  .hdr-text p  { font-size: 10px; opacity: .7; margin-top: 2px; letter-spacing: 1px; }
+  .hdr-text p  { font-size: 10px; opacity: .7; margin-top: 2px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hdr-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .home-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .home-btn:active { background: rgba(255,255,255,0.3); }
+  .clin-warn {
+    margin: 14px 16px 4px; padding: 12px 14px; border-radius: 12px; background: #FFF4D6; border: 2px solid #E0B43C;
+    color: #6b4a00; font-size: 12.5px; font-weight: 800; letter-spacing: .5px; line-height: 1.45; text-align: center; text-transform: uppercase;
+  }
+  .clin-warn:empty { display: none; }
   .info-btn {
     width: 38px; height: 38px; border-radius: 50%;
     background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
@@ -370,12 +381,13 @@
 <body>
 
 <header class="hdr">
-  <img class="hdr-logo" src="logo.png" alt="NCEMS">
-  <div class="hdr-text">
-    <h1>NCEMS Field Reference</h1>
+  <img class="hdr-logo" src="logo.png" alt="NCEMS" onclick="goHome()" style="cursor:pointer">
+  <div class="hdr-text" onclick="goHome()" style="cursor:pointer">
+    <h1>NCEMS Hub</h1>
     <p>North Country EMS &middot; Clark Fire 13</p>
   </div>
   <div class="hdr-right">
+    <button class="home-btn" onclick="goHome()" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
     <button class="signout-btn" id="signout-btn" onclick="msalSignOut()">Sign Out</button>
     <button class="info-btn" onclick="openInfo()">i</button>
   </div>
@@ -385,6 +397,7 @@
 
   <!-- CLINICAL TAB -->
   <div class="tab-page active" id="tab-clinical">
+    <div class="clin-warn" id="clin-warn">For clinical reference only. Not to be used for patient care.</div>
     <div id="clinical-sections">
     <div class="section-label">Clinical Reference</div>
     <div class="clin-list">
@@ -556,7 +569,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '1.12';
+var HUB_VERSION = '1.13';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -587,9 +600,14 @@ function clinBtn(b) {
 function opsBtn(b) {
   return '<a class="ops-btn' + (b.style === 'dark' ? ' dark' : '') + '" href="' + escH(b.url) + '"><div class="ops-title">' + lines(b.title) + '</div>' + (b.sub ? '<div class="ops-sub">' + escH(b.sub) + '</div>' : '') + '</a>';
 }
+function goHome() {
+  switchTab('clinical');
+  var c = document.querySelector('.content'); if (c) c.scrollTop = 0;
+}
 function renderApps() {
   if (!APPS) return;
   try {
+    if (typeof APPS.clinicalNotice === 'string') document.getElementById('clin-warn').textContent = APPS.clinicalNotice;
     if (APPS.clinical) document.getElementById('clinical-sections').innerHTML = APPS.clinical.map(function(sec){
       var bs = (sec.buttons || []).filter(canSee); if (!bs.length) return '';
       return '<div class="section-label">' + escH(sec.label) + '</div><div class="clin-list">' + bs.map(clinBtn).join('') + '</div>';

@@ -1,31 +1,98 @@
 {
-  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. audience: all | signedin | cgstaff | admin. style: dark for the darker green. Use \\n in a title for a line break. soon: true shows a grey Coming Soon card.",
+  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. audience: all | signedin | cgstaff | admin. style: dark for the darker green. Use \\n in a title for a line break. soon: true shows a grey Coming Soon card. clinicalNotice: the warning at the top of the Clinical tab (set to \"\" to hide it).",
+  "clinicalNotice": "For clinical reference only. Not to be used for patient care.",
   "clinical": [
-    { "label": "Clinical Reference", "buttons": [
-      { "title": "Intubation", "url": "https://emaildougb.github.io/Intubation/" },
-      { "title": "Advanced Airway", "soon": true },
-      { "title": "Drip Sets", "soon": true },
-      { "title": "Medication List", "soon": true },
-      { "title": "Shock", "soon": true },
-      { "title": "Sepsis", "soon": true },
-      { "title": "Stroke", "soon": true },
-      { "title": "Cardiac", "soon": true }
-    ]},
-    { "label": "Protocols", "buttons": [
-      { "title": "Quick Protocols", "url": "https://emaildougb.github.io/protocol-app/", "style": "dark" }
-    ]}
+    {
+      "label": "Clinical Reference",
+      "buttons": [
+        {
+          "title": "Intubation",
+          "url": "https://emaildougb.github.io/Intubation/"
+        },
+        {
+          "title": "Advanced Airway",
+          "soon": true
+        },
+        {
+          "title": "Drip Sets",
+          "soon": true
+        },
+        {
+          "title": "Medication List",
+          "soon": true
+        },
+        {
+          "title": "Shock",
+          "soon": true
+        },
+        {
+          "title": "Sepsis",
+          "soon": true
+        },
+        {
+          "title": "Stroke",
+          "soon": true
+        },
+        {
+          "title": "Cardiac",
+          "soon": true
+        }
+      ]
+    },
+    {
+      "label": "Protocols",
+      "buttons": [
+        {
+          "title": "Quick Protocols",
+          "url": "https://emaildougb.github.io/protocol-app/",
+          "style": "dark"
+        }
+      ]
+    }
   ],
-  "report": { "title": "Incident Report", "sub": "On-duty report system", "url": "https://reports.northcountryems.org/" },
+  "report": {
+    "title": "Incident Report",
+    "sub": "On-duty report system",
+    "url": "https://reports.northcountryems.org/"
+  },
   "operations": [
-    { "label": "Operations", "buttons": [
-      { "title": "NCEMS\nOT", "sub": "Overtime sign-up", "url": "https://overtime.northcountryems.org/" },
-      { "title": "Facilities\n& Grounds", "sub": "Repairs, services, grounds", "url": "https://fng.northcountryems.org/", "style": "dark" }
-    ]},
-    { "label": "Apparatus", "buttons": [
-      { "title": "Apparatus Checker", "sub": "Daily checks · M25A · M25B · M19 · M18 · M14", "url": "https://checks.northcountryems.org/" }
-    ]},
-    { "label": "BC / Chief", "buttons": [
-      { "title": "CG Staff", "sub": "Dashboard · Shift Ops board · briefing", "url": "https://emaildougb.github.io/cg-staff/", "style": "dark", "audience": "cgstaff" }
-    ]}
+    {
+      "label": "Operations",
+      "buttons": [
+        {
+          "title": "NCEMS\nOT",
+          "sub": "Overtime sign-up",
+          "url": "https://overtime.northcountryems.org/"
+        },
+        {
+          "title": "Facilities\n& Grounds",
+          "sub": "Repairs, services, grounds",
+          "url": "https://fng.northcountryems.org/",
+          "style": "dark"
+        }
+      ]
+    },
+    {
+      "label": "Apparatus",
+      "buttons": [
+        {
+          "title": "Apparatus Checker",
+          "sub": "Daily checks · M25A · M25B · M19 · M18 · M14",
+          "url": "https://checks.northcountryems.org/"
+        }
+      ]
+    },
+    {
+      "label": "BC / Chief",
+      "buttons": [
+        {
+          "title": "CG Staff",
+          "sub": "Dashboard · Shift Ops board · briefing",
+          "url": "https://emaildougb.github.io/cg-staff/",
+          "style": "dark",
+          "audience": "cgstaff"
+        }
+      ]
+    }
   ]
 }

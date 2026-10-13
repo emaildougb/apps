@@ -1,3 +1,5 @@
+> Update Oct 2026 (v1.13): `admin.html` was removed. Push Notice now lives in the (i) info panel behind Microsoft sign-in (ADMIN_EMAILS). Notes below about admin.html and ADMIN_PASSWORD are history.
+
 # HANDOFF — apps (NCEMS Field Reference Hub)
 
 ## What it does

@@ -1,11 +1,10 @@
-# NCEMS Field Reference Hub
+# NCEMS Hub
 
 Central landing page for North Country EMS crew and admin tools.
 
 ## Links
 
 - Live (hub): [https://emaildougb.github.io/apps/](https://emaildougb.github.io/apps/)
-- Live (admin): [https://emaildougb.github.io/apps/admin.html](https://emaildougb.github.io/apps/admin.html)
 - Repo: [https://github.com/emaildougb/apps](https://github.com/emaildougb/apps)
 - Upload: [https://github.com/emaildougb/apps/upload/main](https://github.com/emaildougb/apps/upload/main)
 
@@ -13,7 +12,6 @@ Central landing page for North Country EMS crew and admin tools.
 
 - `index.html` — crew-facing hub
 - `apps.json` — the button list (edit this to add, remove or rename apps)
-- `admin.html` — BC/Chief login to push notices
 - `logo.png` — NCEMS round logo (header)
 - `apple-touch-icon.png` — iOS home-screen + tab icon
 - `manifest.json` — standalone app-mode config
@@ -38,6 +36,7 @@ Tell everyone to save **https://hub.northcountryems.org/** to their home screen.
    - `\n` in a title makes a line break (`"NCEMS\nOT"`)
    - `"style": "dark"` for the darker green card
    - `"soon": true` (and no url) for a grey Coming Soon card
+   - `"clinicalNotice"` at the top of the file is the Clinical tab warning. Change the words or set it to `""` to remove it
    - `"audience"`: `all` (default), `signedin`, `cgstaff` (command staff only), `admin` (push notice admins)
 3. Commit. Every phone picks it up the next time the hub opens or comes back to the front. No re-adding the icon.
 
@@ -54,11 +53,17 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 
 ## Firebase setup (notices)
 
-1. Paste your Firebase config into both `index.html` and `admin.html`
-2. Set `FIREBASE_READY = true` in both files
-3. Change `ADMIN_PASSWORD` in `admin.html` before deploying
+1. Firebase config lives in `index.html`
+2. Push Notice is in the (i) info panel, shown only to `ADMIN_EMAILS` after Microsoft sign-in
 
 ## Changelog
+
+### v1.13
+- Removed `admin.html` (old password page with the password in plain text). Push Notice stays in the (i) panel behind Microsoft sign-in for Doug, Derek and Bryce
+- Header now reads NCEMS Hub (was NCEMS Field Reference); tab title NCEMS Hub
+- Home button (house icon) in the header; tapping the logo or title also goes home (Clinical tab, scrolled to top)
+- Clinical tab warning above Intubation: "For clinical reference only. Not to be used for patient care." Text lives in `apps.json` as `clinicalNotice`; set it to "" to hide it once approved
+- Playwright smoke test: header, home button, warning from apps.json, hide when empty
 
 ### v1.12
 - Buttons now come from `apps.json`, so adding or changing an app is a one file edit, no hub code change
