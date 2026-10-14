@@ -98,7 +98,7 @@
     position: fixed;
     top: calc(var(--hdr-h) + env(safe-area-inset-top));
     left: 0; right: 0;
-    bottom: calc(var(--banner-h) + var(--tab-h) + env(safe-area-inset-bottom));
+    bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
     overflow-y: auto; -webkit-overflow-scrolling: touch;
     background: #f0f4f0;
   }
@@ -262,8 +262,9 @@
   /* BOTTOM TAB BAR */
   .tabbar {
     position: fixed;
-    bottom: calc(var(--banner-h) + env(safe-area-inset-bottom));
-    left: 0; right: 0; height: var(--tab-h);
+    bottom: 0;
+    left: 0; right: 0; height: calc(var(--tab-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
     background: var(--white); border-top: 1px solid #d8e0d8;
     display: flex; z-index: 28; box-shadow: 0 -1px 6px rgba(0,0,0,.06);
   }
@@ -293,6 +294,10 @@
     transition: background 0.25s;
   }
   .notice-bar.has-notice { display: flex; }
+  /* a notice banner sits under the tabs; without one the tab bar runs to the bottom edge */
+  body.has-notice .tabbar { bottom: calc(var(--banner-h) + env(safe-area-inset-bottom)); height: var(--tab-h); padding-bottom: 0; }
+  body.has-notice .content { bottom: calc(var(--banner-h) + var(--tab-h) + env(safe-area-inset-bottom)); }
+  .info-version { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; margin-top: 10px; }
   .notice-bar.urgent-bar { background: #C13E3E; }
   .notice-bar.active-bar { background: #B87E0A; }
   .notice-dot { width: 7px; height: 7px; border-radius: 50%;
@@ -526,7 +531,7 @@
   <div class="info-card">
     <div class="info-head">
       <img class="info-logo" src="logo.png" alt="NCEMS">
-      <h2>NCEMS Field Reference</h2>
+      <h2>NCEMS Hub</h2>
     </div>
     <div class="info-body">
       <p class="info-line">Questions or comments, contact Doug.</p>
@@ -536,6 +541,7 @@
         <div class="info-notice-msg dim" id="info-notice-msg">No active notices</div>
       </div>
       <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
+      <div class="info-version" id="info-version"></div>
 
       <!-- Push Notice admin — BC/Chief only, shown after sign-in -->
       <div class="info-admin-section" id="info-admin-section" style="display:none;">
@@ -569,7 +575,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '1.13';
+var HUB_VERSION = '1.14';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -640,7 +646,7 @@ var MSAL_CONFIG = {
 var ADMIN_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'b.shirley@northcountryems.org'];
 
 // Accounts that see the CG Staff button (same list as CONFIG.staff in the cg-staff app)
-var CG_STAFF_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'd.madler@northcountryems.org', 'b.shirley@northcountryems.org', 'c.andrus@northcountryems.org', 'n.stafford@northcountryems.org'];
+var CG_STAFF_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'd.madler@northcountryems.org', 'b.shirley@northcountryems.org', 'c.andrus@northcountryems.org', 'n.stafford@northcountryems.org', 'k.reid@northcountryems.org'];
 function isCgStaff(account) {
   if (!account) return false;
   var email = (account.username || '').toLowerCase();
@@ -775,42 +781,88 @@ function openNotice() { document.getElementById('notice-overlay').classList.add(
 function closeNotice() { document.getElementById('notice-overlay').classList.remove('show'); }
 document.getElementById('notice-overlay').addEventListener('click', function(e){ if (e.target === this) closeNotice(); });
 
-/* ===== PUSH NOTICE ADMIN ===== */
+/* ===== PUSH NOTICE ADMIN =====
+   v1.14: the notice lives on Doug's Cloudflare Worker. Anyone can read it,
+   only hub admins signed in with Microsoft can post or clear it. */
+var NOTICE_URL = 'https://ncems-api.d-boyce.workers.dev/notice';
 var db = null;
 var fsModule = null;
 
+function noticeToken() {
+  if (!msalApp || !msalAccount) return Promise.reject(new Error('Sign in on the Operations tab first'));
+  return msalApp.acquireTokenSilent({ scopes: ['User.Read'], account: msalAccount }).then(function(r){ return r.idToken; })
+    .catch(function(e){
+      if (e && /interaction_required|login_required|consent_required/.test(e.errorCode || '')) { msalApp.acquireTokenRedirect({ scopes: ['User.Read'], account: msalAccount }); return new Promise(function(){}); }
+      throw e;
+    });
+}
+function sendNotice(body, okMsg) {
+  return noticeToken().then(function(t){
+    return fetch(NOTICE_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t }, body: JSON.stringify(body) });
+  }).then(function(r){
+    if (r.status === 401) throw new Error('Your account is not allowed to post notices');
+    if (!r.ok) throw new Error('Server said ' + r.status);
+    setAdminStatus(okMsg); loadNotice();
+    return true;
+  });
+}
 function postNotice() {
-  if (!db || !fsModule) { setAdminStatus('Firebase not connected'); return; }
   var msg = document.getElementById('admin-msg').value.trim();
   if (!msg) { setAdminStatus('Enter a message first'); return; }
   var urgent = document.getElementById('admin-urgent').checked;
   setAdminStatus('Posting...');
-  fsModule.setDoc(fsModule.doc(db, 'notices', 'active'), {
-    message: msg,
-    urgent: urgent,
-    timestamp: fsModule.serverTimestamp(),
-    postedBy: msalAccount ? msalAccount.username : 'unknown'
-  }).then(function(){
-    setAdminStatus('Posted.');
+  sendNotice({ message: msg, urgent: urgent }, 'Posted.').then(function(){
     document.getElementById('admin-msg').value = '';
     document.getElementById('admin-urgent').checked = false;
   }).catch(function(e){ setAdminStatus('Error: ' + e.message); });
 }
 
 function clearNotice() {
-  if (!db || !fsModule) { setAdminStatus('Firebase not connected'); return; }
   setAdminStatus('Clearing...');
-  fsModule.setDoc(fsModule.doc(db, 'notices', 'active'), { message: '' })
-    .then(function(){ setAdminStatus('Cleared.'); })
-    .catch(function(e){ setAdminStatus('Error: ' + e.message); });
+  sendNotice({ message: '' }, 'Cleared.').catch(function(e){ setAdminStatus('Error: ' + e.message); });
 }
+
+function hubEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function showNotice(d) {
+  var bar = document.getElementById("notice-bar"), txt = document.getElementById("noticetext");
+  var cardHead = document.getElementById("notice-card-head"), cardBody = document.getElementById("notice-card-body"), infoMsg = document.getElementById("info-notice-msg");
+  if (d && d.message && String(d.message).trim()) {
+    bar.classList.remove("urgent-bar", "active-bar");
+    bar.classList.add("has-notice", d.urgent ? "urgent-bar" : "active-bar");
+    document.body.classList.add("has-notice");
+    txt.textContent = d.message;
+    cardHead.className = d.urgent ? "notice-card-head urgent" : "notice-card-head warn";
+    cardHead.innerHTML = d.urgent ? "&#9888; URGENT NOTICE" : "&#128226; Notice";
+    var timeStr = "";
+    if (d.postedAt) { var dt = new Date(d.postedAt); if (!isNaN(dt)) timeStr = '<div class="notice-card-time">Posted ' + hubEsc(dt.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })) + '</div>'; }
+    cardBody.className = "notice-card-body" + (d.urgent ? " notice-card-body--urgent" : "");
+    cardBody.innerHTML = hubEsc(d.message) + timeStr;
+    infoMsg.className = d.urgent ? "info-notice-msg info-notice-urgent" : "info-notice-msg";
+    infoMsg.textContent = d.message;
+  } else {
+    bar.classList.remove("has-notice", "urgent-bar", "active-bar");
+    document.body.classList.remove("has-notice");
+    infoMsg.className = "info-notice-msg dim";
+    infoMsg.textContent = "No active notices";
+  }
+}
+function loadNotice() {
+  fetch(NOTICE_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ if (d) { showNotice(d); try { localStorage.setItem('ncems_hub_notice_v1', JSON.stringify(d)); } catch (e) {} } })
+    .catch(function(){});
+}
+try { var cachedNotice = JSON.parse(localStorage.getItem('ncems_hub_notice_v1') || 'null'); if (cachedNotice) showNotice(cachedNotice); } catch (e) {}
+loadNotice();
+setInterval(function(){ if (!document.hidden) loadNotice(); }, 60000);
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) loadNotice(); });
+document.getElementById('info-version').textContent = 'Hub version ' + HUB_VERSION;
 
 function setAdminStatus(msg) {
   var el = document.getElementById('admin-status');
   if (el) el.textContent = msg;
 }
 
-/* ===== FIREBASE — notices listener + usage tracker ===== */
+/* ===== FIREBASE: usage tracker only (notices moved to the Worker in v1.14) ===== */
 (async function(){
   var FIREBASE_READY = true;
   var firebaseConfig = {
@@ -842,59 +894,6 @@ function setAdminStatus(msg) {
     });
   } catch(e){ console.warn("Usage track failed", e); }
 
-  /* Notices live listener */
-  fs.onSnapshot(fs.doc(db, "notices", "active"), function(snap){
-    var bar      = document.getElementById("notice-bar");
-    var txt      = document.getElementById("noticetext");
-    var cardHead = document.getElementById("notice-card-head");
-    var cardBody = document.getElementById("notice-card-body");
-    var infoMsg  = document.getElementById("info-notice-msg");
-
-    if (snap.exists() && snap.data().message && snap.data().message.trim()) {
-      var d = snap.data();
-
-      /* Banner */
-      bar.classList.remove("urgent-bar", "active-bar");
-      bar.classList.add("has-notice");
-      bar.classList.add(d.urgent ? "urgent-bar" : "active-bar");
-      txt.textContent = d.message;
-
-      /* Tab bar bottom offset — push tabs up when banner visible */
-      document.querySelector('.tabbar').style.bottom =
-        'calc(' + getComputedStyle(document.documentElement).getPropertyValue('--banner-h') + ' + env(safe-area-inset-bottom))';
-
-      /* Modal header */
-      cardHead.classList.remove("warn", "urgent");
-      if (d.urgent) {
-        cardHead.className = "notice-card-head urgent";
-        cardHead.innerHTML = "&#9888; URGENT NOTICE";
-      } else {
-        cardHead.className = "notice-card-head warn";
-        cardHead.innerHTML = "&#128226; Notice";
-      }
-
-      /* Modal body */
-      var timeStr = "";
-      if (d.timestamp && d.timestamp.toDate) {
-        var dt = d.timestamp.toDate();
-        timeStr = '<div class="notice-card-time">Posted ' +
-          dt.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}) + '</div>';
-      }
-      cardBody.className = "notice-card-body" + (d.urgent ? " notice-card-body--urgent" : "");
-      cardBody.innerHTML = d.message + timeStr;
-
-      /* Info modal notice */
-      infoMsg.className = d.urgent ? "info-notice-msg info-notice-urgent" : "info-notice-msg";
-      infoMsg.textContent = d.message;
-
-    } else {
-      /* No notice */
-      bar.classList.remove("has-notice", "urgent-bar", "active-bar");
-      document.querySelector('.tabbar').style.bottom = 'env(safe-area-inset-bottom)';
-      infoMsg.className = "info-notice-msg dim";
-      infoMsg.textContent = "No active notices";
-    }
-  });
 })();
 </script>
 </body>

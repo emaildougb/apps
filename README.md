@@ -51,12 +51,21 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 
 Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock · Sepsis · Stroke · Cardiac (all coming soon) · Quick Protocols (live)
 
-## Firebase setup (notices)
+## Notices (since v1.14)
 
-1. Firebase config lives in `index.html`
-2. Push Notice is in the (i) info panel, shown only to `ADMIN_EMAILS` after Microsoft sign-in
+1. The notice banner is stored on Doug's Cloudflare Worker: `https://ncems-api.d-boyce.workers.dev/notice`. Anyone can read it; the hub checks every minute and whenever it's reopened
+2. Push Notice is in the (i) info panel, shown to `ADMIN_EMAILS` after Microsoft sign-in. The Worker checks the sign-in itself (`NOTICE_ADMINS`, default Doug, Derek, Bryce), so nobody can post a notice by going around the hub
+3. Firebase is now only used for the hub usage counter. Firestore rules keep `notices` read only
 
 ## Changelog
+
+### v1.14
+- Security fix from the October 2026 audit: notices moved from Firestore (which anyone could write to) to the Cloudflare Worker, which only accepts posts from signed-in hub admins
+- Notice text is cleaned before it shows in the popup, so a notice can't run code on crew phones
+- iPhone: the bottom tab bar now runs to the bottom edge when there is no notice (no empty band under it)
+- Hub version shows in the (i) panel; panel title now NCEMS Hub
+- CG Staff button now also shows for k.reid@northcountryems.org
+- Needs Worker 3.1 deployed first (adds `/notice`)
 
 ### v1.13
 - Removed `admin.html` (old password page with the password in plain text). Push Notice stays in the (i) panel behind Microsoft sign-in for Doug, Derek and Bryce

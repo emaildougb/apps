@@ -1,3 +1,4 @@
+> Update Oct 2026 (v1.14): notices now come from the Cloudflare Worker (`ncems-api.d-boyce.workers.dev/notice`, GET open, PUT needs a Microsoft ID token from a NOTICE_ADMINS account). Firestore is only used for the usage counter, and its `notices` rule is read only. The 5142 code is gone; Operations uses Microsoft sign-in.
 > Update Oct 2026 (v1.13): `admin.html` was removed. Push Notice now lives in the (i) info panel behind Microsoft sign-in (ADMIN_EMAILS). Notes below about admin.html and ADMIN_PASSWORD are history.
 
 # HANDOFF — apps (NCEMS Field Reference Hub)
