@@ -575,7 +575,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '1.14';
+var HUB_VERSION = '1.15';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -682,15 +682,31 @@ async function initMsal() {
   var res = await msalApp.handleRedirectPromise();
   if (res && res.account) {
     msalAccount = res.account;
-    showOpsContent();
   } else {
     msalAccount = msalApp.getActiveAccount() || msalApp.getAllAccounts()[0] || null;
-    if (msalAccount) {
-      showOpsContent();
-    }
-    // else: stay on sign-in gate
+  }
+  // 1.15: nobody cached here, but we know who you are from an earlier sign-in: try to sign in quietly
+  if (!msalAccount && loginHint()) {
+    try { var r2 = await msalApp.ssoSilent({ scopes: ['User.Read'], loginHint: loginHint() }); if (r2 && r2.account) msalAccount = r2.account; } catch (e) { /* needs a tap */ }
+  }
+  if (msalAccount) {
+    msalApp.setActiveAccount(msalAccount);
+    saveLoginHint(msalAccount.username);
+    showOpsContent();
+    // 1.15: you signed in from Operations, so land back in Operations
+    var back = ''; try { back = sessionStorage.getItem('hub_after_login') || ''; sessionStorage.removeItem('hub_after_login'); } catch (e) {}
+    if (back === 'ops' || (res && res.account)) switchTab('ops');
   }
 }
+/* 1.15: remember who signed in so the next sign in (here and in CG Staff, Facilities and Grounds, Overtime) skips typing */
+function loginHint() { try { return localStorage.getItem('ncems_login_hint') || ''; } catch (e) { return ''; } }
+function saveLoginHint(u) { try { if (u) localStorage.setItem('ncems_login_hint', String(u).toLowerCase()); } catch (e) {} }
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('a[href]'); if (!a || !msalAccount) return;
+  var u; try { u = new URL(a.href, location.href); } catch (er) { return; }
+  if (u.host === location.host || !/(^|\.)northcountryems\.org$/i.test(u.hostname)) return;
+  if (!u.searchParams.has('login_hint')) { u.searchParams.set('login_hint', (msalAccount.username || '').toLowerCase()); a.href = u.toString(); }
+}, true);
 
 function msalSignIn() {
   var errEl = document.getElementById('ops-signin-err');
@@ -701,11 +717,14 @@ function msalSignIn() {
     });
     return;
   }
-  msalApp.loginRedirect({ scopes: ['User.Read'], prompt: 'select_account' });
+  try { sessionStorage.setItem('hub_after_login', 'ops'); } catch (e) {}
+  var hint = loginHint();
+  msalApp.loginRedirect(hint ? { scopes: ['User.Read'], loginHint: hint } : { scopes: ['User.Read'], prompt: 'select_account' });
 }
 
 function msalSignOut() {
   msalAccount = null;
+  try { localStorage.removeItem('ncems_login_hint'); } catch (e) {}
   hideOpsContent();
   if (msalApp) {
     msalApp.logoutRedirect({ postLogoutRedirectUri: location.href });

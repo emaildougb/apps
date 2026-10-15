@@ -59,6 +59,11 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 
 ## Changelog
 
+### v1.15
+- Signing in from Operations now lands you back in Operations instead of the hub home
+- Remembers who signed in. Next time it tries a quiet sign in, then goes through Microsoft without the account picker
+- Links to other northcountryems.org apps (CG Staff, Facilities and Grounds, Overtime, EP Checker) carry `?login_hint=you@northcountryems.org` so those apps can sign you in without typing. CG Staff 1.9 and Facilities and Grounds 2.14 use it; Overtime needs Derek to add the same
+
 ### v1.14
 - Security fix from the October 2026 audit: notices moved from Firestore (which anyone could write to) to the Cloudflare Worker, which only accepts posts from signed-in hub admins
 - Notice text is cleaned before it shows in the popup, so a notice can't run code on crew phones
