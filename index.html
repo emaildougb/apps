@@ -480,7 +480,7 @@
       <div id="cg-staff-section" style="display:none;">
         <div class="section-label">BC / Chief</div>
         <div class="grid single">
-          <a class="ops-btn dark" href="https://emaildougb.github.io/cg-staff/">
+          <a class="ops-btn dark" href="https://cgstaff.northcountryems.org/">
             <div class="ops-title">CG Staff</div>
             <div class="ops-sub">Dashboard &middot; Shift Ops board &middot; briefing</div>
           </a>
@@ -575,7 +575,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '1.15';
+var HUB_VERSION = '1.16';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);

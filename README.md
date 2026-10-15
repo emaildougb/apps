@@ -59,6 +59,9 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 
 ## Changelog
 
+### v1.16
+- CG Staff button now goes to https://cgstaff.northcountryems.org/ instead of the old github.io address (in apps.json and the built in fallback). Because it's a northcountryems.org address now, it also carries the sign in along, so CG Staff opens without typing
+
 ### v1.15
 - Signing in from Operations now lands you back in Operations instead of the hub home
 - Remembers who signed in. Next time it tries a quiet sign in, then goes through Microsoft without the account picker
