@@ -1,10 +1,11 @@
 # NCEMS Hub
 
-Central landing page for North Country EMS crew and admin tools.
+Central landing page for North Country EMS operations tools. Clinical reference moved to its own site, clinical.northcountryems.org (repo `clinical`), in 2.0.
 
 ## Links
 
-- Live (hub): [https://emaildougb.github.io/apps/](https://emaildougb.github.io/apps/)
+- Live (hub): [https://hub.northcountryems.org/](https://hub.northcountryems.org/)
+- Clinical (separate since 2.0): [https://clinical.northcountryems.org/](https://clinical.northcountryems.org/)
 - Repo: [https://github.com/emaildougb/apps](https://github.com/emaildougb/apps)
 - Upload: [https://github.com/emaildougb/apps/upload/main](https://github.com/emaildougb/apps/upload/main)
 
@@ -19,11 +20,10 @@ Central landing page for North Country EMS crew and admin tools.
 
 ## Page layout
 
-**Page 1 (swipe):** Clinical reference (big SF Mono, one per row) + Quick Protocols
-**Operations tab (Microsoft sign-in):** Operations (NCEMS OT, Facilities & Grounds) · Apparatus (Apparatus Checker) · BC / Chief (CG Staff, command staff accounts only)
-**Report tab:** Incident Report
-**Push Notice:** in the (i) info panel, admin accounts only
-Tap the dots under the header or swipe to switch. Notice banner pinned at bottom on both.
+**One page (since 2.0):** Microsoft sign-in, then Operations (Open Shifts, Facilities & Grounds) · Apparatus (Apparatus Checker) · BC / Chief (CG Staff, command staff accounts only)
+**Bottom button:** Incident Report, straight into reports.northcountryems.org. No sign-in, so volunteers can file
+**Push Notice:** in the (i) info panel, admin accounts only. Notice banner pinned at the bottom above the Incident Report button
+**Clinical reference:** not here anymore. It's its own site and repo: clinical.northcountryems.org (`clinical`)
 
 ## Home screen address
 
@@ -36,7 +36,7 @@ Tell everyone to save **https://hub.northcountryems.org/** to their home screen.
    - `\n` in a title makes a line break (`"NCEMS\nOT"`)
    - `"style": "dark"` for the darker green card
    - `"soon": true` (and no url) for a grey Coming Soon card
-   - `"clinicalNotice"` at the top of the file is the Clinical tab warning. Change the words or set it to `""` to remove it
+   - `"report"` sets the Incident Report button at the bottom
    - `"audience"`: `all` (default), `signedin`, `cgstaff` (command staff only), `admin` (push notice admins)
 3. Commit. Every phone picks it up the next time the hub opens or comes back to the front. No re-adding the icon.
 
@@ -47,10 +47,6 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 1. Bump `HUB_VERSION` near the top of the script (`'1.12'` to `'1.13'`)
 2. Upload. Open hubs show a blue "New version available. Tap to refresh" bar. One tap and they're current. No delete and re-add.
 
-## Clinical card order (Page 1)
-
-Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock · Sepsis · Stroke · Cardiac (all coming soon) · Quick Protocols (live)
-
 ## Notices (since v1.14)
 
 1. The notice banner is stored on Doug's Cloudflare Worker: `https://ncems-api.d-boyce.workers.dev/notice`. Anyone can read it; the hub checks every minute and whenever it's reopened
@@ -58,6 +54,15 @@ Intubation (live) · Advanced Airway · Drip Sets · Medication List · Shock ·
 3. Firebase is now only used for the hub usage counter. Firestore rules keep `notices` read only
 
 ## Changelog
+
+### v2.0
+- New phone icon: NCEMS green and gold split corner to corner with four white tiles, NCEMS across the bottom (matches the Open Shifts icon). `apple-touch-icon.png` is the new icon and `icon-512.png` is the big one Android uses for the icon and the launch screen. Delete the old icon from the home screen and add it again to see it
+- The hub is Operations only now: sign in with Microsoft and the buttons are right there. No tabs
+- The Clinical tab moved to its own site, clinical.northcountryems.org (new repo `clinical`)
+- The Report tab is now one Incident Report button across the bottom that opens reports.northcountryems.org directly. No sign-in needed
+- NCEMS OT button renamed Open Shifts and pointed at shifts.northcountryems.org (Derek renamed the app; the old overtime address forwards there)
+- Signing in always lands on Operations (it's the only page), which fixes landing back on Clinical after the Microsoft sign-in
+- apps.json no longer has the clinical section or clinicalNotice
 
 ### v1.16
 - CG Staff button now goes to https://cgstaff.northcountryems.org/ instead of the old github.io address (in apps.json and the built in fallback). Because it's a northcountryems.org address now, it also carries the sign in along, so CG Staff opens without typing
