@@ -1,10 +1,5 @@
 {
-  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. audience: all | signedin | cgstaff | admin. style: dark for the darker green. Use \\n in a title for a line break. report: the Incident Report button at the bottom (no sign-in). Clinical reference moved to the clinical repo (clinical.northcountryems.org) in hub 2.0.",
-  "report": {
-    "title": "Incident Report",
-    "sub": "On-duty report system",
-    "url": "https://reports.northcountryems.org/"
-  },
+  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. Every button shows to everyone (no sign-in on the hub since 2.0; each app signs you in itself). style: dark for the darker green, red for red. Use \\n in a title for a line break. Clinical reference lives in the clinical repo (clinical.northcountryems.org). icon: the small picture on the button (files in the icons folder).",
   "operations": [
     {
       "label": "Operations",
@@ -12,23 +7,33 @@
         {
           "title": "Open\nShifts",
           "sub": "Overtime and open shifts",
-          "url": "https://shifts.northcountryems.org/"
+          "url": "https://shifts.northcountryems.org/",
+          "icon": "icons/shifts.png"
         },
         {
           "title": "Facilities\n& Grounds",
           "sub": "Repairs, services, grounds",
           "url": "https://fng.northcountryems.org/",
-          "style": "dark"
+          "style": "dark",
+          "icon": "icons/fng.png"
         }
       ]
     },
     {
-      "label": "Apparatus",
+      "label": "Apparatus & Reports",
       "buttons": [
         {
-          "title": "Apparatus Checker",
-          "sub": "Daily checks · M25A · M25B · M19 · M18 · M14",
-          "url": "https://checks.northcountryems.org/"
+          "title": "Apparatus\nChecker",
+          "sub": "Daily rig checks",
+          "url": "https://checks.northcountryems.org/",
+          "icon": "icons/apparatus.png"
+        },
+        {
+          "title": "Incident\nReport",
+          "sub": "On-duty report system",
+          "url": "https://reports.northcountryems.org/",
+          "style": "red",
+          "icon": "icons/ir.png"
         }
       ]
     },
@@ -37,10 +42,10 @@
       "buttons": [
         {
           "title": "CG Staff",
-          "sub": "Dashboard · Shift Ops board · briefing",
+          "sub": "CG Staff only",
           "url": "https://cgstaff.northcountryems.org/",
           "style": "dark",
-          "audience": "cgstaff"
+          "icon": "icons/cgstaff.png"
         }
       ]
     }

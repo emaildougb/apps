@@ -29,7 +29,7 @@
     --border:    #C5DFC5;
     --white:     #ffffff;
     --banner-h:  44px;
-    --tab-h:     62px;
+    --tab-h:     0px;
     --hdr-h:     72px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -156,6 +156,8 @@
   .ops-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px;
                text-transform: uppercase; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
   .ops-sub   { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 6px; letter-spacing: .5px; }
+  .ops-ico { width: 46px; height: 46px; border-radius: 11px; display: block; margin: 0 auto 8px; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+  .ops-btn.red   { background: linear-gradient(135deg, #8f1414 0%, #c62828 100%); }
   .ops-btn.dark  { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
   .ops-btn.admin-btn {
     background: linear-gradient(135deg, #5c3a00 0%, #8a5500 100%);
@@ -274,12 +276,8 @@
     font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: #9aa79a;
   }
   .tab.active { color: var(--g-mid); }
-  .report-btn { flex: 1; margin: 8px 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px;
     background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); color: #fff; text-decoration: none; box-shadow: 0 3px 10px rgba(193,62,62,.3); }
-  .report-btn:active { transform: scale(0.98); }
-  .report-btn .tab-ico { font-size: 22px; }
   .report-lbl { font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
-  .ops-signin-note { margin-top: 26px; max-width: 360px; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
   .tab-ico { font-size: 22px; line-height: 1; }
   .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
 
@@ -409,56 +407,35 @@
   <!-- OPERATIONS TAB -->
   <div class="tab-page active" id="tab-ops">
 
-    <!-- Sign-in gate (shown when not authenticated) -->
-    <div id="ops-signin-gate">
-      <div class="ops-signin">
-        <div class="ops-signin-icon">&#128274;</div>
-        <div class="ops-signin-title">Operations</div>
-        <div class="ops-signin-sub">Sign in with your NCEMS Microsoft account to see Open Shifts, Facilities and Grounds, the Apparatus Checker and CG Staff.</div>
-        <button class="ms-signin-btn" onclick="msalSignIn()">
-          <svg class="ms-logo" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-          </svg>
-          Sign in with Microsoft
-        </button>
-        <div class="ops-signin-err" id="ops-signin-err"></div>
-        <div class="ops-signin-note">Filing an incident report? Use the Incident Report button at the bottom. No sign-in needed.</div>
-      </div>
-    </div>
-
-    <!-- Ops content (shown when authenticated) -->
-    <div id="ops-content" style="display:none;">
-      <div class="greeting-strip visible" id="greeting-strip">Welcome</div>
+    <!-- 2.0: no sign-in on the hub. Every button shows; each app signs you in itself -->
+    <div id="ops-content">
+      <div class="greeting-strip" id="greeting-strip"></div>
       <div id="ops-sections">
 
       <div class="section-label">Operations</div>
       <div class="grid">
         <a class="ops-btn" href="https://shifts.northcountryems.org/">
-          <div class="ops-title">Open<br>Shifts</div><div class="ops-sub">Overtime and open shifts</div>
+          <img class="ops-ico" src="icons/shifts.png" alt=""><div class="ops-title">Open<br>Shifts</div><div class="ops-sub">Overtime and open shifts</div>
         </a>
         <a class="ops-btn dark" href="https://fng.northcountryems.org/">
-          <div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Repairs, services, grounds</div>
+          <img class="ops-ico" src="icons/fng.png" alt=""><div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Repairs, services, grounds</div>
         </a>
       </div>
-      <div class="section-label">Apparatus</div>
-      <div class="grid single">
+      <div class="section-label">Apparatus &amp; Reports</div>
+      <div class="grid">
         <a class="ops-btn" href="https://checks.northcountryems.org/">
-          <div class="ops-title">Apparatus Checker</div>
-          <div class="ops-sub">Daily checks &middot; M25A &middot; M25B &middot; M19 &middot; M18 &middot; M14</div>
+          <img class="ops-ico" src="icons/apparatus.png" alt=""><div class="ops-title">Apparatus<br>Checker</div><div class="ops-sub">Daily rig checks</div>
+        </a>
+        <a class="ops-btn red" href="https://reports.northcountryems.org/">
+          <img class="ops-ico" src="icons/ir.png" alt=""><div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty report system</div>
         </a>
       </div>
-      <!-- CG Staff: only shown to command staff accounts (CG_STAFF_EMAILS) -->
-      <div id="cg-staff-section" style="display:none;">
-        <div class="section-label">BC / Chief</div>
-        <div class="grid single">
-          <a class="ops-btn dark" href="https://cgstaff.northcountryems.org/">
-            <div class="ops-title">CG Staff</div>
-            <div class="ops-sub">Dashboard &middot; Shift Ops board &middot; briefing</div>
-          </a>
-        </div>
+      <div class="section-label">BC / Chief</div>
+      <div class="grid single">
+        <a class="ops-btn dark" href="https://cgstaff.northcountryems.org/">
+          <img class="ops-ico" src="icons/cgstaff.png" alt=""><div class="ops-title">CG Staff</div>
+          <div class="ops-sub">CG Staff only</div>
+        </a>
       </div>
       </div>
     </div>
@@ -469,13 +446,6 @@
 
 <button class="update-bar" id="update-bar" onclick="applyUpdate()">New version available. Tap to refresh</button>
 
-<!-- BOTTOM: straight into Incident Reports (no sign-in needed, volunteers file too) -->
-<nav class="tabbar">
-  <a class="report-btn" id="report-btn" href="https://reports.northcountryems.org/">
-    <span class="tab-ico">&#128203;</span>
-    <span class="report-lbl">Incident Report</span>
-  </a>
-</nav>
 
 <!-- NOTICE BANNER (only shown when there's an active notice) -->
 <div class="notice-bar" id="notice-bar" onclick="openNotice()">
@@ -508,6 +478,12 @@
       </div>
       <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
       <div class="info-version" id="info-version"></div>
+
+      <!-- 2.0: the only sign-in on the hub. Chiefs sign in here to post a notice -->
+      <div id="notice-signin" style="margin-top:16px; text-align:center;">
+        <button class="ms-signin-btn" style="font-size:13px; padding:10px 16px;" onclick="msalSignIn()">BC / Chief: sign in to post a notice</button>
+        <div class="ops-signin-err" id="notice-signin-err"></div>
+      </div>
 
       <!-- Push Notice admin — BC/Chief only, shown after sign-in -->
       <div class="info-admin-section" id="info-admin-section" style="display:none;">
@@ -560,8 +536,7 @@ function lines(s) { return escH(s).replace(/\n/g, '<br>'); }
 function canSee(b) {
   var a = b.audience || 'all';
   if (a === 'all') return true;
-  if (a === 'signedin') return !!msalAccount;
-  if (a === 'cgstaff') return typeof isCgStaff === 'function' && isCgStaff(msalAccount);
+  if (a === 'signedin' || a === 'cgstaff') return true;   /* 2.0: no sign-in on the hub; CG Staff checks who you are itself */
   if (a === 'admin') return typeof isAdminAccount === 'function' && isAdminAccount(msalAccount);
   return false;
 }
@@ -570,7 +545,8 @@ function clinBtn(b) {
   return '<a class="clin-btn' + (b.style === 'dark' ? ' protocols' : '') + '" href="' + escH(b.url) + '"><div class="clin-title">' + lines(b.title) + '</div></a>';
 }
 function opsBtn(b) {
-  return '<a class="ops-btn' + (b.style === 'dark' ? ' dark' : '') + '" href="' + escH(b.url) + '"><div class="ops-title">' + lines(b.title) + '</div>' + (b.sub ? '<div class="ops-sub">' + escH(b.sub) + '</div>' : '') + '</a>';
+  var ico = b.icon ? '<img class="ops-ico" src="' + escH(b.icon) + '" alt="">' : '';
+  return '<a class="ops-btn' + (b.style === 'dark' ? ' dark' : b.style === 'red' ? ' red' : '') + '" href="' + escH(b.url) + '">' + ico + '<div class="ops-title">' + lines(b.title) + '</div>' + (b.sub ? '<div class="ops-sub">' + escH(b.sub) + '</div>' : '') + '</a>';
 }
 function goHome() {
   var c = document.querySelector('.content'); if (c) c.scrollTop = 0;
@@ -578,8 +554,7 @@ function goHome() {
 function renderApps() {
   if (!APPS) return;
   try {
-    /* 2.0: clinical moved to clinical.northcountryems.org; the report is the button at the bottom */
-    if (APPS.report && APPS.report.url) document.getElementById('report-btn').href = APPS.report.url;
+    /* 2.0: clinical moved to clinical.northcountryems.org; Incident Report is a regular button */
     if (APPS.operations) document.getElementById('ops-sections').innerHTML = APPS.operations.map(function(sec){
       var bs = (sec.buttons || []).filter(canSee); if (!bs.length) return '';
       return '<div class="section-label">' + escH(sec.label) + '</div><div class="grid' + (bs.length === 1 ? ' single' : '') + '">' + bs.map(opsBtn).join('') + '</div>';
@@ -669,7 +644,7 @@ document.addEventListener('click', function (e) {
 }, true);
 
 function msalSignIn() {
-  var errEl = document.getElementById('ops-signin-err');
+  var errEl = document.getElementById('notice-signin-err');
   errEl.textContent = '';
   if (!msalApp) {
     initMsal().catch(function(e){
@@ -692,13 +667,12 @@ function msalSignOut() {
 }
 
 function showOpsContent() {
-  document.getElementById('ops-signin-gate').style.display = 'none';
-  document.getElementById('ops-content').style.display = 'block';
 
   // Greeting
   var name = getFirstName(msalAccount);
   var strip = document.getElementById('greeting-strip');
-  strip.textContent = name ? 'Welcome, ' + name : 'Welcome';
+  strip.textContent = name ? 'Welcome, ' + name : 'Welcome'; strip.classList.add('visible');
+  var nb = document.getElementById('notice-signin'); if (nb) nb.style.display = 'none';
 
   // Sign-out button in header
   document.getElementById('signout-btn').classList.add('visible');
@@ -711,23 +685,21 @@ function showOpsContent() {
   }
 
   // CG Staff button — command staff only (static fallback; apps.json uses audience "cgstaff")
-  var cgs = document.getElementById('cg-staff-section'); if (cgs) cgs.style.display = isCgStaff(msalAccount) ? 'block' : 'none';
   renderApps();
 }
 
 function hideOpsContent() {
-  document.getElementById('ops-signin-gate').style.display = 'block';
-  document.getElementById('ops-content').style.display = 'none';
+  document.getElementById('greeting-strip').classList.remove('visible');
+  var nb = document.getElementById('notice-signin'); if (nb) nb.style.display = 'block';
   document.getElementById('signout-btn').classList.remove('visible');
   document.getElementById('info-admin-section').style.display = 'none';
-  var cgs = document.getElementById('cg-staff-section'); if (cgs) cgs.style.display = 'none';
   renderApps();
 }
 
 /* Run MSAL init on load — handles the redirect return silently */
 if (MSAL_CONFIG.clientId && MSAL_CONFIG.clientId !== 'YOUR-HUB-CLIENT-ID') {
   initMsal().catch(function(e){
-    document.getElementById('ops-signin-err').textContent = e.message || String(e);
+    document.getElementById('notice-signin-err').textContent = e.message || String(e);
   });
 }
 
@@ -739,7 +711,7 @@ function switchTab(which) {
     // trigger MSAL init so redirect is handled on first tap
     if (MSAL_CONFIG.clientId && MSAL_CONFIG.clientId !== 'YOUR-HUB-CLIENT-ID' && !msalApp) {
       initMsal().catch(function(e){
-        document.getElementById('ops-signin-err').textContent = e.message || String(e);
+        document.getElementById('notice-signin-err').textContent = e.message || String(e);
       });
     }
   }

@@ -11,18 +11,20 @@ Central landing page for North Country EMS operations tools. Clinical reference 
 
 ## Files (upload ALL of these)
 
-- `index.html` — crew-facing hub
-- `apps.json` — the button list (edit this to add, remove or rename apps)
-- `logo.png` — NCEMS round logo (header)
-- `apple-touch-icon.png` — iOS home-screen + tab icon
-- `manifest.json` — standalone app-mode config
-- `README.md` — this file
+- `index.html`: crew-facing hub
+- `apps.json`: the button list (edit this to add, remove or rename apps)
+- `icons/` folder: the small app pictures on the buttons (shifts.png, fng.png, apparatus.png, ir.png, cgstaff.png). On GitHub, drag the whole icons folder in with the other files
+- `logo.png`: NCEMS round logo (header)
+- `apple-touch-icon.png`: home screen and tab icon
+- `icon-512.png`: big icon for Android and the launch screen
+- `manifest.json`: app mode settings
+- `README.md`: this file
 
 ## Page layout
 
-**One page (since 2.0):** Microsoft sign-in, then Operations (Open Shifts, Facilities & Grounds) · Apparatus (Apparatus Checker) · BC / Chief (CG Staff, command staff accounts only)
-**Bottom button:** Incident Report, straight into reports.northcountryems.org. No sign-in, so volunteers can file
-**Push Notice:** in the (i) info panel, admin accounts only. Notice banner pinned at the bottom above the Incident Report button
+**One page (since 2.0), no sign-in:** Operations (Open Shifts, Facilities & Grounds) · Apparatus & Reports (Apparatus Checker, Incident Report) · BC / Chief (CG Staff). Every button shows to everyone. Each app signs people in itself, and CG Staff turns away anyone not on its list
+**Incident Report:** a red button next to the Apparatus Checker. No sign-in, so volunteers can file
+**Push Notice:** in the (i) info panel. Chiefs tap "BC / Chief: sign in to post a notice" there. That is the only sign-in on the hub. Notice banner pinned at the bottom
 **Clinical reference:** not here anymore. It's its own site and repo: clinical.northcountryems.org (`clinical`)
 
 ## Home screen address
@@ -36,7 +38,7 @@ Tell everyone to save **https://hub.northcountryems.org/** to their home screen.
    - `\n` in a title makes a line break (`"NCEMS\nOT"`)
    - `"style": "dark"` for the darker green card
    - `"soon": true` (and no url) for a grey Coming Soon card
-   - `"report"` sets the Incident Report button at the bottom
+   - Every button is listed under `"operations"`. `"style": "red"` makes a red button (Incident Report)
    - `"audience"`: `all` (default), `signedin`, `cgstaff` (command staff only), `admin` (push notice admins)
 3. Commit. Every phone picks it up the next time the hub opens or comes back to the front. No re-adding the icon.
 
@@ -57,11 +59,13 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 
 ### v2.0
 - New phone icon: NCEMS green and gold split corner to corner with four white tiles, NCEMS across the bottom (matches the Open Shifts icon). `apple-touch-icon.png` is the new icon and `icon-512.png` is the big one Android uses for the icon and the launch screen. Delete the old icon from the home screen and add it again to see it
-- The hub is Operations only now: sign in with Microsoft and the buttons are right there. No tabs
+- The hub is one page with no sign-in. Every button is right there when it opens: Open Shifts, Facilities & Grounds, Apparatus Checker, Incident Report, CG Staff. Each app signs people in itself. No tabs
 - The Clinical tab moved to its own site, clinical.northcountryems.org (new repo `clinical`)
-- The Report tab is now one Incident Report button across the bottom that opens reports.northcountryems.org directly. No sign-in needed
+- Incident Report is a regular red button next to the Apparatus Checker (the Report tab is gone). No sign-in needed
+- CG Staff button shows to everyone now and says "CG Staff only"; the CG Staff app itself only lets the command staff in (CG Staff 1.14 adds a CG Staff only box with a way back)
+- Each button has the app's small icon above its name (files in the new `icons` folder: shifts, fng, apparatus, ir, cgstaff). apps.json sets them with `"icon"`
+- The only sign-in left on the hub is in the (i) panel, for chiefs posting a notice. If you signed in there before, the hub still remembers you and passes your sign-in along to the other apps
 - NCEMS OT button renamed Open Shifts and pointed at shifts.northcountryems.org (Derek renamed the app; the old overtime address forwards there)
-- Signing in always lands on Operations (it's the only page), which fixes landing back on Clinical after the Microsoft sign-in
 - apps.json no longer has the clinical section or clinicalNotice
 
 ### v1.16
