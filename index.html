@@ -517,7 +517,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '2.0';
+var HUB_VERSION = '2.1';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -731,8 +731,6 @@ document.getElementById('notice-overlay').addEventListener('click', function(e){
    v1.14: the notice lives on Doug's Cloudflare Worker. Anyone can read it,
    only hub admins signed in with Microsoft can post or clear it. */
 var NOTICE_URL = 'https://ncems-api.d-boyce.workers.dev/notice';
-var db = null;
-var fsModule = null;
 
 function noticeToken() {
   if (!msalApp || !msalAccount) return Promise.reject(new Error('Sign in on the Operations tab first'));
@@ -808,38 +806,9 @@ function setAdminStatus(msg) {
   if (el) el.textContent = msg;
 }
 
-/* ===== FIREBASE: usage tracker only (notices moved to the Worker in v1.14) ===== */
-(async function(){
-  var FIREBASE_READY = true;
-  var firebaseConfig = {
-    apiKey:            "AIzaSyCBSmzaXRU6TV1Jen5z4xHKZfG28UHXlkY",
-    authDomain:        "ncems-hub-9111d.firebaseapp.com",
-    projectId:         "ncems-hub-9111d",
-    storageBucket:     "ncems-hub-9111d.firebasestorage.app",
-    messagingSenderId: "282446545601",
-    appId:             "1:282446545601:web:41f89407c2a1a348f24a40"
-  };
-  if (!FIREBASE_READY) return;
-
-  var fb = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-  var fs = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-  db = fs.getFirestore(fb.initializeApp(firebaseConfig));
-  fsModule = fs;
-
-  /* Usage tracker */
-  try {
-    var today = new Date().toISOString().slice(0,10);
-    var usageRef = fs.doc(db, "usage", "hub");
-    await fs.runTransaction(db, async function(tx){
-      var snap = await tx.get(usageRef);
-      var data = snap.exists() ? snap.data() : { total: 0, days: {} };
-      data.total = (data.total || 0) + 1;
-      data.days = data.days || {};
-      data.days[today] = (data.days[today] || 0) + 1;
-      tx.set(usageRef, data);
-    });
-  } catch(e){ console.warn("Usage track failed", e); }
-
+/* ===== Usage tracker (2.1: on the agency's Cloudflare, ncems-checks Worker; Firebase is gone) ===== */
+(function(){
+  try { fetch('https://ncems-checks.d-boyce.workers.dev/usage/hub', { method: 'POST', keepalive: true }).catch(function(){}); } catch(e) {}
 })();
 </script>
 </body>

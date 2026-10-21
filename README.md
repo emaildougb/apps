@@ -53,9 +53,12 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 
 1. The notice banner is stored on Doug's Cloudflare Worker: `https://ncems-api.d-boyce.workers.dev/notice`. Anyone can read it; the hub checks every minute and whenever it's reopened
 2. Push Notice is in the (i) info panel, shown to `ADMIN_EMAILS` after Microsoft sign-in. The Worker checks the sign-in itself (`NOTICE_ADMINS`, default Doug, Derek, Bryce), so nobody can post a notice by going around the hub
-3. Firebase is now only used for the hub usage counter. Firestore rules keep `notices` read only
+3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v2.1
+- Usage counter moved off Firebase to the `ncems-checks` Worker on Doug's NCEMS Cloudflare (281 old visits copied). The hub no longer loads Firebase at all
 
 ### v2.0
 - New phone icon: NCEMS green and gold split corner to corner with four white tiles, NCEMS across the bottom (matches the Open Shifts icon). `apple-touch-icon.png` is the new icon and `icon-512.png` is the big one Android uses for the icon and the launch screen. Delete the old icon from the home screen and add it again to see it
