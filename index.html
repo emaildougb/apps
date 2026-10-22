@@ -417,17 +417,17 @@
         <a class="ops-btn" href="https://shifts.northcountryems.org/">
           <img class="ops-ico" src="icons/shifts.png" alt=""><div class="ops-title">Open<br>Shifts</div><div class="ops-sub">Overtime and open shifts</div>
         </a>
-        <a class="ops-btn dark" href="https://fng.northcountryems.org/">
-          <img class="ops-ico" src="icons/fng.png" alt=""><div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Repairs, services, grounds</div>
+        <a class="ops-btn red" href="https://reports.northcountryems.org/">
+          <img class="ops-ico" src="icons/ir.png" alt=""><div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty report system</div>
         </a>
       </div>
-      <div class="section-label">Apparatus &amp; Reports</div>
+      <div class="section-label">Logistics</div>
       <div class="grid">
         <a class="ops-btn" href="https://checks.northcountryems.org/">
           <img class="ops-ico" src="icons/apparatus.png" alt=""><div class="ops-title">Apparatus<br>Checker</div><div class="ops-sub">Daily rig checks</div>
         </a>
-        <a class="ops-btn red" href="https://reports.northcountryems.org/">
-          <img class="ops-ico" src="icons/ir.png" alt=""><div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty report system</div>
+        <a class="ops-btn dark" href="https://fng.northcountryems.org/">
+          <img class="ops-ico" src="icons/fng.png" alt=""><div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Repairs, services, grounds</div>
         </a>
       </div>
       <div class="section-label">BC / Chief</div>
@@ -517,7 +517,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '2.1';
+var HUB_VERSION = '2.2';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);

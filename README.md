@@ -22,8 +22,8 @@ Central landing page for North Country EMS operations tools. Clinical reference 
 
 ## Page layout
 
-**One page (since 2.0), no sign-in:** Operations (Open Shifts, Facilities & Grounds) · Apparatus & Reports (Apparatus Checker, Incident Report) · BC / Chief (CG Staff). Every button shows to everyone. Each app signs people in itself, and CG Staff turns away anyone not on its list
-**Incident Report:** a red button next to the Apparatus Checker. No sign-in, so volunteers can file
+**One page (since 2.0), no sign-in:** Operations (Open Shifts, Incident Report) · Logistics (Apparatus Checker, Facilities & Grounds) · BC / Chief (CG Staff). Every button shows to everyone. Each app signs people in itself, and CG Staff turns away anyone not on its list
+**Incident Report:** a red button next to Open Shifts in Operations. No sign-in, so volunteers can file
 **Push Notice:** in the (i) info panel. Chiefs tap "BC / Chief: sign in to post a notice" there. That is the only sign-in on the hub. Notice banner pinned at the bottom
 **Clinical reference:** not here anymore. It's its own site and repo: clinical.northcountryems.org (`clinical`)
 
@@ -56,6 +56,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v2.2
+- Operations now holds Open Shifts and Incident Report
+- The Apparatus & Reports section is now called Logistics and holds Apparatus Checker and Facilities & Grounds
+- Changed apps.json, index.html (backup buttons and HUB_VERSION) and README.md
 
 ### v2.1
 - Usage counter moved off Firebase to the `ncems-checks` Worker on Doug's NCEMS Cloudflare (281 old visits copied). The hub no longer loads Firebase at all

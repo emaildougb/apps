@@ -11,16 +11,16 @@
           "icon": "icons/shifts.png"
         },
         {
-          "title": "Facilities\n& Grounds",
-          "sub": "Repairs, services, grounds",
-          "url": "https://fng.northcountryems.org/",
-          "style": "dark",
-          "icon": "icons/fng.png"
+          "title": "Incident\nReport",
+          "sub": "On-duty report system",
+          "url": "https://reports.northcountryems.org/",
+          "style": "red",
+          "icon": "icons/ir.png"
         }
       ]
     },
     {
-      "label": "Apparatus & Reports",
+      "label": "Logistics",
       "buttons": [
         {
           "title": "Apparatus\nChecker",
@@ -29,11 +29,11 @@
           "icon": "icons/apparatus.png"
         },
         {
-          "title": "Incident\nReport",
-          "sub": "On-duty report system",
-          "url": "https://reports.northcountryems.org/",
-          "style": "red",
-          "icon": "icons/ir.png"
+          "title": "Facilities\n& Grounds",
+          "sub": "Repairs, services, grounds",
+          "url": "https://fng.northcountryems.org/",
+          "style": "dark",
+          "icon": "icons/fng.png"
         }
       ]
     },
