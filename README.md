@@ -57,6 +57,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 
 ## Changelog
 
+### v2.3
+- Haptics: a light tick when you tap a button, link, tab or card, the same way the EP Checker does it. iPhone needs iOS 18 or newer with System Haptics on (Settings, Sounds & Haptics). Android phones vibrate. Nothing else changed
+
 ### v2.2
 - Operations now holds Open Shifts and Incident Report
 - The Apparatus & Reports section is now called Logistics and holds Apparatus Checker and Facilities & Grounds

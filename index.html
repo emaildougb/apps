@@ -517,7 +517,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '2.2';
+var HUB_VERSION = '2.3';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -809,6 +809,42 @@ function setAdminStatus(msg) {
 /* ===== Usage tracker (2.1: on the agency's Cloudflare, ncems-checks Worker; Firebase is gone) ===== */
 (function(){
   try { fetch('https://ncems-checks.d-boyce.workers.dev/usage/hub', { method: 'POST', keepalive: true }).catch(function(){}); } catch(e) {}
+})();
+</script>
+<script>
+/* NCEMS haptics 1.0 (10/24/2026, same method as EP Checker 2.30): a light tick on every tap.
+   iPhone/iPad: Safari has no vibrate, but toggling a switch style checkbox gives a system haptic
+   (iOS 18 and newer, System Haptics on). We click a hidden one. Android: navigator.vibrate. */
+(function () {
+  var TAP = 'a, button, label, select, summary, input[type=checkbox], input[type=radio], [onclick], [role=button], .card, .tab';
+  var last = 0;
+  function tick() {
+    var now = Date.now();
+    if (now - last < 60) return;   /* a label and its checkbox can fire two clicks for one tap */
+    last = now;
+    try {
+      if (typeof navigator.vibrate === 'function') { navigator.vibrate(10); return; }
+      var label = document.createElement('label');
+      label.setAttribute('aria-hidden', 'true');
+      label.style.display = 'none';
+      var input = document.createElement('input');
+      input.type = 'checkbox';
+      input.setAttribute('switch', '');
+      input.tabIndex = -1;
+      label.appendChild(input);
+      document.head.appendChild(label);
+      label.click();
+      document.head.removeChild(label);
+    } catch (e) {}
+  }
+  window.ncemsHaptic = tick;
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest || t.closest('head')) return;
+    var el = t.closest(TAP);
+    if (!el || el.disabled) return;
+    tick();
+  }, true);
 })();
 </script>
 </body>
