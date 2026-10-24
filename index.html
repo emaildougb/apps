@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="NCEMS">
 <meta name="theme-color" content="#1C3A1C">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -30,7 +30,7 @@
     --white:     #ffffff;
     --banner-h:  44px;
     --tab-h:     0px;
-    --hdr-h:     72px;
+    --hdr-h:     64px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
   html, body {
@@ -385,21 +385,56 @@
     .ops-title { font-size: 26px; }
     .hdr-text h1 { font-size: 22px; }
   }
+
+/* NCEMS standard top bar (10/24/2026). Same look as CG Staff 1.21+ and Derek's Open Shifts:
+   white bar, system font, "NCEMS" in black then the app name in green, thin line, North Country EMS in gray.
+   Home button on the left always goes to the NCEMS Hub. The i button on the right holds the details. */
+.nch { position:fixed; top:0; left:0; right:0; height:calc(64px + env(safe-area-inset-top)); box-sizing:border-box;
+  padding:env(safe-area-inset-top) 16px 0; background:#fff; border-bottom:1px solid #d5e2d5; color:#1a1a1a;
+  display:flex; align-items:center; gap:10px; z-index:900; margin:0;
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing:normal; text-transform:none; }
+.nch * { box-sizing:border-box; }
+.nch-logo { width:40px; height:40px; border-radius:50%; background:#fff; object-fit:cover; flex-shrink:0; display:block; }
+.nch-text { flex:1; min-width:0; display:flex; align-items:center; gap:12px; text-align:left; }
+.nch-text.tap { cursor:pointer; }
+.nch-text h1 { font-family:inherit; font-size:18px; font-weight:800; letter-spacing:-.3px; line-height:1.2; text-transform:none; color:#1a1a1a; white-space:nowrap; flex-shrink:0; margin:0; padding:0; }
+.nch-text h1 .nch-g { color:#2d6a2d; }
+.nch-sub { min-width:0; padding-left:12px; border-left:1px solid #d5e2d5; display:flex; flex-direction:column; gap:1px; }
+.nch-sub .nch-org { font-size:12px; color:#5f675f; white-space:nowrap; font-weight:400; letter-spacing:normal; text-transform:none; }
+.nch-sub .nch-line { font-size:12px; color:#4a4a4a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; font-weight:400; letter-spacing:normal; text-transform:none; }
+.nch-sub .nch-line:empty { display:none; }
+.nch-btn { flex-shrink:0; width:38px; height:38px; border-radius:8px; background:#fff; border:1px solid #d5e2d5; padding:0; margin:0;
+  color:#2d6a2d; display:flex; align-items:center; justify-content:center; text-decoration:none; cursor:pointer;
+  transition:background .15s, border-color .15s; font-family:inherit; box-shadow:none; }
+.nch-btn:hover { background:#e8f4e8; border-color:#a3c9a3; }
+.nch-btn:active { background:#d9ecd9; }
+.nch-btn:focus-visible { outline:2px solid #2d6a2d; outline-offset:2px; }
+.nch-btn svg { width:19px; height:19px; }
+.nch-btn .nch-i { font-size:19px; font-weight:800; font-style:italic; font-family:Georgia, serif; line-height:1; color:#2d6a2d; }
+@media (max-width:760px) {
+  .nch { padding:env(safe-area-inset-top) 10px 0; gap:8px; }
+  .nch-logo { width:34px; height:34px; }
+  .nch-text { display:block; }
+  .nch-text h1 { font-size:16px; }
+  .nch-sub { padding-left:0; border-left:0; }
+  .nch-sub .nch-org { display:none; }
+  .nch-btn { width:36px; height:36px; }
+}
+@media print { .nch { display:none !important; } }
+.nch-btn.nch-wide { width:auto; padding:0 12px; font-size:13.5px; font-weight:600; color:#4a4a4a; gap:6px; }
+.nch-btn[hidden] { display:none; }
+.nch .signout-btn{display:none}.nch .signout-btn.visible{display:flex}
+
 </style>
 </head>
 <body>
 
-<header class="hdr">
-  <img class="hdr-logo" src="logo.png" alt="NCEMS" onclick="goHome()" style="cursor:pointer">
-  <div class="hdr-text" onclick="goHome()" style="cursor:pointer">
-    <h1>NCEMS Hub</h1>
-    <p>North Country EMS &middot; Clark Fire 13</p>
-  </div>
-  <div class="hdr-right">
-    <button class="home-btn" onclick="goHome()" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
-    <button class="signout-btn" id="signout-btn" onclick="msalSignOut()">Sign Out</button>
-    <button class="info-btn" onclick="openInfo()">i</button>
-  </div>
+<header class="nch">
+  <a class="nch-btn" href="#" onclick="goHome();return false" title="Hub home" aria-label="Hub home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a>
+  <img class="nch-logo" src="logo.png" alt="">
+  <div class="nch-text tap" onclick="goHome()"><h1><span class="nch-ncems">NCEMS </span><span class="nch-g">Hub</span></h1><div class="nch-sub"><span class="nch-org">North Country EMS</span><p class="nch-line" id="nch-line"></p></div></div>
+  <button class="nch-btn nch-wide signout-btn" id="signout-btn" onclick="msalSignOut()">Sign out</button>
+  <button class="nch-btn" onclick="openInfo()" title="Details" aria-label="Details"><span class="nch-i">i</span></button>
 </header>
 
 <div class="content">
@@ -418,7 +453,7 @@
           <img class="ops-ico" src="icons/shifts.png" alt=""><div class="ops-title">Open<br>Shifts</div><div class="ops-sub">Overtime and open shifts</div>
         </a>
         <a class="ops-btn red" href="https://reports.northcountryems.org/">
-          <img class="ops-ico" src="icons/ir.png" alt=""><div class="ops-title">Incident<br>Report</div><div class="ops-sub">On-duty report system</div>
+          <img class="ops-ico" src="icons/ir.png" alt=""><div class="ops-title">During Duty<br>Incident Report</div><div class="ops-sub">Service related reporting</div>
         </a>
       </div>
       <div class="section-label">Logistics</div>
@@ -427,7 +462,7 @@
           <img class="ops-ico" src="icons/apparatus.png" alt=""><div class="ops-title">Apparatus<br>Checker</div><div class="ops-sub">Daily rig checks</div>
         </a>
         <a class="ops-btn dark" href="https://fng.northcountryems.org/">
-          <img class="ops-ico" src="icons/fng.png" alt=""><div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Repairs, services, grounds</div>
+          <img class="ops-ico" src="icons/fng.png" alt=""><div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Buildings and grounds</div>
         </a>
       </div>
       <div class="section-label">BC / Chief</div>
@@ -517,7 +552,7 @@
 /* ===== VERSION + SELF UPDATE =====
    Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
    check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '2.3';
+var HUB_VERSION = '2.4';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);

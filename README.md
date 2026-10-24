@@ -57,6 +57,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 
 ## Changelog
 
+### v2.4 (10/24/2026)
+- New top bar, the same as CG Staff: white bar, house button on the left goes to the top of the Hub (this is the Hub), NCEMS logo, "NCEMS" in black and the app name in green, North Country EMS in gray, and the i button on the right for details. iPhone status bar set to default so the clock shows on the white bar
+- Incident Report button now reads "During Duty Incident Report" with "Service related reporting" under it; Facilities and Grounds reads "Buildings and grounds" (apps.json and the backup buttons)
+- Changed index.html, apps.json and README.md
+
 ### v2.3
 - Haptics: a light tick when you tap a button, link, tab or card, the same way the EP Checker does it. iPhone needs iOS 18 or newer with System Haptics on (Settings, Sounds & Haptics). Android phones vibrate. Nothing else changed
 

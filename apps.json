@@ -11,8 +11,8 @@
           "icon": "icons/shifts.png"
         },
         {
-          "title": "Incident\nReport",
-          "sub": "On-duty report system",
+          "title": "During Duty\nIncident Report",
+          "sub": "Service related reporting",
           "url": "https://reports.northcountryems.org/",
           "style": "red",
           "icon": "icons/ir.png"
@@ -30,7 +30,7 @@
         },
         {
           "title": "Facilities\n& Grounds",
-          "sub": "Repairs, services, grounds",
+          "sub": "Buildings and grounds",
           "url": "https://fng.northcountryems.org/",
           "style": "dark",
           "icon": "icons/fng.png"
