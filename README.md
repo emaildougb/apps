@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.0. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -23,9 +23,9 @@ Version 3.0. Three views at one address: **Wall** (the station TV, cycles on its
 ## Page layout (3.0)
 
 - **Sign in first.** Microsoft sign in (NCEMS Hub app registration 54eb93f5), NCEMS accounts only
-- **Desk** (computers): notice, Today with the clock, Vehicle checks (live from the ncems-checks Worker, by station, plus the weekly Rescue and spare checks due today), Weather for the picked station (National Weather Service), the day's duties from the Weekly Station Duties checklist with tomorrow under it, Coming next, and the Apps buttons from apps.json
+- **Desk** (computers): notice, Today with the clock, **On shift today** (Station 51 and Station 52, each unit's call sign, rig and crew, tomorrow under it), Vehicle checks (live from the ncems-checks Worker, by station, plus the weekly Rescue and spare checks due today), Weather for the picked station (National Weather Service), the day's duties from the Weekly Station Duties checklist with tomorrow under it, Coming next, and the Apps buttons from apps.json
 - **Pocket** (phones and iPads, picked automatically): the same panels one at a time with a bottom tab bar (Today, Checks, Duties, Weather, Apps)
-- **Wall**: tap **Wall** on Desk. The screen goes full screen and cycles every 20 seconds through Vehicle checks, Duties and Weather (a slide with no data is skipped). It stays the Wall on that computer after a restart. Moving the mouse or tapping shows **Back to Desk** for a few seconds. `?wall=1` turns it on, `?wall=0` off
+- **Wall**: tap **Wall** on Desk. The screen goes full screen and cycles every 20 seconds through Today (who's on each unit), Vehicle checks, Duties and Weather (a slide with no data is skipped). It stays the Wall on that computer after a restart. Moving the mouse or tapping shows **Back to Desk** for a few seconds. `?wall=1` turns it on, `?wall=0` off
 - **Station** picker in the top bar (51 or 52) sets the weather point and is remembered per device
 - **Notice:** chiefs post it from the (i) panel (d.boyce, d.langdon, d.madler, b.shirley see it; the ncems-api Worker is the real gate). Shows on every view and every Wall slide
 - **Incident Report** stays a regular app button. Volunteers who don't sign in to the Hub go straight to reports.northcountryems.org
@@ -60,6 +60,13 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 
 ## Changelog
 
+### v3.1
+- **On shift today** on Desk and Pocket and a **Today** slide first on the Wall: Station 51 on the left, Station 52 on the right, each unit under the station of the rig its crew claimed (no claim yet: its primary rig, marked last known). Call sign big, First out / Third out / Summer unit with the rig (25A, not M25A), Crew 1, Crew 2, Crew 3, amber "1 of 2 staffed" when short. Tomorrow's crews listed under it on Desk
+- Data from the ncems-checks Worker 1.6 /fleet/hub in one call: crews (fleet_crews, copied from Derek's schedule every hour at :17), today's vehicle checks and today's duty check offs
+- Duties: check items off on Desk or Pocket (who and when shows on the Wall). BCs and Checker admins (ncems-checks ADMINS and READERS) can add a task for today and remove added ones
+- Vehicle checks now live. Rig numbers show without the M (25A, 19)
+- Still to come: open shifts (Derek adding the Hub to ncems-ot and ncems-c2) and the duty BC (not in the schedule feed)
+
 ### v3.0
 - New dark Hub with three views: Wall (station TV slideshow), Desk (computers) and Pocket (phones and iPads, bottom tabs). Built from the Wall, Desk and Pocket mockup
 - Microsoft sign in required to see anything, because the Hub now shows crew information
@@ -69,8 +76,8 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 - Kept: apps.json buttons, notice posting and banner, usage counter, login hint to other apps, haptics, update check (the Wall reloads itself on a new version)
 - Coming next: crews on each unit, open shifts and the week, checking off duties and BC added items (need Worker changes)
 
-### Setup for live vehicle checks (once, in Cloudflare)
-- ncems-checks Worker > Settings > Variables: add `54eb93f5-05e0-42ca-a49d-f4df05c3331c` to CLIENT_IDS and `https://hub.northcountryems.org` to ORIGINS. Until then the Vehicle checks panel says it isn't connected and links to the Apparatus Checker
+### Setup (done 11/14)
+- ncems-checks Worker 1.6: CLIENT_IDS includes `54eb93f5-05e0-42ca-a49d-f4df05c3331c`, ORIGINS includes `https://hub.northcountryems.org`. New routes GET /fleet/hub, POST /fleet/duty, /fleet/duty/add, /fleet/duty/remove
 
 ### v2.4 (10/24/2026)
 - New top bar, the same as CG Staff: white bar, house button on the left goes to the top of the Hub (this is the Hub), NCEMS logo, "NCEMS" in black and the app name in green, North Country EMS in gray, and the i button on the right for details. iPhone status bar set to default so the clock shows on the white bar

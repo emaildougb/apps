@@ -113,6 +113,22 @@ main.desk { padding: 20px 24px 40px; display: grid; grid-template-columns: repea
 .wx-h b { display: block; color: #fff; font-size: 16px; margin: 2px 0; }
 .wx-h.frz { background: var(--nest); }
 
+/* On shift */
+.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.u-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.u-card { background: var(--raised); border-radius: 14px; padding: 14px 16px; }
+.u-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.u-call { font-size: 28px; font-weight: 600; line-height: 1; }
+.u-where { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
+.u-seat { padding: 4px 0; }
+.u-seat .l { font-size: 12px; color: var(--faint); }
+.tmr { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.duty-row input { width: 20px; height: 20px; accent-color: #fff; flex: none; }
+.duty-row.done .grow { color: var(--faint); }
+.add-row { display: flex; gap: 8px; margin-top: 12px; }
+.add-row input { flex: 1; height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 16px; font: inherit; }
+.x-btn { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 12px; text-decoration: underline; }
+
 /* Pocket */
 body.pocket .top { padding-left: 16px; padding-right: 16px; }
 body.pocket .top .who, body.pocket .top #wall-btn { display: none; }
@@ -129,6 +145,7 @@ body.pocket .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1f
 .tabs button.on { color: #fff; }
 .tabs svg { width: 22px; height: 22px; }
 body.pocket .app-grid { grid-template-columns: 1fr 1fr; }
+body.pocket .st-grid { grid-template-columns: 1fr; }
 
 @media (max-width: 1100px) { main.desk > .span-7, main.desk > .span-5 { grid-column: span 12; } }
 
@@ -217,6 +234,11 @@ body.pocket .app-grid { grid-template-columns: 1fr 1fr; }
       <div class="clock-sm" id="d-clock"></div>
     </div>
 
+    <section class="panel span-12 on" data-tab="home" aria-labelledby="h-shift">
+      <div class="ph"><h2 id="h-shift">On shift today</h2><span class="meta" id="shift-meta"></span></div>
+      <div id="shift-body"><p class="empty">Loading…</p></div>
+    </section>
+
     <section class="panel span-7 on" data-tab="home" data-also="checks" aria-labelledby="h-checks">
       <div class="ph"><h2 id="h-checks">Vehicle checks</h2><span class="meta" id="checks-meta"></span></div>
       <div id="checks-body"><p class="empty">Loading…</p></div>
@@ -230,14 +252,13 @@ body.pocket .app-grid { grid-template-columns: 1fr 1fr; }
     <section class="panel span-7" data-tab="duties" aria-labelledby="h-duties">
       <div class="ph"><h2 id="h-duties">Duties</h2><span class="meta" id="duties-meta"></span></div>
       <div id="duties-body"></div>
-      <p class="soon">Checking items off and BC added items come in the next build.</p>
+      <div id="duty-add"></div>
     </section>
 
     <section class="panel span-5" data-tab="duties" aria-labelledby="h-coming">
       <div class="ph"><h2 id="h-coming">Coming next</h2></div>
-      <div class="row"><div class="grow">Crews on each unit today<div class="sub">From the schedule, once the crews feed opens to the Hub</div></div><span class="tag dim">Soon</span></div>
       <div class="row"><div class="grow">Open shifts and the week<div class="sub">From Derek's Open Shifts feed</div></div><span class="tag dim">Soon</span></div>
-      <div class="row"><div class="grow">Check off duties, BC added items<div class="sub">Saved on the agency Cloudflare</div></div><span class="tag dim">Soon</span></div>
+      <div class="row"><div class="grow">Duty BC<div class="sub">Not in the schedule feed yet</div></div><span class="tag dim">Soon</span></div>
     </section>
 
     <section class="panel span-12" data-tab="apps" aria-labelledby="h-apps">
@@ -288,7 +309,7 @@ body.pocket .app-grid { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.0';
+var HUB_VERSION = '3.1';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -458,20 +479,72 @@ function postNotice() {
 }
 function clearNotice() { sendNotice({ message: '' }, 'Cleared.'); }
 
-/* ===== VEHICLE CHECKS (ncems-checks Worker, /fleet/today) =====
-   Needs the Worker to accept the Hub: CLIENT_IDS must include 54eb93f5 and ORIGINS https://hub.northcountryems.org */
+/* ===== CREWS, VEHICLE CHECKS AND DUTIES (ncems-checks Worker 1.6, /fleet/hub) =====
+   One call returns who is on each unit today and tomorrow (fleet_crews, copied from the schedule every hour),
+   today's vehicle checks (/fleet/today) and today's duty check offs. */
 var FLEET_URL = 'https://ncems-checks.d-boyce.workers.dev';
 var FLEET = { data: null, err: '' };
+var HUB = null;
 function loadFleet() {
   return idToken().then(function(t){
-    return fetch(FLEET_URL + '/fleet/today', { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' });
-  }).then(function(r){ if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
-    .then(function(d){ FLEET.data = d; FLEET.err = ''; store('ncems_hub_fleet_v1', JSON.stringify({ at: Date.now(), d: d })); renderAll(); })
+    return fetch(FLEET_URL + '/fleet/hub', { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' });
+  }).then(function(r){ if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j){ throw new Error(j.error || ('status ' + r.status)); }); return r.json(); })
+    .then(function(d){ HUB = d; FLEET.data = d.fleet; FLEET.err = ''; store('ncems_hub_v31', JSON.stringify({ at: Date.now(), d: d })); renderAll(); })
     .catch(function(e){
       FLEET.err = String(e && e.message || e);
-      if (!FLEET.data) { try { var c = JSON.parse(store('ncems_hub_fleet_v1') || 'null'); if (c && Date.now() - c.at < 3 * 3600e3) FLEET.data = c.d; } catch (er) {} }
+      if (!HUB) { try { var c = JSON.parse(store('ncems_hub_v31') || 'null'); if (c && Date.now() - c.at < 3 * 3600e3) { HUB = c.d; FLEET.data = c.d.fleet; } } catch (er) {} }
       renderAll();
     });
+}
+function hubPost(path, body) {
+  return idToken().then(function(t){
+    return fetch(FLEET_URL + path, { method: 'POST', headers: { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  }).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.error || ('status ' + r.status)); return j; }); });
+}
+function rigLabel(id) { return String(id || '').replace(/^M(?=\d)/, ''); }
+
+/* ===== ON SHIFT ===== Call signs M51 and M52 are first out at Stations 51 and 52, M54 third out, M53 summer only.
+   A unit sits under the station of the rig its crew claimed today; no claim yet means its primary rig, marked last known. */
+var CALLS = ['M51', 'M52', 'M53', 'M54'];
+var CALL_ROLE = { M51: 'First out', M52: 'First out', M53: 'Summer unit', M54: 'Third out' };
+function seatLabel(s) { return s === 'C1' ? 'Crew 1' : s === 'C2' ? 'Crew 2' : 'Crew 3'; }
+function hm(t) { var m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? (m[1].length === 1 ? '0' : '') + m[1] + ':' + m[2] : ''; }
+function shiftUnits(dayKey) {
+  if (!HUB || !HUB.crews) return [];
+  var crews = HUB.crews[dayKey] || {}, info = HUB.crewInfo || {}, rigs = (HUB.fleet && HUB.fleet.rigs) || [];
+  return CALLS.filter(function(c){ return crews[c] && crews[c].length; }).map(function(c){
+    var mine = rigs.filter(function(r){ return r.claim && r.claim.crew === c; });
+    var rig = mine[0] || null, last = false;
+    if (!rig && info[c] && info[c].primary) { rig = rigs.filter(function(r){ return r.rig === info[c].primary; })[0] || { rig: info[c].primary }; last = true; }
+    var station = String((rig && rig.station) || (info[c] && info[c].station) || '51');
+    var bySeat = {};
+    crews[c].forEach(function(p){ (bySeat[p.seat] = bySeat[p.seat] || []).push(p); });
+    var rank = function(k){ return k === 'C1' ? 0 : k === 'C2' ? 1 : 2; };
+    var seats = Object.keys(bySeat).sort(function(a, b){ return rank(a) - rank(b) || (a < b ? -1 : 1); }).map(function(sk){
+      var ps = bySeat[sk];
+      return { label: seatLabel(sk), names: ps.map(function(p){ return p.person + (ps.length > 1 && hm(p.start) ? ' ' + hm(p.start) + ' to ' + hm(p.end) : ''); }).join(', ') };
+    });
+    var core = ['C1', 'C2'].filter(function(sk){ return bySeat[sk]; }).length;
+    return { call: c, station: station, rig: rig ? rigLabel(rig.rig) + (last ? ' (last known)' : '') : '', where: CALL_ROLE[c], seats: seats, short: core < 2, staffed: core + ' of 2 staffed' };
+  });
+}
+function renderShiftDesk() {
+  var b = $('shift-body');
+  if (!HUB) { b.innerHTML = '<p class="empty">' + (FLEET.err ? 'Can\u2019t reach the schedule right now (' + esc(FLEET.err) + ').' : 'Loading…') + '</p>'; return; }
+  var units = shiftUnits(HUB.day);
+  $('shift-meta').textContent = FLEET.err ? 'Reconnecting' : '';
+  if (!units.length) { b.innerHTML = '<p class="empty">No crews in the schedule for today yet.</p>'; return; }
+  var html = '<div class="st-grid">' + ['51', '52'].map(function(st){
+    var us = units.filter(function(u){ return u.station === st; });
+    return '<div><p class="stn">Station ' + st + '</p>' + (us.length ? '<div class="u-cards">' + us.map(function(u){
+      return '<div class="u-card"><div class="u-head"><span class="u-call">' + u.call + '</span>' + (u.short ? '<span class="tag warn">' + u.staffed + '</span>' : '') + '</div>' +
+        '<div class="u-where">' + esc(u.where) + (u.rig ? ' · ' + esc(u.rig) : '') + '</div>' +
+        u.seats.map(function(s){ return '<div class="u-seat"><div class="l">' + s.label + '</div>' + esc(s.names) + '</div>'; }).join('') + '</div>';
+    }).join('') + '</div>' : '<p class="empty">No unit here right now</p>') + '</div>';
+  }).join('') + '</div>';
+  var tmr = shiftUnits(HUB.tomorrow);
+  if (tmr.length) html += '<div class="tmr"><b>Tomorrow</b> &nbsp;' + tmr.map(function(u){ return u.call + ': ' + esc(u.seats.map(function(s){ return s.names; }).join(', ')); }).join(' &nbsp;·&nbsp; ') + '</div>';
+  b.innerHTML = html;
 }
 function rigState(r) {
   if (r.oos) return { key: 'oos', tag: 'Out of service', cls: 'bad', detail: r.oos.reason || '' };
@@ -485,7 +558,7 @@ function fleetSummary() {
   var rows = rigs.map(function(r){
     var s = rigState(r), crew = r.claim && r.claim.crew;
     var tagLine = crew ? crew + ' today' : (r.oos ? '' : 'Spare');
-    return { rig: r.rig, station: String(r.station || ''), state: s, line: [tagLine, s.detail].filter(Boolean).join(' · ') };
+    return { rig: rigLabel(r.rig), station: String(r.station || ''), state: s, line: [tagLine, s.detail].filter(Boolean).join(' · ') };
   });
   var inSvc = rows.filter(function(x){ return x.state.key !== 'oos'; });
   var done = inSvc.filter(function(x){ return x.state.key === 'ok'; }).length;
@@ -520,12 +593,50 @@ function renderChecksDesk() {
 }
 
 /* ===== DUTIES ===== */
+/* Today's list: the weekly checklist items (id w:Day:n) plus anything a BC added (id a:...). Check offs live in the Worker. */
+function dutyList() {
+  var d = dutyDate(), day = DAYS[d.getDay()];
+  var saved = {}; ((HUB && HUB.duties) || []).forEach(function(x){ saved[x.id] = x; });
+  var items = (WEEK[day] || []).map(function(t, i){ var id = 'w:' + day + ':' + i, s = saved[id] || {}; return { id: id, text: t, done: !!s.done_at, by: s.done_name || '', at: s.done_at || '', added: '' }; });
+  ((HUB && HUB.duties) || []).filter(function(x){ return x.id.indexOf('a:') === 0; }).forEach(function(x){
+    items.push({ id: x.id, text: x.text, done: !!x.done_at, by: x.done_name || '', at: x.done_at || '', added: x.added_name ? 'Added by ' + x.added_name : 'Added by a BC' });
+  });
+  return items;
+}
+function firstName(n) { var p = String(n || '').trim().split(/\s+/); return p.length > 1 ? p[0].charAt(0) + '. ' + p[p.length - 1] : p[0] || ''; }
 function renderDuties() {
-  var d = dutyDate(), day = DAYS[d.getDay()], next = DAYS[(d.getDay() + 1) % 7];
+  var d = dutyDate(), day = DAYS[d.getDay()], next = DAYS[(d.getDay() + 1) % 7], items = dutyList();
+  var done = items.filter(function(x){ return x.done; }).length;
   $('h-duties').textContent = day + ' duties';
-  $('duties-meta').textContent = (WEEK[day] || []).length + ' items';
-  $('duties-body').innerHTML = (WEEK[day] || []).map(function(t){ return '<div class="row"><div class="grow">' + esc(t) + '</div></div>'; }).join('') +
-    '<p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('');
+  $('duties-meta').textContent = done + ' of ' + items.length + ' done';
+  var can = !!(HUB && HUB.day);
+  $('duties-body').innerHTML = items.map(function(x){
+    return '<label class="row duty-row' + (x.done ? ' done' : '') + '"><input type="checkbox" ' + (x.done ? 'checked ' : '') + (can ? '' : 'disabled ') + 'data-duty="' + esc(x.id) + '" data-text="' + esc(x.text) + '"><div class="grow">' + esc(x.text) +
+      (x.added ? '<div class="sub" style="color:var(--warn)">' + esc(x.added) + '</div>' : '') + '</div>' +
+      (x.done ? '<span class="sub">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</span>' : '') +
+      (x.added && HUB && HUB.canAdd ? '<button class="x-btn" type="button" data-rm="' + esc(x.id) + '">Remove</button>' : '') + '</label>';
+  }).join('') + '<p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('');
+  $('duty-add').innerHTML = HUB && HUB.canAdd ? '<div class="add-row"><label class="sr" for="duty-new">Add a task for today</label><input id="duty-new" type="text" maxlength="160" placeholder="BC: add a task for today"><button class="pill ghost" type="button" style="height:36px" onclick="addDuty()">Add</button></div><p class="sub" id="duty-msg"></p>' : '';
+  $('duties-body').querySelectorAll('[data-duty]').forEach(function(cb){
+    cb.addEventListener('change', function(){ tickDuty(cb.dataset.duty, cb.dataset.text, cb.checked, cb); });
+  });
+  $('duties-body').querySelectorAll('[data-rm]').forEach(function(bt){
+    bt.addEventListener('click', function(e){ e.preventDefault(); removeDuty(bt.dataset.rm); });
+  });
+}
+function dutySaved(j) { if (HUB && j && j.duties) { HUB.duties = j.duties; renderAll(); } }
+function tickDuty(id, text, done, cb) {
+  hubPost('/fleet/duty', { day: HUB.day, id: id, text: text, done: done }).then(dutySaved)
+    .catch(function(e){ if (cb) cb.checked = !done; alert('Could not save: ' + (e.message || e)); });
+}
+function addDuty() {
+  var el = $('duty-new'), t = (el.value || '').trim(); if (!t) return;
+  hubPost('/fleet/duty/add', { day: HUB.day, text: t }).then(function(j){ el.value = ''; dutySaved(j); })
+    .catch(function(e){ $('duty-msg').textContent = 'Could not add: ' + (e.message || e); });
+}
+function removeDuty(id) {
+  if (!confirm('Remove this task for today?')) return;
+  hubPost('/fleet/duty/remove', { day: HUB.day, id: id }).then(dutySaved).catch(function(e){ alert('Could not remove: ' + (e.message || e)); });
 }
 
 /* ===== WEATHER (National Weather Service, free, no key; cached 15 minutes) ===== */
@@ -586,7 +697,8 @@ function renderAll() {
   var dd = dutyDate();
   $('d-sub').textContent = DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate() + ' · ' + STATIONS[STATION].name;
   $('d-clock').textContent = hhmm(new Date());
-  renderChecksDesk(); renderWeatherDesk(); renderDuties(); renderApps(); renderNotice();
+  if (document.activeElement && document.activeElement.id === 'duty-new') { renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderApps(); renderNotice(); return; }
+  renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderDuties(); renderApps(); renderNotice();
 }
 var TAB = 'home';
 function goTab(t) {
@@ -653,8 +765,10 @@ function wallDuties(idx, n) {
   var d = dutyDate(), day = DAYS[d.getDay()], next = DAYS[(d.getDay() + 1) % 7];
   return wHead(day + ' duties', 'Check them off on Desk or your phone', idx, n) +
     '<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;flex:1;min-height:0">' +
-    '<div class="w-panel" style="padding:24px 48px">' + (WEEK[day] || []).map(function(t){
-      return '<div class="w-task"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="#5a5a5a" stroke-width="3"/></svg><div class="txt">' + esc(t) + '</div></div>';
+    '<div class="w-panel" style="padding:24px 48px">' + dutyList().sort(function(a, b){ return (a.done ? 1 : 0) - (b.done ? 1 : 0); }).map(function(x){
+      return '<div class="w-task"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="' + (x.done ? '#1f1f1f' : 'none') + '" stroke="' + (x.done ? '#1f1f1f' : '#5a5a5a') + '" stroke-width="3"/>' + (x.done ? '<path d="M12 20.5l5.5 5.5L28 15" fill="none" stroke="#7ed67f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' : '') + '</svg>' +
+        '<div class="txt" style="color:' + (x.done ? 'var(--dim)' : '#fff') + '">' + esc(x.text) + (x.added ? '<div style="font-size:26px;font-weight:500;color:var(--warn);margin-top:6px">' + esc(x.added) + '</div>' : '') + '</div>' +
+        (x.done ? '<div style="font-size:28px;color:var(--faint)">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</div>' : '') + '</div>';
     }).join('') + '</div>' +
     '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') + '</div></div>';
 }
@@ -675,8 +789,25 @@ function wallWeather(idx, n) {
     '<div style="display:flex;gap:28px;font-size:24px;color:var(--muted)"><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:var(--rain);vertical-align:-3px"></i> Chance of rain</span><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:#2a2a2a;vertical-align:-3px"></i> At or below freezing</span></div></div>' +
     '<div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;flex:1;min-height:0">' + hours + '</div></div>';
 }
+function wallToday(idx, n) {
+  var units = shiftUnits(HUB.day), dd = dutyDate();
+  var groups = ['51', '52'].map(function(st){ return { st: st, us: units.filter(function(u){ return u.station === st; }) }; }).filter(function(g){ return g.us.length; });
+  var cols = groups.map(function(g){ return 'minmax(0,' + g.us.length + 'fr)'; }).join(' ');
+  return wHead('Today', DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate(), idx, n) +
+    '<div style="display:grid;grid-template-columns:' + cols + ';gap:48px;flex:1;min-height:0">' + groups.map(function(g){
+      return '<div style="display:flex;flex-direction:column;gap:18px;min-width:0"><h2 style="margin:0;font-size:40px;font-weight:600;color:var(--muted)">Station ' + g.st + '</h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(' + g.us.length + ',minmax(0,1fr));gap:24px;flex:1;min-height:0">' + g.us.map(function(u){
+          return '<div class="w-panel" style="padding:40px 44px;display:flex;flex-direction:column;gap:30px">' +
+            '<div><div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px"><div style="font-size:140px;font-weight:600;line-height:.85">' + u.call + '</div>' +
+            (u.short ? '<div style="padding:8px 20px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:28px;font-weight:600;white-space:nowrap">' + u.staffed + '</div>' : '') + '</div>' +
+            '<div style="font-size:32px;color:var(--muted);margin-top:18px">' + esc(u.where) + (u.rig ? ' · <b style="color:#fff">' + esc(u.rig) + '</b>' : '') + '</div></div>' +
+            u.seats.map(function(s){ return '<div><div style="font-size:28px;color:var(--faint)">' + s.label + '</div><div style="font-size:52px;font-weight:500;line-height:1.1;margin-top:4px">' + esc(s.names) + '</div></div>'; }).join('') + '</div>';
+        }).join('') + '</div></div>';
+    }).join('') + '</div>';
+}
 function wallSlides() {
   var list = [];
+  if (HUB && shiftUnits(HUB.day).length) list.push(wallToday);
   if (FLEET.data) list.push(wallChecks);
   list.push(wallDuties);
   if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
