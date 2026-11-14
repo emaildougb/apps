@@ -2,883 +2,761 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="NCEMS">
-<meta name="theme-color" content="#1C3A1C">
+<meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <title>NCEMS Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
 <style>
-  :root {
-    --g-deep:    #1C3A1C;
-    --g-mid:     #2E6B2E;
-    --g-accent:  #3A8A3A;
-    --g-pale:    #EBF5EB;
-    --warn:      #B87E0A;
-    --bad:       #C13E3E;
-    --text:      #1A1A1A;
-    --text-muted:#555;
-    --border:    #C5DFC5;
-    --white:     #ffffff;
-    --banner-h:  44px;
-    --tab-h:     0px;
-    --hdr-h:     64px;
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-  html, body {
-    height: 100%; width: 100%; overflow: hidden;
-    font-family: 'SF Mono', ui-monospace, 'Cascadia Code', 'Menlo', monospace;
-    background: var(--g-deep);
-    color: var(--text);
-    overscroll-behavior: none;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  /* HEADER */
-  .hdr {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: calc(var(--hdr-h) + env(safe-area-inset-top));
-    padding-top: env(safe-area-inset-top);
-    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
-    color: var(--white);
-    display: flex; align-items: center; gap: 12px;
-    padding-left: 14px; padding-right: 12px;
-    z-index: 30;
-    box-shadow: 0 2px 12px rgba(0,0,0,.3);
-  }
-  .hdr-logo {
-    width: 50px; height: 50px; border-radius: 50%;
-    background: var(--white); object-fit: cover; flex-shrink: 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,.3);
-  }
-  .hdr-text { flex: 1; min-width: 0; }
-  .hdr-text h1 { font-size: 17px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-  .hdr-text p  { font-size: 10px; opacity: .7; margin-top: 2px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hdr-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .home-btn {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;
-  }
-  .home-btn:active { background: rgba(255,255,255,0.3); }
-  .clin-warn {
-    margin: 14px 16px 4px; padding: 12px 14px; border-radius: 12px; background: #FFF4D6; border: 2px solid #E0B43C;
-    color: #6b4a00; font-size: 12.5px; font-weight: 800; letter-spacing: .5px; line-height: 1.45; text-align: center; text-transform: uppercase;
-  }
-  .clin-warn:empty { display: none; }
-  .info-btn {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; font-size: 20px; font-weight: 800; font-style: italic;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-family: Georgia, serif;
-  }
-  .info-btn:active { background: rgba(255,255,255,0.3); }
-  .signout-btn {
-    height: 34px; border-radius: 8px; padding: 0 12px;
-    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 800;
-    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-    display: none;
-  }
-  .signout-btn:active { background: rgba(255,255,255,0.25); }
-  .signout-btn.visible { display: flex; align-items: center; }
-
-  /* CONTENT */
-  .content {
-    position: fixed;
-    top: calc(var(--hdr-h) + env(safe-area-inset-top));
-    left: 0; right: 0;
-    bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
-    overflow-y: auto; -webkit-overflow-scrolling: touch;
-    background: #f0f4f0;
-  }
-  .tab-page { display: none; padding: 4px 0 12px; }
-  .tab-page.active { display: block; }
-
-  .section-label {
-    font-size: 11px; font-weight: 800;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: var(--text-muted);
-    padding: 16px 18px 8px;
-  }
-
-  /* CLINICAL / BIG BUTTONS */
-  .clin-list { display: flex; flex-direction: column; gap: 14px; padding: 0 16px 6px; }
-  .clin-btn {
-    display: flex; align-items: center; justify-content: center;
-    padding: 28px 20px; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.12); cursor: pointer;
-    transition: transform 0.1s; position: relative; overflow: hidden;
-    min-height: 88px; text-decoration: none;
-    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.30);
-  }
-  .clin-btn:active { transform: scale(0.97); }
-  .clin-btn.protocols { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
-  .clin-btn.soon {
-    background: linear-gradient(135deg, #6b756b 0%, #889088 100%);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18); cursor: default;
-  }
-  .clin-btn.soon:active { transform: none; }
-  .clin-title {
-    font-size: clamp(26px, 7vw, 36px); font-weight: 800; color: #fff;
-    text-align: center; letter-spacing: 1.5px; text-transform: uppercase;
-    line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  }
-  .soon-pill {
-    position: absolute; top: 10px; right: 12px;
-    font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
-    background: rgba(255,255,255,0.85); color: #555; border-radius: 5px; padding: 3px 7px;
-  }
-
-  /* OPS GRID */
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 4px; }
-  .grid.single { grid-template-columns: 1fr; }
-  .ops-btn {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 24px 14px; min-height: 96px; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.28);
-    text-decoration: none; cursor: pointer; transition: transform 0.1s; text-align: center;
-  }
-  .ops-btn:active { transform: scale(0.97); }
-  .ops-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px;
-               text-transform: uppercase; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
-  .ops-sub   { font-size: 10px; color: rgba(255,255,255,0.8); margin-top: 6px; letter-spacing: .5px; }
-  .ops-ico { width: 46px; height: 46px; border-radius: 11px; display: block; margin: 0 auto 8px; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
-  .ops-btn.red   { background: linear-gradient(135deg, #8f1414 0%, #c62828 100%); }
-  .ops-btn.dark  { background: linear-gradient(135deg, #1C3A1C 0%, #2E6B2E 100%); }
-  .ops-btn.admin-btn {
-    background: linear-gradient(135deg, #5c3a00 0%, #8a5500 100%);
-    border-color: rgba(255,255,255,0.15);
-  }
-
-  /* INCIDENT REPORT PAGE */
-  .ir-wrap {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: flex-start; padding: 32px 24px 24px; gap: 20px;
-  }
-  .ir-card {
-    width: 100%; max-width: 480px; border-radius: 16px; overflow: hidden;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.22); text-decoration: none;
-    background: linear-gradient(135deg, #2E6B2E 0%, #3A8A3A 100%);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 40px 24px; cursor: pointer; transition: transform 0.1s;
-    border: 1px solid rgba(255,255,255,0.12);
-  }
-  .ir-card:active { transform: scale(0.97); }
-  .ir-icon { font-size: 52px; margin-bottom: 12px; }
-  .ir-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: 2px;
-              text-transform: uppercase; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
-  .ir-sub { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 8px; letter-spacing: 1px; }
-
-  /* OPS SIGN-IN GATE */
-  .ops-signin {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: flex-start; padding: 48px 24px 24px; text-align: center;
-  }
-  .ops-signin-icon { font-size: 52px; margin-bottom: 12px; }
-  .ops-signin-title { font-size: 18px; font-weight: 800; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--g-deep); margin-bottom: 6px; }
-  .ops-signin-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; letter-spacing: 1px; }
-  .ms-signin-btn {
-    display: flex; align-items: center; gap: 12px;
-    background: #0078d4; color: #fff; border: none; border-radius: 12px;
-    padding: 16px 28px; font-size: 16px; font-weight: 800; cursor: pointer;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-    letter-spacing: 1px; box-shadow: 0 4px 16px rgba(0,120,212,0.35);
-    transition: transform 0.1s;
-  }
-  .ms-signin-btn:active { transform: scale(0.97); }
-  .ms-logo { width: 22px; height: 22px; flex-shrink: 0; }
-  .ops-signin-err { margin-top: 16px; color: var(--bad); font-size: 13px;
-    font-weight: 700; letter-spacing: 1px; min-height: 18px; }
-
-  /* GREETING STRIP */
-  .greeting-strip {
-    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
-    color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 800;
-    letter-spacing: 1px; text-transform: uppercase;
-    padding: 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    display: none;
-  }
-  .greeting-strip.visible { display: block; }
-
-  /* PUSH NOTICE ADMIN PANEL (inline in Ops tab) */
-  .admin-panel {
-    margin: 0 16px 12px; border-radius: 12px; overflow: hidden;
-    border: 1px solid rgba(139,90,0,0.3);
-    background: linear-gradient(135deg, #3d2600 0%, #5c3a00 100%);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    display: none;
-  }
-  .admin-panel.visible { display: block; }
-  .admin-panel-head {
-    padding: 12px 16px; font-size: 11px; font-weight: 800;
-    letter-spacing: 2px; text-transform: uppercase; color: rgba(255,200,100,0.9);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .admin-panel-body { padding: 14px 16px; }
-  .admin-textarea {
-    width: 100%; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.1); color: #fff; font-size: 14px;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-    padding: 12px; resize: none; outline: none; height: 80px;
-  }
-  .admin-textarea::placeholder { color: rgba(255,255,255,0.4); }
-  .admin-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
-  .admin-urgent-label {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; font-weight: 800; color: rgba(255,200,100,0.85);
-    letter-spacing: 1px; cursor: pointer;
-  }
-  .admin-urgent-label input { width: 16px; height: 16px; cursor: pointer; }
-  .admin-btns { display: flex; gap: 8px; margin-left: auto; }
-  .admin-post-btn {
-    padding: 10px 18px; background: #B87E0A; color: #fff; border: none;
-    border-radius: 8px; font-size: 13px; font-weight: 800; letter-spacing: 1px;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; cursor: pointer;
-  }
-  .admin-post-btn:active { background: #946408; }
-  .admin-clear-btn {
-    padding: 10px 14px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-    font-size: 13px; font-weight: 800; letter-spacing: 1px;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; cursor: pointer;
-  }
-  .admin-clear-btn:active { background: rgba(255,255,255,0.2); }
-  .admin-status { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 8px;
-    letter-spacing: .5px; min-height: 16px; }
-
-  /* BOTTOM TAB BAR */
-  .tabbar {
-    position: fixed;
-    bottom: 0;
-    left: 0; right: 0; height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: var(--white); border-top: 1px solid #d8e0d8;
-    display: flex; z-index: 28; box-shadow: 0 -1px 6px rgba(0,0,0,.06);
-  }
-  .tab {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 3px; cursor: pointer; border: none; background: none;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace; color: #9aa79a;
-  }
-  .tab.active { color: var(--g-mid); }
-    background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); color: #fff; text-decoration: none; box-shadow: 0 3px 10px rgba(193,62,62,.3); }
-  .report-lbl { font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
-  .tab-ico { font-size: 22px; line-height: 1; }
-  .tab-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
-
-  /* NOTICE BANNER */
-  .update-bar { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 74px); z-index: 60; display: none;
-    background: #1F5C8B; color: #fff; border: none; border-radius: 12px; padding: 14px 16px; font-family: inherit; font-size: 13px; font-weight: 800;
-    letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 6px 18px rgba(0,0,0,.3); cursor: pointer; text-align: center; }
-  .update-bar.show { display: block; }
-  .notice-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: calc(var(--banner-h) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: var(--g-deep); color: var(--white);
-    display: none; align-items: center; justify-content: center; gap: 8px;
-    padding-left: 14px; padding-right: 14px; z-index: 30;
-    box-shadow: 0 -2px 10px rgba(0,0,0,.25);
-    cursor: pointer;
-    transition: background 0.25s;
-  }
-  .notice-bar.has-notice { display: flex; }
-  /* a notice banner sits under the tabs; without one the tab bar runs to the bottom edge */
-  body.has-notice .tabbar { bottom: calc(var(--banner-h) + env(safe-area-inset-bottom)); height: var(--tab-h); padding-bottom: 0; }
-  body.has-notice .content { bottom: calc(var(--banner-h) + var(--tab-h) + env(safe-area-inset-bottom)); }
-  .info-version { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; margin-top: 10px; }
-  .notice-bar.urgent-bar { background: #C13E3E; }
-  .notice-bar.active-bar { background: #B87E0A; }
-  .notice-dot { width: 7px; height: 7px; border-radius: 50%;
-                background: rgba(255,255,255,0.7); flex-shrink: 0;
-                animation: pulse 2.5s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.65);} }
-  .notice-text {
-    font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; color: #fff; text-align: center; max-width: 88%;
-    letter-spacing: .5px;
-  }
-
-  /* NOTICE EXPANDED MODAL */
-  .notice-overlay {
-    position: fixed; inset: 0; background: rgba(14,30,14,0.85);
-    z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px;
-  }
-  .notice-overlay.show { display: flex; }
-  .notice-card {
-    background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
-    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4);
-  }
-  .notice-card-head {
-    background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
-    color: #fff; padding: 16px 20px; text-align: center;
-    font-size: 14px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .notice-card-head.warn   { background: linear-gradient(135deg, #946408 0%, var(--warn) 100%); }
-  .notice-card-head.urgent { background: linear-gradient(135deg, #9a2a2a 0%, #C13E3E 100%); }
-  .notice-card-body { padding: 24px 22px; text-align: center; font-size: 16px; line-height: 1.6; color: var(--text); }
-  .notice-card-time { font-size: 11px; color: var(--text-muted); margin-top: 14px; letter-spacing: 1px; }
-  .notice-card-close {
-    display: block; width: calc(100% - 44px); margin: 0 22px 22px; padding: 14px;
-    background: #eee; color: var(--text); border: none; border-radius: 10px;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-    font-size: 15px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
-  }
-  .notice-card-close:active { background: #ddd; }
-
-  /* INFO MODAL */
-  .info-overlay { position: fixed; inset: 0; background: rgba(14,30,14,0.85);
-    z-index: 100; display: none; align-items: center; justify-content: center; padding: 24px; }
-  .info-overlay.show { display: flex; }
-  .info-card { background: #fff; border-radius: 16px; max-width: 420px; width: 100%;
-    overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
-  .info-head { background: linear-gradient(135deg, var(--g-deep) 0%, var(--g-mid) 100%);
-    color: #fff; padding: 22px 20px; text-align: center; }
-  .info-logo { width: 72px; height: 72px; border-radius: 50%; background: #fff; object-fit: cover; margin-bottom: 10px; }
-  .info-head h2 { font-size: 16px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
-  .info-body { padding: 22px 22px 8px; text-align: center; }
-  .info-line { font-size: 15px; line-height: 1.6; color: var(--text); margin-bottom: 18px; }
-  .info-email {
-    display: inline-block; background: var(--g-pale); color: var(--g-deep);
-    border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;
-    font-size: 14px; font-weight: 800; text-decoration: none; letter-spacing: .5px; word-break: break-all;
-  }
-  .info-email:active { background: #dceadc; }
-
-  /* Active notice section inside info modal */
-  .info-notice-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
-  .info-notice-label { font-size: 10px; font-weight: 800; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-  .info-notice-msg { font-size: 14px; line-height: 1.5; color: var(--text); }
-  .info-notice-msg.dim { color: #aaa; font-style: italic; font-size: 13px; }
-  .info-notice-urgent { color: var(--bad); font-weight: 800; }
-
-  .info-tip { font-size: 12px; line-height: 1.5; color: var(--text-muted);
-    margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
-  .info-close {
-    display: block; width: calc(100% - 44px); margin: 18px 22px 22px; padding: 14px;
-    background: #eee; color: var(--text); border: none; border-radius: 10px;
-    font-family: 'SF Mono', ui-monospace, 'Menlo', monospace;
-    font-size: 15px; font-weight: 800; letter-spacing: 2px; cursor: pointer;
-  }
-  .info-close:active { background: #ddd; }
-
-  @media (min-width: 720px) {
-    .clin-btn { min-height: 110px; }
-    .clin-title { font-size: 42px; }
-    .ops-title { font-size: 26px; }
-    .hdr-text h1 { font-size: 22px; }
-  }
-
-/* NCEMS standard top bar (10/24/2026). Same look as CG Staff 1.21+ and Derek's Open Shifts:
-   white bar, system font, "NCEMS" in black then the app name in green, thin line, North Country EMS in gray.
-   Home button on the left always goes to the NCEMS Hub. The i button on the right holds the details. */
-.nch { position:fixed; top:0; left:0; right:0; height:calc(64px + env(safe-area-inset-top)); box-sizing:border-box;
-  padding:env(safe-area-inset-top) 16px 0; background:#fff; border-bottom:1px solid #d5e2d5; color:#1a1a1a;
-  display:flex; align-items:center; gap:10px; z-index:900; margin:0;
-  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing:normal; text-transform:none; }
-.nch * { box-sizing:border-box; }
-.nch-logo { width:40px; height:40px; border-radius:50%; background:#fff; object-fit:cover; flex-shrink:0; display:block; }
-.nch-text { flex:1; min-width:0; display:flex; align-items:center; gap:12px; text-align:left; }
-.nch-text.tap { cursor:pointer; }
-.nch-text h1 { font-family:inherit; font-size:18px; font-weight:800; letter-spacing:-.3px; line-height:1.2; text-transform:none; color:#1a1a1a; white-space:nowrap; flex-shrink:0; margin:0; padding:0; }
-.nch-text h1 .nch-g { color:#2d6a2d; }
-.nch-sub { min-width:0; padding-left:12px; border-left:1px solid #d5e2d5; display:flex; flex-direction:column; gap:1px; }
-.nch-sub .nch-org { font-size:12px; color:#5f675f; white-space:nowrap; font-weight:400; letter-spacing:normal; text-transform:none; }
-.nch-sub .nch-line { font-size:12px; color:#4a4a4a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; font-weight:400; letter-spacing:normal; text-transform:none; }
-.nch-sub .nch-line:empty { display:none; }
-.nch-btn { flex-shrink:0; width:38px; height:38px; border-radius:8px; background:#fff; border:1px solid #d5e2d5; padding:0; margin:0;
-  color:#2d6a2d; display:flex; align-items:center; justify-content:center; text-decoration:none; cursor:pointer;
-  transition:background .15s, border-color .15s; font-family:inherit; box-shadow:none; }
-.nch-btn:hover { background:#e8f4e8; border-color:#a3c9a3; }
-.nch-btn:active { background:#d9ecd9; }
-.nch-btn:focus-visible { outline:2px solid #2d6a2d; outline-offset:2px; }
-.nch-btn svg { width:19px; height:19px; }
-.nch-btn .nch-i { font-size:19px; font-weight:800; font-style:italic; font-family:Georgia, serif; line-height:1; color:#2d6a2d; }
-@media (max-width:760px) {
-  .nch { padding:env(safe-area-inset-top) 10px 0; gap:8px; }
-  .nch-logo { width:34px; height:34px; }
-  .nch-text { display:block; }
-  .nch-text h1 { font-size:16px; }
-  .nch-sub { padding-left:0; border-left:0; }
-  .nch-sub .nch-org { display:none; }
-  .nch-btn { width:36px; height:36px; }
+/* Hub 3.0: Wall (station TV), Desk (computers) and Pocket (phones). One dark look, true black,
+   panels one shade lighter, color only on data. Text sizes on the Wall are about 3x Desk so it reads at 10 feet. */
+:root {
+  --ground: #000; --surface: #111; --raised: #1c1c1c; --nest: #2a2a2a; --rule: #1f1f1f; --control: #4c4c4c;
+  --text: #fff; --muted: #b4b4b4; --faint: #949494; --dim: #6b6b6b;
+  --good: #7ed67f; --good-bg: #1a2a1b; --warn: #e5a93b; --warn-bg: #2b2414; --bad: #ff8b95; --bad-bg: #2c1a20;
+  --rain: #4cb3f0;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --clock: 'Barlow Condensed', 'Arial Narrow', sans-serif;
 }
-@media print { .nch { display:none !important; } }
-.nch-btn.nch-wide { width:auto; padding:0 12px; font-size:13.5px; font-weight:600; color:#4a4a4a; gap:6px; }
-.nch-btn[hidden] { display:none; }
-.nch .signout-btn{display:none}.nch .signout-btn.visible{display:flex}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ground); color: var(--text); font-family: var(--font); font-variant-numeric: tabular-nums; -webkit-text-size-adjust: 100%; }
+body { min-height: 100vh; }
+a { color: var(--text); }
+button { font: inherit; }
+.hide { display: none !important; }
+.sr { position: absolute; left: -9999px; }
 
+/* ---------- Sign in ---------- */
+#signin { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.si-card { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 18px; }
+.si-logo { width: 72px; height: 72px; border-radius: 50%; }
+.si-card h1 { margin: 0; font-size: 28px; font-weight: 600; }
+.si-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+.pill { height: 44px; padding: 0 20px; border-radius: 999px; border: 0; background: #fff; color: #000; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.pill.ghost { background: #000; color: #fff; border: 1px solid var(--control); }
+.pill:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.si-err { color: var(--bad); min-height: 20px; }
+
+/* ---------- Desk and Pocket shell ---------- */
+.top { position: sticky; top: 0; z-index: 5; background: #000; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 12px; padding: 10px 24px; padding-top: max(10px, env(safe-area-inset-top)); min-height: 60px; }
+.top img { width: 34px; height: 34px; border-radius: 50%; }
+.top .brand { font-weight: 600; font-size: 16px; }
+.top .who { color: var(--faint); font-size: 13px; }
+.top .grow { flex: 1; }
+.top select { height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 12px; font: inherit; font-size: 14px; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--control); background: #000; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.top .pill { height: 36px; padding: 0 16px; font-size: 14px; }
+.update-bar { display: none; width: 100%; border: 0; background: var(--warn); color: #000; font-weight: 600; padding: 10px; cursor: pointer; }
+.update-bar.show { display: block; }
+.notice { display: none; margin: 16px 24px 0; padding: 14px 18px; border-radius: 16px; background: var(--warn-bg); color: #f2dfb6; cursor: pointer; }
+.notice.show { display: flex; gap: 12px; align-items: baseline; }
+.notice b { color: var(--warn); white-space: nowrap; }
+.notice.urgent { background: var(--bad-bg); color: #ffd3d7; }
+.notice.urgent b { color: var(--bad); }
+
+main.desk { padding: 20px 24px 40px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; max-width: 1500px; margin: 0 auto; }
+.panel { background: var(--surface); border-radius: 20px; padding: 20px 22px; min-width: 0; }
+.panel h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.ph { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.ph .meta { color: var(--faint); font-size: 13px; }
+.span-12 { grid-column: span 12; } .span-7 { grid-column: span 7; } .span-5 { grid-column: span 5; }
+.title-row { grid-column: span 12; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.title-row h1 { margin: 0; font-size: 22px; font-weight: 600; }
+.title-row p { margin: 4px 0 0; color: var(--muted); }
+.clock-sm { font-family: var(--clock); font-size: 44px; line-height: .9; }
+
+/* App buttons (apps.json) */
+.app-sec { margin-bottom: 14px; }
+.app-sec:last-child { margin-bottom: 0; }
+.app-label { font-size: 13px; color: var(--faint); margin: 0 0 8px; }
+.app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.app-btn { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 14px; border-radius: 14px; background: var(--raised); text-decoration: none; color: #fff; }
+.app-btn:hover { background: var(--nest); }
+.app-btn img { width: 36px; height: 36px; border-radius: 8px; flex: none; }
+.app-btn .t { font-weight: 600; line-height: 1.2; }
+.app-btn .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.app-btn.red { box-shadow: inset 3px 0 0 #c13e3e; }
+
+/* Rows */
+.row { display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid var(--rule); padding: 6px 0; }
+.row .grow { flex: 1; min-width: 0; }
+.sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.tag.good { background: var(--good-bg); color: var(--good); }
+.tag.warn { background: var(--warn-bg); color: var(--warn); }
+.tag.bad { background: var(--bad-bg); color: var(--bad); }
+.tag.dim { background: #222; color: var(--muted); }
+.stn { font-size: 13px; color: var(--dim); margin: 12px 0 2px; }
+.stn:first-child { margin-top: 0; }
+.empty { color: var(--faint); line-height: 1.5; margin: 0 0 8px; }
+.soon { color: var(--faint); font-size: 13px; line-height: 1.5; }
+.gauge { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.gauge .num { font-size: 26px; }
+.gauge .lbl { color: var(--muted); font-size: 13px; }
+.wx-now { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.wx-now .t { font-size: 40px; font-weight: 600; }
+.wx-say { margin: 10px 0 0; font-weight: 600; line-height: 1.4; }
+.wx-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
+.wx-h { background: var(--raised); border-radius: 10px; padding: 8px 4px; text-align: center; font-size: 12px; color: var(--muted); }
+.wx-h b { display: block; color: #fff; font-size: 16px; margin: 2px 0; }
+.wx-h.frz { background: var(--nest); }
+
+/* Pocket */
+body.pocket .top { padding-left: 16px; padding-right: 16px; }
+body.pocket .top .who, body.pocket .top #wall-btn { display: none; }
+body.pocket main.desk { display: block; padding: 12px 16px 100px; }
+body.pocket .panel { margin-bottom: 12px; }
+body.pocket .title-row { margin-bottom: 12px; }
+body.pocket .notice { margin: 12px 16px 0; }
+body.pocket [data-tab] { display: none; }
+body.pocket [data-tab].on { display: block; }
+body.pocket .title-row[data-tab].on { display: flex; }
+.tabs { display: none; }
+body.pocket .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: #000; border-top: 1px solid #1a1a1a; padding-bottom: env(safe-area-inset-bottom); }
+.tabs button { background: none; border: 0; color: #bbb; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; cursor: pointer; }
+.tabs button.on { color: #fff; }
+.tabs svg { width: 22px; height: 22px; }
+body.pocket .app-grid { grid-template-columns: 1fr 1fr; }
+
+@media (max-width: 1100px) { main.desk > .span-7, main.desk > .span-5 { grid-column: span 12; } }
+
+/* Info sheet */
+.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: none; align-items: center; justify-content: center; padding: 16px; }
+.sheet-bg.show { display: flex; }
+.sheet { width: 100%; max-width: 460px; max-height: 90vh; overflow: auto; background: var(--surface); border-radius: 20px; padding: 22px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.sheet h2 { margin: 0 0 8px; font-size: 18px; }
+.sheet p { color: var(--muted); line-height: 1.5; }
+.sheet textarea { width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid var(--control); background: #000; color: #fff; padding: 10px 12px; font: inherit; }
+.sheet .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+/* ---------- Wall ---------- */
+#wall { position: fixed; inset: 0; background: #000; overflow: hidden; cursor: none; }
+#wall.cursor { cursor: default; }
+.stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; }
+.slide { position: absolute; inset: 0; padding: 56px 72px; display: flex; flex-direction: column; gap: 32px; opacity: 0; transition: opacity .6s; }
+.slide.on { opacity: 1; }
+.w-head { display: flex; align-items: flex-end; justify-content: space-between; }
+.w-head h1 { margin: 0; font-size: 64px; font-weight: 600; line-height: 1; }
+.w-head p { margin: 14px 0 0; font-size: 34px; color: var(--muted); }
+.w-right { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
+.w-clock { font-family: var(--clock); font-size: 120px; font-weight: 600; line-height: .85; }
+.w-prog { width: 300px; height: 8px; border-radius: 999px; background: var(--nest); overflow: hidden; }
+.w-prog i { display: block; height: 8px; background: #fff; border-radius: 999px; }
+.w-notice { display: none; border-radius: 20px; padding: 22px 36px; background: var(--warn-bg); align-items: baseline; gap: 28px; }
+.w-notice.show { display: flex; }
+.w-notice b { font-size: 34px; color: var(--warn); white-space: nowrap; }
+.w-notice span { font-size: 36px; color: #f2dfb6; line-height: 1.3; }
+.w-notice.urgent { background: var(--bad-bg); }
+.w-notice.urgent b { color: var(--bad); }
+.w-notice.urgent span { color: #ffd3d7; }
+.w-panel { background: var(--surface); border-radius: 20px; padding: 32px 40px; min-width: 0; }
+.w-label { font-size: 30px; color: var(--muted); }
+.w-faint { font-size: 30px; font-weight: 500; color: var(--dim); margin: 0 0 4px; }
+.w-row { display: flex; align-items: center; gap: 28px; min-height: 130px; border-bottom: 1px solid var(--rule); }
+.w-unit { font-size: 52px; font-weight: 600; width: 200px; flex: none; }
+.w-tag { display: inline-block; padding: 6px 18px; border-radius: 999px; font-size: 26px; font-weight: 600; }
+.w-detail { font-size: 28px; color: var(--muted); margin-top: 10px; }
+.w-task { display: flex; align-items: center; gap: 32px; min-height: 140px; border-bottom: 1px solid var(--rule); }
+.w-task .txt { flex: 1; font-size: 48px; font-weight: 600; line-height: 1.15; }
+.w-big { font-size: 112px; font-weight: 600; line-height: 1; }
+#wall-back { position: absolute; right: 24px; bottom: 24px; z-index: 3; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#wall.cursor #wall-back { opacity: 1; pointer-events: auto; }
+#wall-sign { position: absolute; left: 24px; bottom: 24px; z-index: 3; color: var(--bad); font-size: 18px; }
+@media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
 </style>
 </head>
 <body>
 
-<header class="nch">
-  <a class="nch-btn" href="#" onclick="goHome();return false" title="Hub home" aria-label="Hub home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a>
-  <img class="nch-logo" src="logo.png" alt="">
-  <div class="nch-text tap" onclick="goHome()"><h1><span class="nch-ncems">NCEMS </span><span class="nch-g">Hub</span></h1><div class="nch-sub"><span class="nch-org">North Country EMS</span><p class="nch-line" id="nch-line"></p></div></div>
-  <button class="nch-btn nch-wide signout-btn" id="signout-btn" onclick="msalSignOut()">Sign out</button>
-  <button class="nch-btn" onclick="openInfo()" title="Details" aria-label="Details"><span class="nch-i">i</span></button>
-</header>
+<!-- Sign in: the Hub shows crew names and assignments, so everyone signs in with their NCEMS Microsoft account -->
+<section id="signin" class="hide" aria-labelledby="si-h">
+  <div class="si-card">
+    <img class="si-logo" src="logo.png" alt="NCEMS">
+    <h1 id="si-h">NCEMS Hub</h1>
+    <p>Sign in with your NCEMS Microsoft account. The Hub shows who is on each unit, so it is for NCEMS staff only.</p>
+    <button class="pill" type="button" id="si-btn" onclick="signIn()">Sign in with Microsoft</button>
+    <div class="si-err" id="si-err" role="alert"></div>
+  </div>
+</section>
 
-<div class="content">
+<!-- Desk (computers) and Pocket (phones) share this markup; Pocket shows one tab at a time -->
+<div id="app" class="hide">
+  <button class="update-bar" id="update-bar" type="button" onclick="applyUpdate()">New version of the Hub. Tap to refresh</button>
+  <header class="top">
+    <img src="logo.png" alt="">
+    <div><div class="brand">NCEMS Hub</div><div class="who" id="who"></div></div>
+    <div class="grow"></div>
+    <label class="sr" for="stn-pick">Station</label>
+    <select id="stn-pick" onchange="setStation(this.value)">
+      <option value="51">Station 51</option>
+      <option value="52">Station 52</option>
+    </select>
+    <button class="pill ghost" type="button" id="wall-btn" onclick="startWall()" title="Turn this screen into the Wall. It stays the Wall on this computer until someone taps Back to Desk.">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18v12H3z"/><path d="M8 21h8M12 17v4"/></svg>Wall</button>
+    <button class="icon-btn" type="button" onclick="openInfo()" aria-label="Details and sign out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01" stroke-linecap="round"/></svg></button>
+  </header>
+  <div class="notice" id="notice" onclick="openInfo()"><b id="notice-kind">Notice</b><span id="notice-text"></span></div>
 
-  <!-- OPERATIONS TAB -->
-  <div class="tab-page active" id="tab-ops">
-
-    <!-- 2.0: no sign-in on the hub. Every button shows; each app signs you in itself -->
-    <div id="ops-content">
-      <div class="greeting-strip" id="greeting-strip"></div>
-      <div id="ops-sections">
-
-      <div class="section-label">Operations</div>
-      <div class="grid">
-        <a class="ops-btn" href="https://shifts.northcountryems.org/">
-          <img class="ops-ico" src="icons/shifts.png" alt=""><div class="ops-title">Open<br>Shifts</div><div class="ops-sub">Overtime and open shifts</div>
-        </a>
-        <a class="ops-btn red" href="https://reports.northcountryems.org/">
-          <img class="ops-ico" src="icons/ir.png" alt=""><div class="ops-title">During Duty<br>Incident Report</div><div class="ops-sub">Service related reporting</div>
-        </a>
+  <main class="desk" id="desk">
+    <div class="title-row on" data-tab="home">
+      <div>
+        <h1 id="d-title">Today</h1>
+        <p id="d-sub"></p>
       </div>
-      <div class="section-label">Logistics</div>
-      <div class="grid">
-        <a class="ops-btn" href="https://checks.northcountryems.org/">
-          <img class="ops-ico" src="icons/apparatus.png" alt=""><div class="ops-title">Apparatus<br>Checker</div><div class="ops-sub">Daily rig checks</div>
-        </a>
-        <a class="ops-btn dark" href="https://fng.northcountryems.org/">
-          <img class="ops-ico" src="icons/fng.png" alt=""><div class="ops-title">Facilities<br>&amp; Grounds</div><div class="ops-sub">Buildings and grounds</div>
-        </a>
-      </div>
-      <div class="section-label">BC / Chief</div>
-      <div class="grid single">
-        <a class="ops-btn dark" href="https://cgstaff.northcountryems.org/">
-          <img class="ops-ico" src="icons/cgstaff.png" alt=""><div class="ops-title">CG Staff</div>
-          <div class="ops-sub">CG Staff only</div>
-        </a>
-      </div>
-      </div>
+      <div class="clock-sm" id="d-clock"></div>
     </div>
 
-  </div>
+    <section class="panel span-7 on" data-tab="home" data-also="checks" aria-labelledby="h-checks">
+      <div class="ph"><h2 id="h-checks">Vehicle checks</h2><span class="meta" id="checks-meta"></span></div>
+      <div id="checks-body"><p class="empty">Loading…</p></div>
+    </section>
 
+    <section class="panel span-5 on" data-tab="home" data-also="weather" aria-labelledby="h-wx">
+      <div class="ph"><h2 id="h-wx">Weather</h2><span class="meta" id="wx-meta"></span></div>
+      <div id="wx-body"><p class="empty">Loading…</p></div>
+    </section>
+
+    <section class="panel span-7" data-tab="duties" aria-labelledby="h-duties">
+      <div class="ph"><h2 id="h-duties">Duties</h2><span class="meta" id="duties-meta"></span></div>
+      <div id="duties-body"></div>
+      <p class="soon">Checking items off and BC added items come in the next build.</p>
+    </section>
+
+    <section class="panel span-5" data-tab="duties" aria-labelledby="h-coming">
+      <div class="ph"><h2 id="h-coming">Coming next</h2></div>
+      <div class="row"><div class="grow">Crews on each unit today<div class="sub">From the schedule, once the crews feed opens to the Hub</div></div><span class="tag dim">Soon</span></div>
+      <div class="row"><div class="grow">Open shifts and the week<div class="sub">From Derek's Open Shifts feed</div></div><span class="tag dim">Soon</span></div>
+      <div class="row"><div class="grow">Check off duties, BC added items<div class="sub">Saved on the agency Cloudflare</div></div><span class="tag dim">Soon</span></div>
+    </section>
+
+    <section class="panel span-12" data-tab="apps" aria-labelledby="h-apps">
+      <div class="ph"><h2 id="h-apps">Apps</h2></div>
+      <div id="apps-body"></div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Hub">
+    <button type="button" class="on" data-go="home" onclick="goTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+    <button type="button" data-go="checks" onclick="goTab('checks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>Checks</button>
+    <button type="button" data-go="duties" onclick="goTab('duties')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></svg>Duties</button>
+    <button type="button" data-go="weather" onclick="goTab('weather')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.5 3.5 0 0 0 7 18z"/></svg>Weather</button>
+    <button type="button" data-go="apps" onclick="goTab('apps')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Apps</button>
+  </nav>
 </div>
 
-<button class="update-bar" id="update-bar" onclick="applyUpdate()">New version available. Tap to refresh</button>
-
-
-<!-- NOTICE BANNER (only shown when there's an active notice) -->
-<div class="notice-bar" id="notice-bar" onclick="openNotice()">
-  <div class="notice-dot" id="noticedot"></div>
-  <div class="notice-text" id="noticetext"></div>
-</div>
-
-<!-- NOTICE EXPANDED MODAL -->
-<div class="notice-overlay" id="notice-overlay">
-  <div class="notice-card">
-    <div class="notice-card-head" id="notice-card-head">&#128226; Notice</div>
-    <div class="notice-card-body" id="notice-card-body"></div>
-    <button class="notice-card-close" onclick="closeNotice()">Close</button>
-  </div>
-</div>
-
-<!-- INFO MODAL -->
-<div class="info-overlay" id="info-overlay">
-  <div class="info-card">
-    <div class="info-head">
-      <img class="info-logo" src="logo.png" alt="NCEMS">
-      <h2>NCEMS Hub</h2>
+<!-- Info sheet: who is signed in, version, notice posting for BCs, sign out -->
+<div class="sheet-bg" id="info" role="dialog" aria-modal="true" aria-labelledby="info-h">
+  <div class="sheet">
+    <h2 id="info-h">NCEMS Hub</h2>
+    <p id="info-who"></p>
+    <p id="info-notice"></p>
+    <div id="notice-admin" class="hide">
+      <label for="admin-msg" style="font-weight:600">Post a notice for every crew</label>
+      <textarea id="admin-msg" placeholder="Type a notice"></textarea>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="admin-urgent"> Urgent</label>
+      <div class="btns">
+        <button class="pill" type="button" onclick="postNotice()">Post</button>
+        <button class="pill ghost" type="button" onclick="clearNotice()">Clear notice</button>
+      </div>
+      <p id="admin-status" aria-live="polite"></p>
     </div>
-    <div class="info-body">
-      <p class="info-line">Questions or comments, contact Doug.</p>
-      <a class="info-email" href="mailto:d.boyce@northcountryems.org?subject=NCEMS%20HUB%20APP">d.boyce@northcountryems.org</a>
-      <div class="info-notice-section">
-        <div class="info-notice-label">Active Notice</div>
-        <div class="info-notice-msg dim" id="info-notice-msg">No active notices</div>
-      </div>
-      <p class="info-tip">Apps open in a Safari window. For full-screen, add them to your home screen individually.</p>
-      <div class="info-version" id="info-version"></div>
-
-      <!-- 2.0: the only sign-in on the hub. Chiefs sign in here to post a notice -->
-      <div id="notice-signin" style="margin-top:16px; text-align:center;">
-        <button class="ms-signin-btn" style="font-size:13px; padding:10px 16px;" onclick="msalSignIn()">BC / Chief: sign in to post a notice</button>
-        <div class="ops-signin-err" id="notice-signin-err"></div>
-      </div>
-
-      <!-- Push Notice admin — BC/Chief only, shown after sign-in -->
-      <div class="info-admin-section" id="info-admin-section" style="display:none;">
-        <div class="info-notice-section" style="border-top:1px solid #eee; margin-top:18px; padding-top:14px;">
-          <div class="info-notice-label">Push Notice &mdash; BC / Chief</div>
-          <textarea class="admin-textarea" id="admin-msg" placeholder="Type a notice for all crew..." style="margin-top:10px; background:#f5f5f5; color:#1a1a1a; border:1px solid #ccc;"></textarea>
-          <div class="admin-row" style="margin-top:10px;">
-            <label class="admin-urgent-label" style="color:#8a5500;">
-              <input type="checkbox" id="admin-urgent"> URGENT
-            </label>
-            <div class="admin-btns">
-              <button class="admin-clear-btn" onclick="clearNotice()" style="background:#eee; color:#333; border:1px solid #ccc;">Clear</button>
-              <button class="admin-post-btn" onclick="postNotice()">Post</button>
-            </div>
-          </div>
-          <div class="admin-status" id="admin-status" style="color:#555;"></div>
-        </div>
-      </div>
+    <div class="btns">
+      <button class="pill ghost" type="button" onclick="signOut()">Sign out</button>
+      <button class="pill ghost" type="button" onclick="closeInfo()">Close</button>
     </div>
-    <button class="info-close" onclick="closeInfo()">Close</button>
+    <p id="info-version" style="font-size:12px"></p>
   </div>
+</div>
+
+<!-- Wall: the station TV. Cycles on its own; moving the mouse or tapping shows Back to Desk -->
+<div id="wall" class="hide" aria-live="off">
+  <div class="stage" id="stage"></div>
+  <button class="pill" id="wall-back" type="button" onclick="stopWall()">Back to Desk</button>
+  <div id="wall-sign"></div>
 </div>
 
 <script>
-/* ===================================================
-   MSAL — Microsoft agency sign-in for Operations tab
-   Hub app registration: hub.northcountryems.org
-   Tenant: North Country EMS
-   TODO: paste your Application (client) ID below
-   =================================================== */
-/* ===== VERSION + SELF UPDATE =====
-   Bump HUB_VERSION every time index.html is uploaded. Open copies of the hub
-   check the live file and offer a one tap refresh, so nobody re-adds the icon. */
-var HUB_VERSION = '2.4';
+/* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
+var HUB_VERSION = '3.0';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
-    if (m && m[1] !== HUB_VERSION) document.getElementById('update-bar').classList.add('show');
+    if (m && m[1] !== HUB_VERSION) {
+      if (MODE === 'wall') applyUpdate(); else document.getElementById('update-bar').classList.add('show');
+    }
   }).catch(function(){});
 }
 function applyUpdate() { location.replace(location.pathname + '?r=' + Date.now()); }
 
-/* ===== APP LIST (apps.json) =====
-   Buttons come from apps.json so adding, removing or renaming an app is a one file edit.
-   If apps.json can't load (no signal), the last good copy on the phone is used,
-   and if there is none, the buttons built into this page stay. */
-var APPS = null;
-function escH(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-function lines(s) { return escH(s).replace(/\n/g, '<br>'); }
-function canSee(b) {
-  var a = b.audience || 'all';
-  if (a === 'all') return true;
-  if (a === 'signedin' || a === 'cgstaff') return true;   /* 2.0: no sign-in on the hub; CG Staff checks who you are itself */
-  if (a === 'admin') return typeof isAdminAccount === 'function' && isAdminAccount(msalAccount);
-  return false;
-}
-function clinBtn(b) {
-  if (b.soon || !b.url) return '<div class="clin-btn soon"><span class="soon-pill">Soon</span><div class="clin-title">' + lines(b.title) + '</div></div>';
-  return '<a class="clin-btn' + (b.style === 'dark' ? ' protocols' : '') + '" href="' + escH(b.url) + '"><div class="clin-title">' + lines(b.title) + '</div></a>';
-}
-function opsBtn(b) {
-  var ico = b.icon ? '<img class="ops-ico" src="' + escH(b.icon) + '" alt="">' : '';
-  return '<a class="ops-btn' + (b.style === 'dark' ? ' dark' : b.style === 'red' ? ' red' : '') + '" href="' + escH(b.url) + '">' + ico + '<div class="ops-title">' + lines(b.title) + '</div>' + (b.sub ? '<div class="ops-sub">' + escH(b.sub) + '</div>' : '') + '</a>';
-}
-function goHome() {
-  var c = document.querySelector('.content'); if (c) c.scrollTop = 0;
-}
-function renderApps() {
-  if (!APPS) return;
-  try {
-    /* 2.0: clinical moved to clinical.northcountryems.org; Incident Report is a regular button */
-    if (APPS.operations) document.getElementById('ops-sections').innerHTML = APPS.operations.map(function(sec){
-      var bs = (sec.buttons || []).filter(canSee); if (!bs.length) return '';
-      return '<div class="section-label">' + escH(sec.label) + '</div><div class="grid' + (bs.length === 1 ? ' single' : '') + '">' + bs.map(opsBtn).join('') + '</div>';
-    }).join('');
-  } catch (e) { console.warn('apps.json render failed', e); }
-}
-function loadApps() {
-  try { var c = localStorage.getItem('ncems_hub_apps_v1'); if (c && !APPS) { APPS = JSON.parse(c); renderApps(); } } catch (e) {}
-  fetch('apps.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
-    if (!j || (!j.clinical && !j.operations)) return;
-    APPS = j; try { localStorage.setItem('ncems_hub_apps_v1', JSON.stringify(j)); } catch (e) {}
-    renderApps();
-  }).catch(function(){});
-}
-loadApps(); checkForUpdate();
-document.addEventListener('visibilitychange', function(){ if (!document.hidden) { loadApps(); checkForUpdate(); } });
+/* ===== SMALL HELPERS ===== */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function $(id) { return document.getElementById(id); }
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+function hhmm(d) { return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+/* The check and duty day runs 07:30 to 07:30, like the Apparatus Checker */
+function dutyDate() { var d = new Date(); if (d.getHours() * 60 + d.getMinutes() < 450) d.setDate(d.getDate() - 1); return d; }
 
-var MSAL_CONFIG = {
-  clientId: '54eb93f5-05e0-42ca-a49d-f4df05c3331c',
-  tenantId: '153dc089-095e-4a20-8d10-39321a0aca09'
+/* ===== WHICH VIEW =====
+   Pocket on phones and iPads, Desk on computers, Wall when someone tapped Wall on this computer (or ?wall=1). */
+var IS_TOUCH_DEVICE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+var MODE = 'desk';
+(function(){
+  var q = new URLSearchParams(location.search);
+  if (q.get('wall') === '1') store('ncems_hub_mode', 'wall');
+  if (q.get('wall') === '0') store('ncems_hub_mode', null);
+  if (store('ncems_hub_mode') === 'wall') MODE = 'wall';
+  else if (IS_TOUCH_DEVICE || window.innerWidth < 700) MODE = 'pocket';
+})();
+var STATION = store('ncems_hub_station') || '51';
+
+/* ===== STATIONS (weather points are each station's address, approximate) ===== */
+var STATIONS = {
+  '51': { name: 'Station 51', place: 'Yacolt', lat: 45.8653, lon: -122.4069 },
+  '52': { name: 'Station 52', place: 'Fargher Lake', lat: 45.8786, lon: -122.5409 }
 };
+function setStation(v) { STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; loadWeather(); renderAll(); }
 
-// Accounts allowed to see the Push Notice admin panel
-var ADMIN_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'b.shirley@northcountryems.org'];
+/* ===== WEEKLY STATION DUTIES =====
+   From the NCEMS / FD13 Weekly Station Duties checklist (6.2025). Rig checks on that list show on
+   Vehicle checks instead (Doug, 11/14). The daily cleaning list from page 1 is not shown. */
+var WEEK = {
+  Sunday:    ['Hose, squeegee and pick up Medic Bays', 'Check and clean First Aid / Walk-in Room', 'EMS laundry: linens and straps/tarps only'],
+  Monday:    ['Sweep both sets of outside stairs', 'Wipe down weight room equipment'],
+  Tuesday:   ['Sweep Station 51 sidewalk', 'Disinfect women’s and men’s dorm showers'],
+  Wednesday: ['Ground litter clean-up', 'Inspect and flush all eye wash stations, treatment room and decon rooms'],
+  Thursday:  ['Hose out Yac Dome', 'Clean Medic Bay windows'],
+  Friday:    ['Sweep and mop Fire Stairwell', 'Station 1.5 (Admin): trash, recycling, vacuum, bathrooms'],
+  Saturday:  ['Clean Station 51 office windows, inside and out', 'Check station refrigerators, toss expired food', 'Start and check the station generator']
+};
+var RIG_DAYS = { Monday: ['Rescue 2'], Tuesday: ['Rescue 7', 'Rescue 8'], Wednesday: ['Rescue 3', 'Rescue 4', 'Rescue 5'], Thursday: ['Rescue 1'], Friday: ['M14', 'M12'] };
 
-// Accounts that see the CG Staff button (same list as CONFIG.staff in the cg-staff app)
-var CG_STAFF_EMAILS = ['d.boyce@northcountryems.org', 'd.langdon@northcountryems.org', 'd.madler@northcountryems.org', 'b.shirley@northcountryems.org', 'c.andrus@northcountryems.org', 'n.stafford@northcountryems.org', 'k.reid@northcountryems.org'];
-function isCgStaff(account) {
-  if (!account) return false;
-  var email = (account.username || '').toLowerCase();
-  return CG_STAFF_EMAILS.indexOf(email) >= 0;
-}
-
-var msalApp = null;
-var msalAccount = null;
-
-function getFirstName(account) {
-  if (!account || !account.name) return '';
-  return account.name.trim().split(/\s+/)[0];
-}
-
-function isAdminAccount(account) {
-  if (!account) return false;
-  var email = (account.username || '').toLowerCase();
-  return ADMIN_EMAILS.some(function(a){ return a.toLowerCase() === email; });
-}
+/* ===== MICROSOFT SIGN IN (NCEMS Hub app registration) ===== */
+var MSAL_CONFIG = { clientId: '54eb93f5-05e0-42ca-a49d-f4df05c3331c', tenantId: '153dc089-095e-4a20-8d10-39321a0aca09' };
+var DOMAIN = '@northcountryems.org';
+/* Who sees notice posting (user names before the @). The Worker has its own list and is the real gate. */
+var NOTICE_ADMINS = ['d.boyce', 'd.langdon', 'd.madler', 'b.shirley'];
+var msalApp = null, msalAccount = null;
+function loginHint() { return store('ncems_login_hint') || ''; }
+function email() { return msalAccount ? String(msalAccount.username || '').toLowerCase() : ''; }
+function isAdmin() { var e = email(); return e.slice(-DOMAIN.length) === DOMAIN && NOTICE_ADMINS.indexOf(e.slice(0, -DOMAIN.length)) >= 0; }
 
 async function initMsal() {
-  if (typeof msal === 'undefined') throw new Error('Could not load Microsoft sign-in. Check internet and try again.');
+  if (typeof msal === 'undefined') throw new Error('Could not load Microsoft sign in. Check the internet connection and try again.');
   msalApp = new msal.PublicClientApplication({
-    auth: {
-      clientId: MSAL_CONFIG.clientId,
-      authority: 'https://login.microsoftonline.com/' + MSAL_CONFIG.tenantId,
-      redirectUri: location.origin + location.pathname.replace(/index\.html$/, ''),
-      navigateToLoginRequestUrl: false
-    },
+    auth: { clientId: MSAL_CONFIG.clientId, authority: 'https://login.microsoftonline.com/' + MSAL_CONFIG.tenantId,
+            redirectUri: location.origin + location.pathname.replace(/index\.html$/, ''), navigateToLoginRequestUrl: false },
     cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: true }
   });
   await msalApp.initialize();
   var res = await msalApp.handleRedirectPromise();
-  if (res && res.account) {
-    msalAccount = res.account;
-  } else {
-    msalAccount = msalApp.getActiveAccount() || msalApp.getAllAccounts()[0] || null;
-  }
-  // 1.15: nobody cached here, but we know who you are from an earlier sign-in: try to sign in quietly
+  msalAccount = (res && res.account) || msalApp.getActiveAccount() || msalApp.getAllAccounts()[0] || null;
   if (!msalAccount && loginHint()) {
     try { var r2 = await msalApp.ssoSilent({ scopes: ['User.Read'], loginHint: loginHint() }); if (r2 && r2.account) msalAccount = r2.account; } catch (e) { /* needs a tap */ }
   }
   if (msalAccount) {
+    if (email().slice(-DOMAIN.length) !== DOMAIN) { msalAccount = null; throw new Error('Use your NCEMS account.'); }
     msalApp.setActiveAccount(msalAccount);
-    saveLoginHint(msalAccount.username);
-    showOpsContent();
-    // 1.15: you signed in from Operations, so land back in Operations
-    var back = ''; try { back = sessionStorage.getItem('hub_after_login') || ''; sessionStorage.removeItem('hub_after_login'); } catch (e) {}
-    if (back === 'ops' || (res && res.account)) switchTab('ops');
+    store('ncems_login_hint', email());
   }
 }
-/* 1.15: remember who signed in so the next sign in (here and in CG Staff, Facilities and Grounds, Overtime) skips typing */
-function loginHint() { try { return localStorage.getItem('ncems_login_hint') || ''; } catch (e) { return ''; } }
-function saveLoginHint(u) { try { if (u) localStorage.setItem('ncems_login_hint', String(u).toLowerCase()); } catch (e) {} }
+function signIn() {
+  $('si-err').textContent = '';
+  if (!msalApp) { boot(); return; }
+  var hint = loginHint();
+  msalApp.loginRedirect(hint ? { scopes: ['User.Read'], loginHint: hint } : { scopes: ['User.Read'], prompt: 'select_account' });
+}
+function signOut() {
+  store('ncems_login_hint', null); store('ncems_hub_mode', null);
+  var acct = msalAccount; msalAccount = null;
+  if (msalApp && acct) msalApp.logoutRedirect({ account: acct, postLogoutRedirectUri: location.origin + location.pathname });
+  else location.reload();
+}
+/* An ID token for our Workers. On the Wall nobody is there to tap, so never redirect from there. */
+function idToken() {
+  if (!msalApp || !msalAccount) return Promise.reject(new Error('Not signed in'));
+  return msalApp.acquireTokenSilent({ scopes: ['User.Read'], account: msalAccount }).then(function(r){ $('wall-sign').textContent = ''; return r.idToken; })
+    .catch(function(e){
+      if (MODE !== 'wall' && e && /interaction_required|login_required|consent_required/.test(e.errorCode || '')) {
+        msalApp.acquireTokenRedirect({ scopes: ['User.Read'], account: msalAccount }); return new Promise(function(){});
+      }
+      if (MODE === 'wall') $('wall-sign').textContent = 'Sign in needed: tap Back to Desk, then sign in again.';
+      throw e;
+    });
+}
+/* Pass the signed in account to the other NCEMS apps as a login hint so they skip typing (same as Hub 2.x) */
 document.addEventListener('click', function (e) {
   var a = e.target.closest && e.target.closest('a[href]'); if (!a || !msalAccount) return;
   var u; try { u = new URL(a.href, location.href); } catch (er) { return; }
   if (u.host === location.host || !/(^|\.)northcountryems\.org$/i.test(u.hostname)) return;
-  if (!u.searchParams.has('login_hint')) { u.searchParams.set('login_hint', (msalAccount.username || '').toLowerCase()); a.href = u.toString(); }
+  if (!u.searchParams.has('login_hint')) { u.searchParams.set('login_hint', email()); a.href = u.toString(); }
 }, true);
 
-function msalSignIn() {
-  var errEl = document.getElementById('notice-signin-err');
-  errEl.textContent = '';
-  if (!msalApp) {
-    initMsal().catch(function(e){
-      errEl.textContent = e.message || String(e);
-    });
-    return;
-  }
-  try { sessionStorage.setItem('hub_after_login', 'ops'); } catch (e) {}
-  var hint = loginHint();
-  msalApp.loginRedirect(hint ? { scopes: ['User.Read'], loginHint: hint } : { scopes: ['User.Read'], prompt: 'select_account' });
+/* ===== APPS (apps.json, same file as Hub 2.x) ===== */
+var APPS = null;
+function loadApps() {
+  try { var c = store('ncems_hub_apps_v1'); if (c && !APPS) { APPS = JSON.parse(c); renderApps(); } } catch (e) {}
+  fetch('apps.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(j){
+    if (!j || !j.operations) return;
+    APPS = j; store('ncems_hub_apps_v1', JSON.stringify(j)); renderApps();
+  }).catch(function(){});
+}
+function renderApps() {
+  if (!APPS) { $('apps-body').innerHTML = '<p class="empty">Loading…</p>'; return; }
+  $('apps-body').innerHTML = APPS.operations.map(function(sec){
+    var bs = sec.buttons || []; if (!bs.length) return '';
+    return '<div class="app-sec"><p class="app-label">' + esc(sec.label) + '</p><div class="app-grid">' + bs.map(function(b){
+      return '<a class="app-btn' + (b.style === 'red' ? ' red' : '') + '" href="' + esc(b.url) + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
+        '<div><div class="t">' + esc(String(b.title).replace(/\n/g, ' ')) + '</div>' + (b.sub ? '<div class="s">' + esc(b.sub) + '</div>' : '') + '</div></a>';
+    }).join('') + '</div></div>';
+  }).join('');
 }
 
-function msalSignOut() {
-  msalAccount = null;
-  try { localStorage.removeItem('ncems_login_hint'); } catch (e) {}
-  hideOpsContent();
-  if (msalApp) {
-    msalApp.logoutRedirect({ postLogoutRedirectUri: location.href });
-  }
-}
-
-function showOpsContent() {
-
-  // Greeting
-  var name = getFirstName(msalAccount);
-  var strip = document.getElementById('greeting-strip');
-  strip.textContent = name ? 'Welcome, ' + name : 'Welcome'; strip.classList.add('visible');
-  var nb = document.getElementById('notice-signin'); if (nb) nb.style.display = 'none';
-
-  // Sign-out button in header
-  document.getElementById('signout-btn').classList.add('visible');
-
-  // Update ops tab icon to unlocked
-
-  // Push Notice admin section inside info modal — only for authorized accounts
-  if (isAdminAccount(msalAccount)) {
-    document.getElementById('info-admin-section').style.display = 'block';
-  }
-
-  // CG Staff button — command staff only (static fallback; apps.json uses audience "cgstaff")
-  renderApps();
-}
-
-function hideOpsContent() {
-  document.getElementById('greeting-strip').classList.remove('visible');
-  var nb = document.getElementById('notice-signin'); if (nb) nb.style.display = 'block';
-  document.getElementById('signout-btn').classList.remove('visible');
-  document.getElementById('info-admin-section').style.display = 'none';
-  renderApps();
-}
-
-/* Run MSAL init on load — handles the redirect return silently */
-if (MSAL_CONFIG.clientId && MSAL_CONFIG.clientId !== 'YOUR-HUB-CLIENT-ID') {
-  initMsal().catch(function(e){
-    document.getElementById('notice-signin-err').textContent = e.message || String(e);
-  });
-}
-
-/* ===== TAB SWITCHING ===== */
-/* 2.0: Operations is the only page now. Kept so older calls still work. */
-function switchTab(which) {
-  document.querySelector('.content').scrollTop = 0;
-  if (!msalAccount) {
-    // trigger MSAL init so redirect is handled on first tap
-    if (MSAL_CONFIG.clientId && MSAL_CONFIG.clientId !== 'YOUR-HUB-CLIENT-ID' && !msalApp) {
-      initMsal().catch(function(e){
-        document.getElementById('notice-signin-err').textContent = e.message || String(e);
-      });
-    }
-  }
-}
-
-/* ===== INFO MODAL ===== */
-function openInfo() { document.getElementById('info-overlay').classList.add('show'); }
-function closeInfo() { document.getElementById('info-overlay').classList.remove('show'); }
-document.getElementById('info-overlay').addEventListener('click', function(e){ if (e.target === this) closeInfo(); });
-
-/* ===== NOTICE MODAL ===== */
-function openNotice() { document.getElementById('notice-overlay').classList.add('show'); }
-function closeNotice() { document.getElementById('notice-overlay').classList.remove('show'); }
-document.getElementById('notice-overlay').addEventListener('click', function(e){ if (e.target === this) closeNotice(); });
-
-/* ===== PUSH NOTICE ADMIN =====
-   v1.14: the notice lives on Doug's Cloudflare Worker. Anyone can read it,
-   only hub admins signed in with Microsoft can post or clear it. */
+/* ===== NOTICE (ncems-api Worker, same as Hub 2.x) ===== */
 var NOTICE_URL = 'https://ncems-api.d-boyce.workers.dev/notice';
-
-function noticeToken() {
-  if (!msalApp || !msalAccount) return Promise.reject(new Error('Sign in on the Operations tab first'));
-  return msalApp.acquireTokenSilent({ scopes: ['User.Read'], account: msalAccount }).then(function(r){ return r.idToken; })
-    .catch(function(e){
-      if (e && /interaction_required|login_required|consent_required/.test(e.errorCode || '')) { msalApp.acquireTokenRedirect({ scopes: ['User.Read'], account: msalAccount }); return new Promise(function(){}); }
-      throw e;
-    });
-}
-function sendNotice(body, okMsg) {
-  return noticeToken().then(function(t){
-    return fetch(NOTICE_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t }, body: JSON.stringify(body) });
-  }).then(function(r){
-    if (r.status === 401) throw new Error('Your account is not allowed to post notices');
-    if (!r.ok) throw new Error('Server said ' + r.status);
-    setAdminStatus(okMsg); loadNotice();
-    return true;
-  });
-}
-function postNotice() {
-  var msg = document.getElementById('admin-msg').value.trim();
-  if (!msg) { setAdminStatus('Enter a message first'); return; }
-  var urgent = document.getElementById('admin-urgent').checked;
-  setAdminStatus('Posting...');
-  sendNotice({ message: msg, urgent: urgent }, 'Posted.').then(function(){
-    document.getElementById('admin-msg').value = '';
-    document.getElementById('admin-urgent').checked = false;
-  }).catch(function(e){ setAdminStatus('Error: ' + e.message); });
-}
-
-function clearNotice() {
-  setAdminStatus('Clearing...');
-  sendNotice({ message: '' }, 'Cleared.').catch(function(e){ setAdminStatus('Error: ' + e.message); });
-}
-
-function hubEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-function showNotice(d) {
-  var bar = document.getElementById("notice-bar"), txt = document.getElementById("noticetext");
-  var cardHead = document.getElementById("notice-card-head"), cardBody = document.getElementById("notice-card-body"), infoMsg = document.getElementById("info-notice-msg");
-  if (d && d.message && String(d.message).trim()) {
-    bar.classList.remove("urgent-bar", "active-bar");
-    bar.classList.add("has-notice", d.urgent ? "urgent-bar" : "active-bar");
-    document.body.classList.add("has-notice");
-    txt.textContent = d.message;
-    cardHead.className = d.urgent ? "notice-card-head urgent" : "notice-card-head warn";
-    cardHead.innerHTML = d.urgent ? "&#9888; URGENT NOTICE" : "&#128226; Notice";
-    var timeStr = "";
-    if (d.postedAt) { var dt = new Date(d.postedAt); if (!isNaN(dt)) timeStr = '<div class="notice-card-time">Posted ' + hubEsc(dt.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })) + '</div>'; }
-    cardBody.className = "notice-card-body" + (d.urgent ? " notice-card-body--urgent" : "");
-    cardBody.innerHTML = hubEsc(d.message) + timeStr;
-    infoMsg.className = d.urgent ? "info-notice-msg info-notice-urgent" : "info-notice-msg";
-    infoMsg.textContent = d.message;
-  } else {
-    bar.classList.remove("has-notice", "urgent-bar", "active-bar");
-    document.body.classList.remove("has-notice");
-    infoMsg.className = "info-notice-msg dim";
-    infoMsg.textContent = "No active notices";
-  }
-}
+var NOTICE = null;
 function loadNotice() {
   fetch(NOTICE_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(d){ if (d) { showNotice(d); try { localStorage.setItem('ncems_hub_notice_v1', JSON.stringify(d)); } catch (e) {} } })
-    .catch(function(){});
+    .then(function(d){ if (d) { NOTICE = d; store('ncems_hub_notice_v1', JSON.stringify(d)); renderNotice(); } }).catch(function(){});
 }
-try { var cachedNotice = JSON.parse(localStorage.getItem('ncems_hub_notice_v1') || 'null'); if (cachedNotice) showNotice(cachedNotice); } catch (e) {}
-loadNotice();
-setInterval(function(){ if (!document.hidden) loadNotice(); }, 60000);
-document.addEventListener('visibilitychange', function(){ if (!document.hidden) loadNotice(); });
-document.getElementById('info-version').textContent = 'Hub version ' + HUB_VERSION;
+function hasNotice() { return !!(NOTICE && NOTICE.message && String(NOTICE.message).trim()); }
+function renderNotice() {
+  var n = $('notice');
+  if (hasNotice()) {
+    n.className = 'notice show' + (NOTICE.urgent ? ' urgent' : '');
+    $('notice-kind').textContent = NOTICE.urgent ? 'Urgent' : 'Notice';
+    $('notice-text').textContent = NOTICE.message;
+    $('info-notice').textContent = 'Notice: ' + NOTICE.message;
+  } else { n.className = 'notice'; $('info-notice').textContent = 'No notice posted.'; }
+  if (MODE === 'wall' && msalAccount) renderWall();
+}
+function sendNotice(body, okMsg) {
+  $('admin-status').textContent = 'Saving…';
+  return idToken().then(function(t){
+    return fetch(NOTICE_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + t }, body: JSON.stringify(body) });
+  }).then(function(r){
+    if (r.status === 401) throw new Error('your account is not allowed to post notices');
+    if (!r.ok) throw new Error('the server said ' + r.status);
+    $('admin-status').textContent = okMsg; loadNotice(); return true;
+  }).catch(function(e){ $('admin-status').textContent = 'Could not save: ' + (e.message || e); return false; });
+}
+function postNotice() {
+  var msg = $('admin-msg').value.trim(); if (!msg) { $('admin-status').textContent = 'Type the notice first.'; return; }
+  sendNotice({ message: msg, urgent: $('admin-urgent').checked }, 'Posted.').then(function(ok){ if (ok) { $('admin-msg').value = ''; $('admin-urgent').checked = false; } });
+}
+function clearNotice() { sendNotice({ message: '' }, 'Cleared.'); }
 
-function setAdminStatus(msg) {
-  var el = document.getElementById('admin-status');
-  if (el) el.textContent = msg;
+/* ===== VEHICLE CHECKS (ncems-checks Worker, /fleet/today) =====
+   Needs the Worker to accept the Hub: CLIENT_IDS must include 54eb93f5 and ORIGINS https://hub.northcountryems.org */
+var FLEET_URL = 'https://ncems-checks.d-boyce.workers.dev';
+var FLEET = { data: null, err: '' };
+function loadFleet() {
+  return idToken().then(function(t){
+    return fetch(FLEET_URL + '/fleet/today', { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' });
+  }).then(function(r){ if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
+    .then(function(d){ FLEET.data = d; FLEET.err = ''; store('ncems_hub_fleet_v1', JSON.stringify({ at: Date.now(), d: d })); renderAll(); })
+    .catch(function(e){
+      FLEET.err = String(e && e.message || e);
+      if (!FLEET.data) { try { var c = JSON.parse(store('ncems_hub_fleet_v1') || 'null'); if (c && Date.now() - c.at < 3 * 3600e3) FLEET.data = c.d; } catch (er) {} }
+      renderAll();
+    });
+}
+function rigState(r) {
+  if (r.oos) return { key: 'oos', tag: 'Out of service', cls: 'bad', detail: r.oos.reason || '' };
+  var c = r.check;
+  if (c && c.pct >= 75) return { key: 'ok', tag: 'Checked', cls: 'good', detail: (c.at ? hhmm(new Date(c.at)) + ' · ' : '') + (c.byName || '') };
+  if (c && c.pct > 0) return { key: 'part', tag: 'In progress ' + c.pct + '%', cls: 'warn', detail: c.byName || '' };
+  return { key: 'due', tag: 'Not yet', cls: 'warn', detail: 'Due by 11:00' };
+}
+function fleetSummary() {
+  var rigs = (FLEET.data && FLEET.data.rigs) || [];
+  var rows = rigs.map(function(r){
+    var s = rigState(r), crew = r.claim && r.claim.crew;
+    var tagLine = crew ? crew + ' today' : (r.oos ? '' : 'Spare');
+    return { rig: r.rig, station: String(r.station || ''), state: s, line: [tagLine, s.detail].filter(Boolean).join(' · ') };
+  });
+  var inSvc = rows.filter(function(x){ return x.state.key !== 'oos'; });
+  var done = inSvc.filter(function(x){ return x.state.key === 'ok'; }).length;
+  return { rows: rows, total: inSvc.length, done: done, pct: inSvc.length ? Math.round(done / inSvc.length * 100) : 0 };
+}
+function gaugeColor(pct) { return pct === 100 ? 'var(--good)' : pct >= 75 ? 'var(--warn)' : 'var(--bad)'; }
+function ring(size, stroke, pct, color) {
+  var r = (size - stroke) / 2, c = 2 * Math.PI * r, h = size / 2;
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">' +
+    '<circle cx="' + h + '" cy="' + h + '" r="' + r + '" fill="none" stroke="#2a2a2a" stroke-width="' + stroke + '"/>' +
+    '<circle cx="' + h + '" cy="' + h + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + (c * pct / 100).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 ' + h + ' ' + h + ')"/></svg>';
+}
+function rowHtml(x) { return '<div class="row"><div class="grow"><b>' + esc(x.rig) + '</b><div class="sub">' + esc(x.line) + '</div></div><span class="tag ' + x.state.cls + '">' + esc(x.state.tag) + '</span></div>'; }
+function renderChecksDesk() {
+  var body = $('checks-body'), day = DAYS[dutyDate().getDay()], extra = RIG_DAYS[day] || [];
+  var extraHtml = extra.length ? '<p class="stn">Also due today, ' + day + '</p>' + extra.map(function(u){ return '<div class="row"><div class="grow"><b>' + esc(u) + '</b><div class="sub">Weekly check</div></div><span class="tag dim">Due today</span></div>'; }).join('') : '';
+  if (!FLEET.data) {
+    $('checks-meta').textContent = '';
+    body.innerHTML = '<p class="empty">Live vehicle status isn’t connected to the Hub yet. Open the <a href="https://checks.northcountryems.org/">Apparatus Checker</a> to see today’s checks.</p>' + extraHtml;
+    return;
+  }
+  var s = fleetSummary(), col = gaugeColor(s.pct);
+  $('checks-meta').textContent = FLEET.err ? 'Reconnecting' : '';
+  var html = '<div class="gauge">' + ring(64, 7, s.pct, col) + '<div><div class="num">' + s.pct + '% <span class="lbl">' + s.done + ' of ' + s.total + ' in service checked</span></div><div class="lbl" style="color:' + col + '">' + (s.pct === 100 ? 'All done' : 'Due by 11:00') + '</div></div></div>';
+  ['51', '52'].forEach(function(st){
+    var rows = s.rows.filter(function(x){ return x.station === st; }); if (!rows.length) return;
+    html += '<p class="stn">Station ' + st + '</p>' + rows.map(rowHtml).join('');
+  });
+  var other = s.rows.filter(function(x){ return x.station !== '51' && x.station !== '52'; });
+  if (other.length) html += '<p class="stn">Other</p>' + other.map(rowHtml).join('');
+  body.innerHTML = html + extraHtml;
 }
 
-/* ===== Usage tracker (2.1: on the agency's Cloudflare, ncems-checks Worker; Firebase is gone) ===== */
-(function(){
-  try { fetch('https://ncems-checks.d-boyce.workers.dev/usage/hub', { method: 'POST', keepalive: true }).catch(function(){}); } catch(e) {}
-})();
+/* ===== DUTIES ===== */
+function renderDuties() {
+  var d = dutyDate(), day = DAYS[d.getDay()], next = DAYS[(d.getDay() + 1) % 7];
+  $('h-duties').textContent = day + ' duties';
+  $('duties-meta').textContent = (WEEK[day] || []).length + ' items';
+  $('duties-body').innerHTML = (WEEK[day] || []).map(function(t){ return '<div class="row"><div class="grow">' + esc(t) + '</div></div>'; }).join('') +
+    '<p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('');
+}
+
+/* ===== WEATHER (National Weather Service, free, no key; cached 15 minutes) ===== */
+var WX = { data: null, err: '' };
+function loadWeather() {
+  var st = STATIONS[STATION], key = 'ncems_hub_wx_' + STATION;
+  try { var c = JSON.parse(store(key) || 'null'); if (c && Date.now() - c.at < 15 * 60e3) { WX.data = c.d; WX.err = ''; renderAll(); return; } if (c) WX.data = c.d; } catch (e) {}
+  var base = 'https://api.weather.gov/', pt = st.lat.toFixed(4) + ',' + st.lon.toFixed(4), out = {};
+  fetch(base + 'points/' + pt).then(function(r){ if (!r.ok) throw new Error('points ' + r.status); return r.json(); })
+    .then(function(p){
+      return Promise.all([
+        fetch(p.properties.forecastHourly).then(function(r){ return r.ok ? r.json() : null; }),
+        fetch(p.properties.forecast).then(function(r){ return r.ok ? r.json() : null; }),
+        fetch(base + 'alerts/active?point=' + pt).then(function(r){ return r.ok ? r.json() : null; })
+      ]);
+    }).then(function(a){
+      out.hourly = a[0] && a[0].properties ? a[0].properties.periods.slice(0, 24).map(function(h){
+        return { t: h.startTime, temp: h.temperature, pop: (h.probabilityOfPrecipitation && h.probabilityOfPrecipitation.value) || 0, wind: h.windSpeed + ' ' + (h.windDirection || ''), short: h.shortForecast };
+      }) : [];
+      out.periods = a[1] && a[1].properties ? a[1].properties.periods.slice(0, 3).map(function(p){ return { name: p.name, temp: p.temperature, day: p.isDaytime, short: p.shortForecast }; }) : [];
+      out.alerts = a[2] && a[2].features ? a[2].features.map(function(f){ return { event: f.properties.event, headline: f.properties.headline || '' }; }) : [];
+      WX.data = out; WX.err = ''; store(key, JSON.stringify({ at: Date.now(), d: out })); renderAll();
+    }).catch(function(e){ WX.err = String(e.message || e); renderAll(); });
+}
+function wxSay(w) {
+  var h = w.hourly || []; if (!h.length) return '';
+  var frz = h.filter(function(x){ return x.temp <= 32; })[0];
+  var wet = h.filter(function(x){ return x.pop >= 60; });
+  var lastWet = wet.length ? wet[wet.length - 1] : null;
+  if (frz && lastWet && new Date(lastWet.t) <= new Date(frz.t)) return 'Rain, then below freezing from ' + hhmm(new Date(frz.t)) + '. Plan for ice on the roads.';
+  if (frz) return 'Below freezing from ' + hhmm(new Date(frz.t)) + '. Watch for ice on bridges and shaded curves.';
+  if (wet.length) return 'Rain likely from ' + hhmm(new Date(wet[0].t)) + '.';
+  return 'No weather worries in the next 24 hours.';
+}
+function wxHighLow(w) {
+  var p = w.periods || [], hi = null, lo = null;
+  p.forEach(function(x){ if (x.day && hi == null) hi = x.temp; if (!x.day && lo == null) lo = x.temp; });
+  return { hi: hi, lo: lo };
+}
+function renderWeatherDesk() {
+  var b = $('wx-body'), st = STATIONS[STATION];
+  $('wx-meta').textContent = st.name + ' · ' + st.place;
+  if (!WX.data) { b.innerHTML = '<p class="empty">' + (WX.err ? 'The weather service isn’t reachable right now.' : 'Loading…') + '</p>'; return; }
+  var w = WX.data, now = (w.hourly || [])[0], hl = wxHighLow(w);
+  var alerts = (w.alerts || []).map(function(a){ return '<div class="row"><span class="tag warn">' + esc(a.event) + '</span></div>'; }).join('');
+  var strip = (w.hourly || []).filter(function(x, i){ return i % 4 === 0; }).slice(0, 6).map(function(x){
+    return '<div class="wx-h' + (x.temp <= 32 ? ' frz' : '') + '">' + hhmm(new Date(x.t)) + '<b>' + x.temp + '°</b>' + x.pop + '%</div>';
+  }).join('');
+  b.innerHTML = alerts + (now ? '<div class="wx-now"><span class="t">' + now.temp + '°F</span><span>' + esc(now.short) + '</span></div>' : '') +
+    '<div class="sub">' + (hl.hi != null ? 'High ' + hl.hi + '°' : '') + (hl.lo != null ? ' · Low ' + hl.lo + '°' : '') + (now ? ' · Wind ' + esc(now.wind) : '') + '</div>' +
+    '<p class="wx-say">' + esc(wxSay(w)) + '</p><div class="wx-strip">' + strip + '</div>';
+}
+
+/* ===== DESK / POCKET ===== */
+function renderAll() {
+  if (!msalAccount) return;
+  if (MODE === 'wall') { renderWall(); return; }
+  var dd = dutyDate();
+  $('d-sub').textContent = DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate() + ' · ' + STATIONS[STATION].name;
+  $('d-clock').textContent = hhmm(new Date());
+  renderChecksDesk(); renderWeatherDesk(); renderDuties(); renderApps(); renderNotice();
+}
+var TAB = 'home';
+function goTab(t) {
+  TAB = t;
+  document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.toggle('on', b.dataset.go === t); });
+  document.querySelectorAll('#desk [data-tab]').forEach(function(el){
+    el.classList.toggle('on', el.dataset.tab === t || el.dataset.also === t);
+  });
+  window.scrollTo(0, 0);
+}
+
+/* ===== INFO SHEET ===== */
+function openInfo() {
+  $('info-who').textContent = msalAccount ? 'Signed in as ' + (msalAccount.name || email()) : '';
+  $('notice-admin').classList.toggle('hide', !isAdmin());
+  $('info-version').textContent = 'Hub version ' + HUB_VERSION;
+  $('info').classList.add('show');
+}
+function closeInfo() { $('info').classList.remove('show'); }
+$('info').addEventListener('click', function(e){ if (e.target === this) closeInfo(); });
+
+/* ===== WALL =====
+   1920 x 1080 stage scaled to fit the TV. Slides with nothing to show are skipped. 20 seconds each. */
+var WALL = { i: 0, timer: null, hideT: null };
+function startWall() {
+  store('ncems_hub_mode', 'wall'); MODE = 'wall';
+  try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){}); } catch (e) {}
+  showView();
+}
+function stopWall() {
+  store('ncems_hub_mode', null); MODE = IS_TOUCH_DEVICE || window.innerWidth < 700 ? 'pocket' : 'desk';
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+  clearInterval(WALL.timer); WALL.timer = null;
+  showView();
+}
+function fitStage() {
+  var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  $('stage').style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+}
+function wHead(title, sub, idx, n) {
+  var nt = hasNotice();
+  return '<div class="w-head"><div><h1>' + esc(title) + '</h1><p>' + sub + '</p></div><div class="w-right"><div class="w-clock" data-clock>' + hhmm(new Date()) + '</div>' +
+    '<div class="w-prog"><i style="width:' + Math.round((idx + 1) / n * 100) + '%"></i></div></div></div>' +
+    '<div class="w-notice' + (nt ? ' show' + (NOTICE.urgent ? ' urgent' : '') : '') + '"><b>' + (nt && NOTICE.urgent ? 'Urgent' : 'Notice') + '</b><span>' + (nt ? esc(NOTICE.message) : '') + '</span></div>';
+}
+function wallChecks(idx, n) {
+  var s = fleetSummary(), col = gaugeColor(s.pct), day = DAYS[dutyDate().getDay()], extra = RIG_DAYS[day] || [];
+  var notYet = s.rows.filter(function(x){ return x.state.key === 'due' || x.state.key === 'part'; }).length;
+  var cols = ['51', '52'].map(function(st){
+    var rows = s.rows.filter(function(x){ return x.station === st; }); if (!rows.length) return '';
+    return '<div style="min-width:0"><p class="w-faint">Station ' + st + '</p>' + rows.map(function(x){
+      return '<div class="w-row"><div class="w-unit">' + esc(x.rig) + '</div><div style="flex:1;min-width:0"><span class="w-tag" style="background:var(--' + x.state.cls + '-bg);color:var(--' + x.state.cls + ')">' + esc(x.state.tag) + '</span><div class="w-detail">' + esc(x.line) + '</div></div></div>';
+    }).join('') + '</div>';
+  }).join('');
+  var ex = extra.length ? '<div style="grid-column:1/-1;margin-top:24px"><p class="w-faint">Also due today, ' + day + '</p><div style="font-size:44px;font-weight:600">' + extra.map(esc).join(' · ') + '</div></div>' : '';
+  return wHead('Vehicle checks', notYet === 0 ? 'Every rig in service is checked' : notYet + (notYet === 1 ? ' rig' : ' rigs') + ' not checked yet', idx, n) +
+    '<div style="display:grid;grid-template-columns:460px minmax(0,1fr);gap:24px;flex:1;min-height:0">' +
+    '<div class="w-panel" style="display:flex;flex-direction:column;align-items:center;gap:24px"><div class="w-label" style="align-self:flex-start">Checked today</div>' +
+    '<div style="position:relative;width:340px;height:340px">' + ring(340, 22, s.pct, col) + '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="w-big">' + s.pct + '<span style="font-size:48px;color:var(--muted)">%</span></div><div style="font-size:26px;color:' + col + '">' + (s.pct === 100 ? 'Good' : s.pct >= 75 ? 'Watch' : 'Needs attention') + '</div></div></div>' +
+    '<div style="font-size:30px">' + s.done + ' of ' + s.total + ' in service</div><div style="font-size:24px;color:var(--faint)">All due by 11:00</div></div>' +
+    '<div class="w-panel" style="padding:28px 40px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:56px;align-content:start">' + cols + ex + '</div></div>';
+}
+function wallDuties(idx, n) {
+  var d = dutyDate(), day = DAYS[d.getDay()], next = DAYS[(d.getDay() + 1) % 7];
+  return wHead(day + ' duties', 'Check them off on Desk or your phone', idx, n) +
+    '<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;flex:1;min-height:0">' +
+    '<div class="w-panel" style="padding:24px 48px">' + (WEEK[day] || []).map(function(t){
+      return '<div class="w-task"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="#5a5a5a" stroke-width="3"/></svg><div class="txt">' + esc(t) + '</div></div>';
+    }).join('') + '</div>' +
+    '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') + '</div></div>';
+}
+function wallWeather(idx, n) {
+  var st = STATIONS[STATION], w = WX.data, now = w.hourly[0] || {}, hl = wxHighLow(w);
+  var alert = (w.alerts || [])[0];
+  var hours = (w.hourly || []).filter(function(x, i){ return i % 2 === 0; }).slice(0, 12).map(function(x){
+    return '<div style="background:' + (x.temp <= 32 ? '#2a2a2a' : '#1a1a1a') + ';border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0">' +
+      '<div style="font-size:24px;color:var(--muted)">' + hhmm(new Date(x.t)) + '</div><div style="font-size:40px;font-weight:600">' + x.temp + '°</div>' +
+      '<div style="flex:1;width:44px;min-height:0;display:flex;align-items:flex-end"><div style="width:44px;height:' + Math.max(4, x.pop) + '%;background:var(--rain);border-radius:6px 6px 0 0"></div></div><div style="font-size:24px;color:#d6d6d6">' + x.pop + '%</div></div>';
+  }).join('');
+  return wHead('Weather', esc(st.name) + ' · ' + esc(st.place), idx, n) +
+    '<div style="display:grid;grid-template-columns:560px minmax(0,1fr);gap:24px">' +
+    '<div class="w-panel" style="display:flex;flex-direction:column;gap:12px;padding:28px 40px"><div class="w-label">Right now</div><div style="display:flex;align-items:flex-start;gap:8px"><div style="font-size:150px;font-weight:600;line-height:.85">' + (now.temp != null ? now.temp : '–') + '</div><div style="font-size:64px;color:var(--muted);margin-top:8px">°F</div></div>' +
+    '<div style="font-size:38px;font-weight:500">' + esc(now.short || '') + '</div><div style="font-size:30px;color:var(--muted)">' + (hl.hi != null ? 'High <b style="color:#fff">' + hl.hi + '°</b>' : '') + (hl.lo != null ? ' &nbsp; Low <b style="color:#fff">' + hl.lo + '°</b>' : '') + '</div></div>' +
+    '<div class="w-panel" style="display:flex;flex-direction:column;justify-content:center;gap:22px">' + (alert ? '<div style="font-size:34px;font-weight:600;color:var(--warn)">' + esc(alert.event) + '</div>' : '<div class="w-label">What it means for us</div>') + '<p style="margin:0;font-size:52px;font-weight:600;line-height:1.2">' + esc(wxSay(w)) + '</p></div></div>' +
+    '<div class="w-panel" style="padding:28px 36px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0"><div style="display:flex;justify-content:space-between;align-items:baseline"><div class="w-label">Next 24 hours</div>' +
+    '<div style="display:flex;gap:28px;font-size:24px;color:var(--muted)"><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:var(--rain);vertical-align:-3px"></i> Chance of rain</span><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:#2a2a2a;vertical-align:-3px"></i> At or below freezing</span></div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;flex:1;min-height:0">' + hours + '</div></div>';
+}
+function wallSlides() {
+  var list = [];
+  if (FLEET.data) list.push(wallChecks);
+  list.push(wallDuties);
+  if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
+  return list;
+}
+function renderWall() {
+  var list = wallSlides(), n = list.length;
+  if (WALL.i >= n) WALL.i = 0;
+  $('stage').innerHTML = list.map(function(fn, i){ return '<section class="slide' + (i === WALL.i ? ' on' : '') + '">' + fn(i, n) + '</section>'; }).join('');
+  fitStage();
+}
+function wallTick() { WALL.i = (WALL.i + 1) % Math.max(1, wallSlides().length); renderWall(); }
+function wallPoke() {
+  $('wall').classList.add('cursor'); clearTimeout(WALL.hideT);
+  WALL.hideT = setTimeout(function(){ $('wall').classList.remove('cursor'); }, 4000);
+}
+['mousemove', 'touchstart', 'click'].forEach(function(ev){ $('wall').addEventListener(ev, wallPoke, { passive: true }); });
+window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); });
+
+/* ===== SHOW THE RIGHT VIEW ===== */
+function showView() {
+  var signed = !!msalAccount;
+  $('signin').classList.toggle('hide', signed);
+  $('app').classList.toggle('hide', !signed || MODE === 'wall');
+  $('wall').classList.toggle('hide', !signed || MODE !== 'wall');
+  document.body.classList.toggle('pocket', MODE === 'pocket');
+  if (!signed) return;
+  $('who').textContent = msalAccount.name || '';
+  $('stn-pick').value = STATION;
+  if (MODE === 'wall') {
+    renderWall();
+    if (!WALL.timer) WALL.timer = setInterval(wallTick, 20000);
+  } else {
+    if (MODE === 'pocket') goTab(TAB); else document.querySelectorAll('#desk [data-tab]').forEach(function(el){ el.classList.add('on'); });
+    renderAll();
+  }
+}
+
+/* ===== START ===== */
+function boot() {
+  initMsal().then(function(){
+    showView();
+    if (!msalAccount) return;
+    loadApps(); loadNotice(); loadFleet(); loadWeather();
+  }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
+}
+try { var cn = JSON.parse(store('ncems_hub_notice_v1') || 'null'); if (cn) NOTICE = cn; } catch (e) {}
+boot();
+checkForUpdate();
+setInterval(function(){
+  if (!msalAccount) return;
+  document.querySelectorAll('[data-clock]').forEach(function(el){ el.textContent = hhmm(new Date()); });
+  if (MODE !== 'wall') $('d-clock').textContent = hhmm(new Date());
+}, 15000);
+setInterval(function(){ if (msalAccount && !document.hidden) { loadNotice(); loadFleet(); } }, 120000);
+setInterval(function(){ if (msalAccount) { loadWeather(); checkForUpdate(); } }, 15 * 60e3);
+document.addEventListener('visibilitychange', function(){ if (!document.hidden && msalAccount) { loadNotice(); loadFleet(); checkForUpdate(); } });
+
+/* Usage counter (ncems-checks Worker), same as Hub 2.1 */
+try { fetch(FLEET_URL + '/usage/hub', { method: 'POST', keepalive: true }).catch(function(){}); } catch (e) {}
 </script>
 <script>
-/* NCEMS haptics 1.0 (10/24/2026, same method as EP Checker 2.30): a light tick on every tap.
-   iPhone/iPad: Safari has no vibrate, but toggling a switch style checkbox gives a system haptic
-   (iOS 18 and newer, System Haptics on). We click a hidden one. Android: navigator.vibrate. */
+/* NCEMS haptics 1.0 (same as every NCEMS app): a light tick on every tap.
+   iPhone/iPad: toggling a hidden switch style checkbox gives a system haptic (iOS 18+). Android: navigator.vibrate. */
 (function () {
-  var TAP = 'a, button, label, select, summary, input[type=checkbox], input[type=radio], [onclick], [role=button], .card, .tab';
+  var TAP = 'a, button, label, select, summary, input[type=checkbox], input[type=radio], [onclick], [role=button]';
   var last = 0;
   function tick() {
-    var now = Date.now();
-    if (now - last < 60) return;   /* a label and its checkbox can fire two clicks for one tap */
-    last = now;
+    var now = Date.now(); if (now - last < 60) return; last = now;
     try {
       if (typeof navigator.vibrate === 'function') { navigator.vibrate(10); return; }
-      var label = document.createElement('label');
-      label.setAttribute('aria-hidden', 'true');
-      label.style.display = 'none';
-      var input = document.createElement('input');
-      input.type = 'checkbox';
-      input.setAttribute('switch', '');
-      input.tabIndex = -1;
-      label.appendChild(input);
-      document.head.appendChild(label);
-      label.click();
-      document.head.removeChild(label);
+      var label = document.createElement('label'); label.setAttribute('aria-hidden', 'true'); label.style.display = 'none';
+      var input = document.createElement('input'); input.type = 'checkbox'; input.setAttribute('switch', ''); input.tabIndex = -1;
+      label.appendChild(input); document.head.appendChild(label); label.click(); document.head.removeChild(label);
     } catch (e) {}
   }
   window.ncemsHaptic = tick;
   document.addEventListener('click', function (e) {
-    var t = e.target;
-    if (!t || !t.closest || t.closest('head')) return;
-    var el = t.closest(TAP);
-    if (!el || el.disabled) return;
-    tick();
+    var t = e.target; if (!t || !t.closest || t.closest('head')) return;
+    var el = t.closest(TAP); if (!el || el.disabled) return; tick();
   }, true);
 })();
 </script>

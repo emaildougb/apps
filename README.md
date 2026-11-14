@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Central landing page for North Country EMS operations tools. Clinical reference moved to its own site, clinical.northcountryems.org (repo `clinical`), in 2.0.
+Version 3.0. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -20,12 +20,15 @@ Central landing page for North Country EMS operations tools. Clinical reference 
 - `manifest.json`: app mode settings
 - `README.md`: this file
 
-## Page layout
+## Page layout (3.0)
 
-**One page (since 2.0), no sign-in:** Operations (Open Shifts, Incident Report) · Logistics (Apparatus Checker, Facilities & Grounds) · BC / Chief (CG Staff). Every button shows to everyone. Each app signs people in itself, and CG Staff turns away anyone not on its list
-**Incident Report:** a red button next to Open Shifts in Operations. No sign-in, so volunteers can file
-**Push Notice:** in the (i) info panel. Chiefs tap "BC / Chief: sign in to post a notice" there. That is the only sign-in on the hub. Notice banner pinned at the bottom
-**Clinical reference:** not here anymore. It's its own site and repo: clinical.northcountryems.org (`clinical`)
+- **Sign in first.** Microsoft sign in (NCEMS Hub app registration 54eb93f5), NCEMS accounts only
+- **Desk** (computers): notice, Today with the clock, Vehicle checks (live from the ncems-checks Worker, by station, plus the weekly Rescue and spare checks due today), Weather for the picked station (National Weather Service), the day's duties from the Weekly Station Duties checklist with tomorrow under it, Coming next, and the Apps buttons from apps.json
+- **Pocket** (phones and iPads, picked automatically): the same panels one at a time with a bottom tab bar (Today, Checks, Duties, Weather, Apps)
+- **Wall**: tap **Wall** on Desk. The screen goes full screen and cycles every 20 seconds through Vehicle checks, Duties and Weather (a slide with no data is skipped). It stays the Wall on that computer after a restart. Moving the mouse or tapping shows **Back to Desk** for a few seconds. `?wall=1` turns it on, `?wall=0` off
+- **Station** picker in the top bar (51 or 52) sets the weather point and is remembered per device
+- **Notice:** chiefs post it from the (i) panel (d.boyce, d.langdon, d.madler, b.shirley see it; the ncems-api Worker is the real gate). Shows on every view and every Wall slide
+- **Incident Report** stays a regular app button. Volunteers who don't sign in to the Hub go straight to reports.northcountryems.org
 
 ## Home screen address
 
@@ -56,6 +59,18 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.0
+- New dark Hub with three views: Wall (station TV slideshow), Desk (computers) and Pocket (phones and iPads, bottom tabs). Built from the Wall, Desk and Pocket mockup
+- Microsoft sign in required to see anything, because the Hub now shows crew information
+- Live vehicle checks from the ncems-checks Worker /fleet/today, grouped Station 51 and Station 52, gauge of in service rigs checked, out of service with the reason. Weekly Rescue and spare checks (Mon Rescue 2, Tue Rescue 7 and 8, Wed Rescue 3, 4 and 5, Thu Rescue 1, Fri M14 and M12) listed as also due today. Needs the Worker to accept the Hub (see Setup)
+- Weather from the National Weather Service for the picked station: now, high and low, a plain sentence about rain and freezing, alerts, next 24 hours
+- Day of the week duties from the NCEMS / FD13 Weekly Station Duties checklist (6.2025), rig checks moved to Vehicle checks
+- Kept: apps.json buttons, notice posting and banner, usage counter, login hint to other apps, haptics, update check (the Wall reloads itself on a new version)
+- Coming next: crews on each unit, open shifts and the week, checking off duties and BC added items (need Worker changes)
+
+### Setup for live vehicle checks (once, in Cloudflare)
+- ncems-checks Worker > Settings > Variables: add `54eb93f5-05e0-42ca-a49d-f4df05c3331c` to CLIENT_IDS and `https://hub.northcountryems.org` to ORIGINS. Until then the Vehicle checks panel says it isn't connected and links to the Apparatus Checker
 
 ### v2.4 (10/24/2026)
 - New top bar, the same as CG Staff: white bar, house button on the left goes to the top of the Hub (this is the Hub), NCEMS logo, "NCEMS" in black and the app name in green, North Country EMS in gray, and the i button on the right for details. iPhone status bar set to default so the clock shows on the white bar
