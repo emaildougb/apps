@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.4. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.5. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,10 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.5 (11/15/2026)
+- App logos are back. Apps are tiles with the logo on top and the name under it (no descriptions), the same on Desk (one row along the bottom, longer names get a wider tile) and on phones (three across, one grid, no section labels)
+- iPhone matches Desk: Today shows the Crews today cards, duty BC and weather, the three numbers and Station notes. Checks, Duties, Weather and Apps tabs use the same panels. Clock hidden, no sideways scrolling
 
 ### v3.4 (11/14/2026)
 - Desk sidebar: Open shifts page after Schedule. Shows a button to the Open Shifts app until Derek adds the Hub to his feed, then it will list the open shifts
