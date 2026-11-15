@@ -438,7 +438,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
       <div class="map-wrap"><div id="dmap"></div><div id="map-side"></div></div>
       <p class="stn" style="margin-top:18px">Road cameras</p>
       <div class="cams" id="cams"></div>
-      <p class="map-credit">Radar NOAA. Wildfires NIFC. Earthquakes USGS. Air quality Open-Meteo. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map © OpenStreetMap, © CARTO.</p>
+      <p class="map-credit">Radar NOAA. Wildfires NIFC. Earthquakes USGS. Air quality Open-Meteo. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map Esri, © OpenStreetMap contributors.</p>
     </section>
 
     <section class="panel desk-only" data-desk="soon" aria-label="Coming later">
@@ -502,7 +502,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.6.1';
+var HUB_VERSION = '3.6.2';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1294,9 +1294,10 @@ function mapReady() { return typeof L !== 'undefined'; }
 function makeMap(el, wall) {
   if (!mapReady()) return null;
   var map = L.map(el, { center: DM_CENTER, zoom: DM_ZOOM, zoomControl: !wall, attributionControl: true, dragging: !wall, scrollWheelZoom: false, doubleClickZoom: !wall, boxZoom: false, keyboard: false, touchZoom: !wall });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 18, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
-  var radar = L.tileLayer.wms('https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows', { layers: 'conus_bref_qcd', format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Radar NOAA' }).addTo(map);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 18, pane: 'shadowPane' }).addTo(map);
+  /* Esri dark gray canvas, no key needed (CARTO started asking for a key 11/2026) */
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Esri, HERE, Garmin, © OpenStreetMap contributors' }).addTo(map);
+  var radar = L.tileLayer.wms('https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows', { layers: 'conus_bref_qcd', format: 'image/png', transparent: true, opacity: 0.4, attribution: 'Radar NOAA' }).addTo(map);
+  L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'shadowPane' }).addTo(map);
   var g = { perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), quakes: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
   var lab = function(t, cls){ return L.divIcon({ className: 'dm-lab ' + (cls || ''), html: '<span>' + t + '</span>', iconSize: [0, 0] }); };
   ['51', '52'].forEach(function(st){
