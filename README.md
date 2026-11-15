@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.2. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -20,12 +20,12 @@ Version 3.1. Three views at one address: **Wall** (the station TV, cycles on its
 - `manifest.json`: app mode settings
 - `README.md`: this file
 
-## Page layout (3.0)
+## Page layout (3.2)
 
 - **Sign in first.** Microsoft sign in (NCEMS Hub app registration 54eb93f5), NCEMS accounts only
-- **Desk** (computers): notice, Today with the clock, **On shift today** (Station 51 and Station 52, each unit's call sign, rig and crew, tomorrow under it), Vehicle checks (live from the ncems-checks Worker, by station, plus the weekly Rescue and spare checks due today), Weather for the picked station (National Weather Service), the day's duties from the Weekly Station Duties checklist with tomorrow under it, Coming next, and the Apps buttons from apps.json
+- **Desk** (computers, 3.2): left sidebar (Today, Schedule, Daily tasks, Training and events, Training videos, Vehicle checks, Weather, Station notes, LMS, Fire District 13; the Soon ones say what's coming), a search box (names on today's and tomorrow's crews, rigs, tasks, apps, pages) and the station picker on top. **Today** shows Crews today (one card per unit, Station 51 on the left, Station 52 on the right, shop number in the corner, open seats in orange), Duty battalion chief (Soon) with the weather, three numbers (vehicles checked today live; crew coverage and training completion show once Open Shifts and the LMS are connected), today's duties with check offs and the BC add box, and Station notes (the posted notice). **All the apps sit in one line along the bottom**
 - **Pocket** (phones and iPads, picked automatically): the same panels one at a time with a bottom tab bar (Today, Checks, Duties, Weather, Apps)
-- **Wall**: tap **Wall** on Desk. The screen goes full screen and cycles every 20 seconds through Today (who's on each unit), Vehicle checks, Duties and Weather (a slide with no data is skipped). It stays the Wall on that computer after a restart. Moving the mouse or tapping shows **Back to Desk** for a few seconds. `?wall=1` turns it on, `?wall=0` off
+- **Wall**: pick **Rotate every** on Desk (5, 10 or 15 seconds, or Custom from 3 to 20; remembered on that computer, default 10), then tap **Wall**. The screen goes full screen and cycles through Today (who's on each unit), Vehicle checks, Duties and Weather (a slide with no data is skipped). **Keys:** left and right arrows change slides, Space pauses, Enter continues. It stays the Wall on that computer after a restart. Moving the mouse or tapping shows **Back to Desk** and the key help for a few seconds. `?wall=1` turns it on, `?wall=0` off
 - **Station** picker in the top bar (51 or 52) sets the weather point and is remembered per device
 - **Notice:** chiefs post it from the (i) panel (d.boyce, d.langdon, d.madler, b.shirley see it; the ncems-api Worker is the real gate). Shows on every view and every Wall slide
 - **Incident Report** stays a regular app button. Volunteers who don't sign in to the Hub go straight to reports.northcountryems.org
@@ -59,6 +59,13 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.2 (11/14/2026)
+- Desk redone to Doug's picture: sidebar pages, search, Crews today cards, Duty BC and weather, three number strip, duties and Station notes side by side
+- Apps moved to one line across the bottom of the screen on Desk (Pocket keeps its Apps tab)
+- Wall speed picker on Desk: 5, 10, 15 seconds or Custom (3 to 20). Was a fixed 20 seconds
+- Wall keys: arrows for next and previous slide, Space to pause, Enter to continue. A Paused label shows at the bottom while paused
+- On Desk's Today page the notice shows in Station notes instead of the banner (urgent notices still show the banner). Pocket and the Wall are unchanged
 
 ### v3.1
 - **On shift today** on Desk and Pocket and a **Today** slide first on the Wall: Station 51 on the left, Station 52 on the right, each unit under the station of the rig its crew claimed (no claim yet: its primary rig, marked last known). Call sign big, First out / Third out / Summer unit with the rig (25A, not M25A), Crew 1, Crew 2, Crew 3, amber "1 of 2 staffed" when short. Tomorrow's crews listed under it on Desk

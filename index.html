@@ -149,6 +149,70 @@ body.pocket .st-grid { grid-template-columns: 1fr; }
 
 @media (max-width: 1100px) { main.desk > .span-7, main.desk > .span-5 { grid-column: span 12; } }
 
+/* ---------- Desk 3.2: sidebar, search, Today dashboard, apps along the bottom ---------- */
+.side, .dock, .desk-only, .d-ctl, .search { display: none; }
+body.deskui .side { display: flex; flex-direction: column; gap: 2px; position: fixed; left: 0; top: 0; bottom: 0; width: 184px; padding: 14px 8px; background: #000; border-right: 1px solid #1a1a1a; z-index: 7; overflow-y: auto; }
+.sb-title { font-weight: 600; font-size: 15px; padding: 6px 8px 18px; }
+.side button { display: flex; justify-content: space-between; align-items: center; gap: 6px; text-align: left; background: none; border: 0; color: var(--muted); font-size: 13px; padding: 8px 8px; border-radius: 8px; cursor: pointer; }
+.side button:hover { color: #fff; }
+.side button.on { background: var(--raised); color: #fff; font-weight: 600; }
+.side button .s { font-size: 11px; color: var(--dim); font-weight: 400; }
+body.deskui #app { padding-left: 184px; padding-bottom: 84px; }
+body.deskui .duty-row { font-size: 14px; min-height: 44px; }
+body.deskui.v-home .notice:not(.urgent) { display: none; }
+body.deskui .top > img, body.deskui .top .brand-wrap, body.deskui .top #wall-btn, body.deskui #d-clock { display: none; }
+body.deskui .search { display: block; position: relative; width: 330px; max-width: 40vw; }
+.search input { width: 100%; height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 16px; font: inherit; font-size: 13px; }
+.s-res { display: none; position: absolute; top: 42px; left: 0; width: 380px; max-width: 80vw; max-height: 60vh; overflow: auto; background: var(--surface); border-radius: 14px; padding: 6px; box-shadow: 0 12px 40px rgba(0,0,0,.6); z-index: 9; }
+.s-res.show { display: block; }
+.s-res button { display: block; width: 100%; text-align: left; background: none; border: 0; color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.s-res button:hover, .s-res button:focus, .s-res button.hl { background: var(--raised); outline: none; }
+.s-res .k { display: block; color: var(--faint); font-size: 12px; margin-top: 2px; }
+body.deskui .d-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.d-ctl label { color: var(--faint); font-size: 13px; }
+.d-ctl select, .d-ctl input { height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 12px; font: inherit; font-size: 13px; }
+.d-ctl input { width: 76px; }
+.d-ctl .pill { height: 36px; padding: 0 16px; font-size: 14px; }
+body.deskui main.desk { max-width: 1400px; }
+body.deskui main.desk > * { display: none; }
+body.deskui main.desk > .von { display: block; grid-column: span 12; }
+body.deskui main.desk > .title-row.von { display: flex; }
+body.deskui.v-home main.desk > .d8 { grid-column: span 8; }
+body.deskui.v-home main.desk > .d4 { grid-column: span 4; }
+body.deskui.v-home main.desk > .d6 { grid-column: span 6; }
+body.deskui.v-home .dtmr { display: none; }
+@media (max-width: 1100px) { body.deskui.v-home main.desk > .d8, body.deskui.v-home main.desk > .d4, body.deskui.v-home main.desk > .d6 { grid-column: span 12; } }
+.cr-row { display: flex; gap: 14px; }
+.cr-grp { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cr-grp .stn { margin: 0; }
+.cr-cards { display: grid; gap: 10px; flex: 1; }
+.cr-card { background: var(--raised); border-radius: 14px; padding: 14px 16px; min-height: 128px; min-width: 0; }
+.cr-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.cr-call { font-size: 24px; font-weight: 600; line-height: 1; }
+.cr-shop { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.cr-seat { margin-top: 10px; }
+.cr-seat .l { font-size: 11px; color: var(--faint); }
+.cr-seat .n { font-size: 13px; font-weight: 600; margin-top: 1px; }
+.cr-seat .n.open { color: var(--warn); }
+.bc-big { font-size: 22px; margin-top: 8px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stat { display: flex; align-items: center; gap: 16px; padding: 2px 20px; border-left: 1px solid var(--rule); min-width: 0; }
+.stat:first-child { border-left: 0; padding-left: 0; }
+.stat .l { font-size: 13px; color: var(--muted); }
+.stat .v { font-size: 24px; font-weight: 600; margin: 2px 0; }
+.stat .w { font-size: 12px; }
+.note { padding: 10px 0; border-top: 1px solid var(--rule); }
+.note:first-child { border-top: 0; padding-top: 0; }
+.note .t { font-weight: 600; font-size: 14px; line-height: 1.4; }
+.link-btn { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; }
+body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; right: 0; bottom: 0; padding: 12px 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: #000; border-top: 1px solid #1a1a1a; z-index: 6; }
+.dock a { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 14px; border-radius: 14px; background: var(--raised); color: #fff; text-decoration: none; }
+.dock a:hover { background: var(--nest); }
+.dock a.red { box-shadow: inset 3px 0 0 #c13e3e; }
+.dock img { width: 28px; height: 28px; border-radius: 7px; flex: none; }
+.dock .t { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dock .s { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* Info sheet */
 .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: none; align-items: center; justify-content: center; padding: 16px; }
 .sheet-bg.show { display: flex; }
@@ -191,6 +255,10 @@ body.pocket .st-grid { grid-template-columns: 1fr; }
 #wall-back { position: absolute; right: 24px; bottom: 24px; z-index: 3; opacity: 0; pointer-events: none; transition: opacity .3s; }
 #wall.cursor #wall-back { opacity: 1; pointer-events: auto; }
 #wall-sign { position: absolute; left: 24px; bottom: 24px; z-index: 3; color: var(--bad); font-size: 18px; }
+#wall-keys { position: absolute; right: 24px; bottom: 80px; z-index: 3; color: var(--faint); font-size: 14px; opacity: 0; transition: opacity .3s; }
+#wall.cursor #wall-keys { opacity: 1; }
+#wall-paused { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 3; display: none; padding: 10px 22px; border-radius: 999px; background: var(--raised); color: #fff; font-size: 18px; font-weight: 600; }
+#wall-paused.show { display: block; }
 @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
 </style>
 </head>
@@ -210,9 +278,27 @@ body.pocket .st-grid { grid-template-columns: 1fr; }
 <!-- Desk (computers) and Pocket (phones) share this markup; Pocket shows one tab at a time -->
 <div id="app" class="hide">
   <button class="update-bar" id="update-bar" type="button" onclick="applyUpdate()">New version of the Hub. Tap to refresh</button>
+  <aside class="side" aria-label="Desk pages">
+    <div class="sb-title">NCEMS Desk</div>
+    <button type="button" data-v="home">Today</button>
+    <button type="button" data-v="schedule">Schedule</button>
+    <button type="button" data-v="duties">Daily tasks</button>
+    <button type="button" data-v="soon" data-soon="training">Training and events <span class="s">Soon</span></button>
+    <button type="button" data-v="soon" data-soon="videos">Training videos <span class="s">Soon</span></button>
+    <button type="button" data-v="checks">Vehicle checks</button>
+    <button type="button" data-v="weather">Weather</button>
+    <button type="button" data-v="notes">Station notes</button>
+    <button type="button" data-v="soon" data-soon="lms">LMS <span class="s">Soon</span></button>
+    <button type="button" data-v="soon" data-soon="fd13">Fire District 13 <span class="s">Soon</span></button>
+  </aside>
   <header class="top">
     <img src="logo.png" alt="">
-    <div><div class="brand">NCEMS Hub</div><div class="who" id="who"></div></div>
+    <div class="brand-wrap"><div class="brand">NCEMS Hub</div><div class="who" id="who"></div></div>
+    <div class="search" role="search">
+      <label class="sr" for="q">Search</label>
+      <input id="q" type="search" autocomplete="off" placeholder="Search a name, rig or task">
+      <div class="s-res" id="s-res"></div>
+    </div>
     <div class="grow"></div>
     <label class="sr" for="stn-pick">Station</label>
     <select id="stn-pick" onchange="setStation(this.value)">
@@ -226,33 +312,68 @@ body.pocket .st-grid { grid-template-columns: 1fr; }
   <div class="notice" id="notice" onclick="openInfo()"><b id="notice-kind">Notice</b><span id="notice-text"></span></div>
 
   <main class="desk" id="desk">
-    <div class="title-row on" data-tab="home">
+    <div class="title-row on" data-tab="home" data-desk="home schedule duties checks weather notes soon">
       <div>
         <h1 id="d-title">Today</h1>
         <p id="d-sub"></p>
       </div>
       <div class="clock-sm" id="d-clock"></div>
+      <div class="d-ctl">
+        <label for="spd">Rotate every</label>
+        <select id="spd" onchange="setSpeed(this.value)">
+          <option value="5">5 seconds</option>
+          <option value="10">10 seconds</option>
+          <option value="15">15 seconds</option>
+          <option value="custom">Custom</option>
+        </select>
+        <label class="sr" for="spd-c">Seconds, 3 to 20</label>
+        <input id="spd-c" class="hide" type="number" min="3" max="20" step="1" onchange="setSpeed(this.value)" title="Seconds per slide, 3 to 20">
+        <button class="pill ghost" type="button" onclick="startWall()" title="Turn this screen into the Wall. It stays the Wall on this computer until someone taps Back to Desk.">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18v12H3z"/><path d="M8 21h8M12 17v4"/></svg>Wall</button>
+      </div>
     </div>
 
-    <section class="panel span-12 on" data-tab="home" aria-labelledby="h-shift">
+    <section class="panel desk-only d8" data-desk="home" aria-labelledby="h-crews">
+      <div class="ph"><h2 id="h-crews">Crews today</h2><span class="meta" id="crews-meta"></span></div>
+      <div id="crews-body"><p class="empty">Loading…</p></div>
+    </section>
+
+    <section class="panel desk-only d4" data-desk="home" aria-labelledby="h-bc">
+      <div id="bcwx-body"></div>
+    </section>
+
+    <section class="panel desk-only" data-desk="home" aria-label="Today at a glance">
+      <div class="stats" id="stats-body"></div>
+    </section>
+
+    <section class="panel span-12 on" data-tab="home" data-desk="schedule" aria-labelledby="h-shift">
       <div class="ph"><h2 id="h-shift">On shift today</h2><span class="meta" id="shift-meta"></span></div>
       <div id="shift-body"><p class="empty">Loading…</p></div>
     </section>
 
-    <section class="panel span-7 on" data-tab="home" data-also="checks" aria-labelledby="h-checks">
+    <section class="panel span-7 on" data-tab="home" data-also="checks" data-desk="checks" aria-labelledby="h-checks">
       <div class="ph"><h2 id="h-checks">Vehicle checks</h2><span class="meta" id="checks-meta"></span></div>
       <div id="checks-body"><p class="empty">Loading…</p></div>
     </section>
 
-    <section class="panel span-5 on" data-tab="home" data-also="weather" aria-labelledby="h-wx">
+    <section class="panel span-5 on" data-tab="home" data-also="weather" data-desk="weather" aria-labelledby="h-wx">
       <div class="ph"><h2 id="h-wx">Weather</h2><span class="meta" id="wx-meta"></span></div>
       <div id="wx-body"><p class="empty">Loading…</p></div>
     </section>
 
-    <section class="panel span-7" data-tab="duties" aria-labelledby="h-duties">
+    <section class="panel span-7 d6" data-tab="duties" data-desk="home duties" aria-labelledby="h-duties">
       <div class="ph"><h2 id="h-duties">Duties</h2><span class="meta" id="duties-meta"></span></div>
       <div id="duties-body"></div>
       <div id="duty-add"></div>
+    </section>
+
+    <section class="panel desk-only d6" data-desk="home notes" aria-labelledby="h-notes">
+      <div class="ph"><h2 id="h-notes">Station notes</h2><span id="notes-act"></span></div>
+      <div id="notes-body"></div>
+    </section>
+
+    <section class="panel desk-only" data-desk="soon" aria-label="Coming later">
+      <div id="soon-body"></div>
     </section>
 
     <section class="panel span-5" data-tab="duties" aria-labelledby="h-coming">
@@ -266,6 +387,8 @@ body.pocket .st-grid { grid-template-columns: 1fr; }
       <div id="apps-body"></div>
     </section>
   </main>
+
+  <nav class="dock" id="dock" aria-label="Apps"></nav>
 
   <nav class="tabs" aria-label="Hub">
     <button type="button" class="on" data-go="home" onclick="goTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
@@ -305,11 +428,13 @@ body.pocket .st-grid { grid-template-columns: 1fr; }
   <div class="stage" id="stage"></div>
   <button class="pill" id="wall-back" type="button" onclick="stopWall()">Back to Desk</button>
   <div id="wall-sign"></div>
+  <div id="wall-keys">Arrow keys change slides · Space pauses · Enter continues</div>
+  <div id="wall-paused" role="status">Paused · press Enter to continue</div>
 </div>
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.1';
+var HUB_VERSION = '3.2';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -436,6 +561,11 @@ function loadApps() {
 }
 function renderApps() {
   if (!APPS) { $('apps-body').innerHTML = '<p class="empty">Loading…</p>'; return; }
+  /* Desk: every app in one line along the bottom of the screen */
+  $('dock').innerHTML = APPS.operations.reduce(function(a, sec){ return a.concat(sec.buttons || []); }, []).map(function(b){
+    return '<a class="' + (b.style === 'red' ? 'red' : '') + '" href="' + esc(b.url) + '" title="' + esc(b.sub || '') + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
+      '<div style="min-width:0"><div class="t">' + esc(String(b.title).replace(/\n/g, ' ')) + '</div>' + (b.sub ? '<div class="s">' + esc(b.sub) + '</div>' : '') + '</div></a>';
+  }).join('');
   $('apps-body').innerHTML = APPS.operations.map(function(sec){
     var bs = sec.buttons || []; if (!bs.length) return '';
     return '<div class="app-sec"><p class="app-label">' + esc(sec.label) + '</p><div class="app-grid">' + bs.map(function(b){
@@ -525,7 +655,8 @@ function shiftUnits(dayKey) {
       return { label: seatLabel(sk), names: ps.map(function(p){ return p.person + (ps.length > 1 && hm(p.start) ? ' ' + hm(p.start) + ' to ' + hm(p.end) : ''); }).join(', ') };
     });
     var core = ['C1', 'C2'].filter(function(sk){ return bySeat[sk]; }).length;
-    return { call: c, station: station, rig: rig ? rigLabel(rig.rig) + (last ? ' (last known)' : '') : '', where: CALL_ROLE[c], seats: seats, short: core < 2, staffed: core + ' of 2 staffed' };
+    var missing = ['C1', 'C2'].filter(function(sk){ return !bySeat[sk]; });
+    return { call: c, station: station, rig: rig ? rigLabel(rig.rig) + (last ? ' (last known)' : '') : '', shop: rig ? rigLabel(rig.rig) : '', last: last, where: CALL_ROLE[c], seats: seats, missing: missing, short: core < 2, staffed: core + ' of 2 staffed' };
   });
 }
 function renderShiftDesk() {
@@ -615,7 +746,7 @@ function renderDuties() {
       (x.added ? '<div class="sub" style="color:var(--warn)">' + esc(x.added) + '</div>' : '') + '</div>' +
       (x.done ? '<span class="sub">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</span>' : '') +
       (x.added && HUB && HUB.canAdd ? '<button class="x-btn" type="button" data-rm="' + esc(x.id) + '">Remove</button>' : '') + '</label>';
-  }).join('') + '<p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('');
+  }).join('') + '<div class="dtmr"><p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('') + '</div>';
   $('duty-add').innerHTML = HUB && HUB.canAdd ? '<div class="add-row"><label class="sr" for="duty-new">Add a task for today</label><input id="duty-new" type="text" maxlength="160" placeholder="BC: add a task for today"><button class="pill ghost" type="button" style="height:36px" onclick="addDuty()">Add</button></div><p class="sub" id="duty-msg"></p>' : '';
   $('duties-body').querySelectorAll('[data-duty]').forEach(function(cb){
     cb.addEventListener('change', function(){ tickDuty(cb.dataset.duty, cb.dataset.text, cb.checked, cb); });
@@ -695,10 +826,130 @@ function renderAll() {
   if (!msalAccount) return;
   if (MODE === 'wall') { renderWall(); return; }
   var dd = dutyDate();
-  $('d-sub').textContent = DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate() + ' · ' + STATIONS[STATION].name;
+  $('d-sub').textContent = DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate() + ' · ' + STATIONS[STATION].name + (MODE === 'desk' ? checksLine() : '');
   $('d-clock').textContent = hhmm(new Date());
+  if (MODE === 'desk') renderDeskHome();
   if (document.activeElement && document.activeElement.id === 'duty-new') { renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderApps(); renderNotice(); return; }
   renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderDuties(); renderApps(); renderNotice();
+}
+
+/* ===== DESK 3.2 (computers): Today dashboard, sidebar pages, search ===== */
+function checksLine() {
+  if (!FLEET.data) return '';
+  var s = fleetSummary(), left = s.total - s.done;
+  return left > 0 ? ' · ' + left + (left === 1 ? ' rig' : ' rigs') + ' still to check before 11:00' : (s.total ? ' · every rig in service is checked' : '');
+}
+function renderDeskHome() {
+  /* Crews today: one card per unit, Station 51 on the left, Station 52 on the right */
+  var cb = $('crews-body');
+  if (!HUB) cb.innerHTML = '<p class="empty">' + (FLEET.err ? 'Can\u2019t reach the schedule right now.' : 'Loading…') + '</p>';
+  else {
+    var units = shiftUnits(HUB.day);
+    $('crews-meta').textContent = FLEET.err ? 'Reconnecting' : '';
+    if (!units.length) cb.innerHTML = '<p class="empty">No crews in the schedule for today yet.</p>';
+    else cb.innerHTML = '<div class="cr-row">' + ['51', '52'].map(function(st){
+      var us = units.filter(function(u){ return u.station === st; }); if (!us.length) return '';
+      return '<div class="cr-grp" style="flex:' + us.length + '"><p class="stn">Station ' + st + '</p><div class="cr-cards" style="grid-template-columns:repeat(' + us.length + ',minmax(0,1fr))">' + us.map(function(u){
+        var seats = u.seats.map(function(s){ return '<div class="cr-seat"><div class="l">' + s.label + '</div><div class="n">' + esc(s.names) + '</div></div>'; });
+        u.missing.forEach(function(sk){ seats.push('<div class="cr-seat"><div class="l">' + seatLabel(sk) + '</div><div class="n open">Open, ' + u.staffed + '</div></div>'); });
+        return '<div class="cr-card"><div class="cr-top"><span class="cr-call">' + u.call + '</span><span class="cr-shop" title="' + (u.last ? 'Last known rig' : 'Rig today') + '">' + esc(u.shop) + (u.last ? ' · last known' : '') + '</span></div>' + seats.join('') + '</div>';
+      }).join('') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  /* Duty BC (no feed yet) and the weather for the station picked at the top */
+  var st = STATIONS[STATION], w = WX.data, now = w && w.hourly && w.hourly[0];
+  $('bcwx-body').innerHTML = '<h2 id="h-bc">Duty battalion chief</h2><div class="bc-big">Soon</div><div class="sub">Shows here once the duty BC is in a schedule feed</div>' +
+    '<h2 style="margin-top:20px">Weather, ' + esc(st.place) + '</h2>' +
+    (now ? '<div class="wx-now" style="margin-top:6px"><span class="t" style="font-size:30px">' + now.temp + '°F</span><span class="sub" style="margin:0">' + esc(now.short) + '</span></div><div class="sub">' + esc(wxSay(w)) + '</div>'
+         : '<p class="empty" style="margin-top:6px">' + (WX.err ? 'The weather service isn’t reachable right now.' : 'Loading…') + '</p>');
+  /* Three numbers */
+  var veh;
+  if (FLEET.data) {
+    var s = fleetSummary(), col = gaugeColor(s.pct), left = s.total - s.done;
+    veh = '<div class="stat">' + ring(52, 7, s.pct, col) + '<div><div class="l">Vehicles checked today</div><div class="v">' + s.pct + '% · ' + s.done + ' of ' + s.total + '</div><div class="w" style="color:' + col + '">' + (left > 0 ? 'Watch: ' + left + ' due by 11:00' : 'All checked') + '</div></div></div>';
+  } else veh = '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Vehicles checked today</div><div class="v">—</div><div class="w sub">Loading</div></div></div>';
+  $('stats-body').innerHTML = veh +
+    '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Crew coverage this week</div><div class="v">—</div><div class="w sub">Shows once Open Shifts is connected</div></div></div>' +
+    '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Training completion</div><div class="v">—</div><div class="w sub">Shows once the LMS is connected</div></div></div>';
+  /* Station notes: the notice BCs post from the i button */
+  $('notes-act').innerHTML = isAdmin() ? '<button class="link-btn" type="button" onclick="openInfo()">' + (hasNotice() ? 'Change' : 'Post a note') + '</button>' : '';
+  $('notes-body').innerHTML = hasNotice()
+    ? '<div class="note"><div class="t">' + esc(NOTICE.message) + '</div><div class="sub">' + (NOTICE.urgent ? '<span style="color:var(--bad)">Urgent</span> · ' : '') + 'Posted notice' + (NOTICE.by ? ' · ' + esc(NOTICE.by) : '') + '</div></div>'
+    : '<p class="empty">No station notes right now.' + (isAdmin() ? ' Post one with the link above; it also shows on the Wall and on phones.' : '') + '</p>';
+}
+var SOON = {
+  training: ['Training and events', 'Classes, drills and county events will show here once the training calendar is connected.'],
+  videos: ['Training videos', 'Training videos will show here in a later build.'],
+  lms: ['LMS', 'Training records and completion will show here once the new LMS is connected.'],
+  fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
+};
+var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', notes: 'Station notes' };
+var VIEW = 'home', SOON_KEY = '';
+function goView(v, soonKey) {
+  VIEW = VIEW_TITLE[v] || v === 'soon' ? v : 'home'; SOON_KEY = soonKey || '';
+  document.body.classList.toggle('v-home', VIEW === 'home');
+  document.querySelectorAll('.side button').forEach(function(b){ b.classList.toggle('on', b.dataset.v === VIEW && (VIEW !== 'soon' || b.dataset.soon === SOON_KEY)); });
+  document.querySelectorAll('#desk > *').forEach(function(el){ el.classList.toggle('von', (' ' + (el.dataset.desk || '') + ' ').indexOf(' ' + VIEW + ' ') >= 0); });
+  if (VIEW === 'soon') { var so = SOON[SOON_KEY] || ['Coming later', '']; $('d-title').textContent = so[0]; $('soon-body').innerHTML = '<p class="empty" style="margin:0">' + esc(so[1]) + '</p>'; }
+  else $('d-title').textContent = VIEW_TITLE[VIEW];
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.side button').forEach(function(b){ b.addEventListener('click', function(){ goView(b.dataset.v, b.dataset.soon); }); });
+
+/* Search: names on today's and tomorrow's crews, rigs, today's tasks, apps and pages */
+function searchItems() {
+  var out = [];
+  if (HUB) [[HUB.day, 'today'], [HUB.tomorrow, 'tomorrow']].forEach(function(dk){
+    shiftUnits(dk[0]).forEach(function(u){ u.seats.forEach(function(s){ s.names.split(', ').forEach(function(n){ out.push({ t: n, k: u.call + ' ' + dk[1] + ' · ' + s.label + ' · Station ' + u.station, v: 'schedule' }); }); }); });
+  });
+  if (FLEET.data) fleetSummary().rows.forEach(function(x){ out.push({ t: x.rig, k: x.state.tag + (x.station ? ' · Station ' + x.station : '') + (x.line ? ' · ' + x.line : ''), v: 'checks' }); });
+  dutyList().forEach(function(x){ out.push({ t: x.text, k: (x.done ? 'Done' + (x.by ? ' by ' + firstName(x.by) : '') : 'Task for today, not done yet'), v: 'duties' }); });
+  if (APPS) APPS.operations.forEach(function(sec){ (sec.buttons || []).forEach(function(b){ out.push({ t: String(b.title).replace(/\n/g, ' '), k: 'App · ' + (b.sub || sec.label), href: b.url }); }); });
+  Object.keys(VIEW_TITLE).forEach(function(v){ out.push({ t: VIEW_TITLE[v], k: 'Page', v: v }); });
+  return out;
+}
+var S_HITS = [];
+function doSearch() {
+  var q = $('q').value.trim().toLowerCase(), box = $('s-res');
+  if (!q) { box.classList.remove('show'); box.innerHTML = ''; S_HITS = []; return; }
+  S_HITS = searchItems().filter(function(x){ return (x.t + ' ' + x.k).toLowerCase().indexOf(q) >= 0; }).slice(0, 8);
+  box.innerHTML = S_HITS.length ? S_HITS.map(function(x, i){ return '<button type="button" data-i="' + i + '">' + esc(x.t) + '<span class="k">' + esc(x.k) + '</span></button>'; }).join('') : '<p class="empty" style="margin:8px 10px">Nothing matches</p>';
+  box.classList.add('show');
+}
+function pickHit(i) {
+  var x = S_HITS[i]; if (!x) return;
+  $('q').value = ''; doSearch();
+  if (x.href) { var a = document.createElement('a'); a.href = x.href; document.body.appendChild(a); a.click(); a.remove(); return; }
+  goView(x.v);
+}
+$('q').addEventListener('input', doSearch);
+$('q').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { e.preventDefault(); pickHit(0); }
+  if (e.key === 'Escape') { $('q').value = ''; doSearch(); }
+  if (e.key === 'ArrowDown') { var f = $('s-res').querySelector('button'); if (f) { e.preventDefault(); f.focus(); } }
+});
+$('s-res').addEventListener('click', function(e){ var b = e.target.closest('button[data-i]'); if (b) pickHit(+b.dataset.i); });
+$('s-res').addEventListener('keydown', function(e){
+  var b = e.target.closest('button[data-i]'); if (!b) return;
+  if (e.key === 'ArrowDown' && b.nextElementSibling) { e.preventDefault(); b.nextElementSibling.focus(); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); (b.previousElementSibling || $('q')).focus(); }
+  if (e.key === 'Escape') { $('q').value = ''; doSearch(); $('q').focus(); }
+});
+document.addEventListener('click', function(e){ if (!e.target.closest('.search')) $('s-res').classList.remove('show'); });
+
+/* Wall speed: picked on Desk before tapping Wall. 5, 10 or 15 seconds, or Custom from 3 to 20. Kept on this computer. */
+function wallSpeed() { var n = parseInt(store('ncems_hub_speed'), 10); return n >= 3 && n <= 20 ? n : 10; }
+function showSpeed() {
+  var n = wallSpeed(), preset = [5, 10, 15].indexOf(n) >= 0;
+  $('spd').value = preset ? String(n) : 'custom';
+  $('spd-c').classList.toggle('hide', preset); $('spd-c').value = n;
+}
+function setSpeed(v) {
+  if (v === 'custom') { $('spd-c').classList.remove('hide'); $('spd-c').value = wallSpeed(); $('spd-c').focus(); $('spd-c').select(); return; }
+  var n = Math.round(Number(v)); if (!(n > 0)) n = wallSpeed();
+  n = Math.max(3, Math.min(20, n));
+  store('ncems_hub_speed', String(n));
+  showSpeed();
 }
 var TAB = 'home';
 function goTab(t) {
@@ -721,8 +972,29 @@ function closeInfo() { $('info').classList.remove('show'); }
 $('info').addEventListener('click', function(e){ if (e.target === this) closeInfo(); });
 
 /* ===== WALL =====
-   1920 x 1080 stage scaled to fit the TV. Slides with nothing to show are skipped. 20 seconds each. */
-var WALL = { i: 0, timer: null, hideT: null };
+   1920 x 1080 stage scaled to fit the TV. Slides with nothing to show are skipped. Each slide stays up for the
+   speed picked on Desk (3 to 20 seconds, default 10). Keys: arrows change slides, Space pauses, Enter continues. */
+var WALL = { i: 0, timer: null, hideT: null, paused: false };
+function wallSchedule() {
+  clearTimeout(WALL.timer); WALL.timer = null;
+  if (MODE !== 'wall' || WALL.paused) return;
+  WALL.timer = setTimeout(wallTick, wallSpeed() * 1000);
+}
+function wallGo(step) {
+  var n = Math.max(1, wallSlides().length);
+  WALL.i = ((WALL.i + step) % n + n) % n; renderWall(); wallSchedule();
+}
+function wallPause(on) {
+  WALL.paused = on; $('wall-paused').classList.toggle('show', on); wallSchedule();
+}
+document.addEventListener('keydown', function(e){
+  if (MODE !== 'wall' || e.ctrlKey || e.metaKey || e.altKey) return;
+  var k = e.key;
+  if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown') { e.preventDefault(); wallGo(1); }
+  else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); wallGo(-1); }
+  else if (k === ' ' || k === 'Spacebar') { e.preventDefault(); wallPause(!WALL.paused); }
+  else if (k === 'Enter') { e.preventDefault(); if (WALL.paused) wallPause(false); }
+});
 function startWall() {
   store('ncems_hub_mode', 'wall'); MODE = 'wall';
   try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){}); } catch (e) {}
@@ -731,7 +1003,7 @@ function startWall() {
 function stopWall() {
   store('ncems_hub_mode', null); MODE = IS_TOUCH_DEVICE || window.innerWidth < 700 ? 'pocket' : 'desk';
   try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
-  clearInterval(WALL.timer); WALL.timer = null;
+  clearTimeout(WALL.timer); WALL.timer = null; WALL.paused = false; $('wall-paused').classList.remove('show');
   showView();
 }
 function fitStage() {
@@ -819,7 +1091,7 @@ function renderWall() {
   $('stage').innerHTML = list.map(function(fn, i){ return '<section class="slide' + (i === WALL.i ? ' on' : '') + '">' + fn(i, n) + '</section>'; }).join('');
   fitStage();
 }
-function wallTick() { WALL.i = (WALL.i + 1) % Math.max(1, wallSlides().length); renderWall(); }
+function wallTick() { WALL.i = (WALL.i + 1) % Math.max(1, wallSlides().length); renderWall(); wallSchedule(); }
 function wallPoke() {
   $('wall').classList.add('cursor'); clearTimeout(WALL.hideT);
   WALL.hideT = setTimeout(function(){ $('wall').classList.remove('cursor'); }, 4000);
@@ -834,14 +1106,15 @@ function showView() {
   $('app').classList.toggle('hide', !signed || MODE === 'wall');
   $('wall').classList.toggle('hide', !signed || MODE !== 'wall');
   document.body.classList.toggle('pocket', MODE === 'pocket');
+  document.body.classList.toggle('deskui', MODE === 'desk');
   if (!signed) return;
   $('who').textContent = msalAccount.name || '';
   $('stn-pick').value = STATION;
   if (MODE === 'wall') {
     renderWall();
-    if (!WALL.timer) WALL.timer = setInterval(wallTick, 20000);
+    if (!WALL.timer && !WALL.paused) wallSchedule();
   } else {
-    if (MODE === 'pocket') goTab(TAB); else document.querySelectorAll('#desk [data-tab]').forEach(function(el){ el.classList.add('on'); });
+    if (MODE === 'pocket') goTab(TAB); else { document.querySelectorAll('#desk [data-tab]').forEach(function(el){ el.classList.add('on'); }); goView(VIEW, SOON_KEY); showSpeed(); }
     renderAll();
   }
 }
