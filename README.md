@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.7. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.8. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,12 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.8 (11/15/2026)
+- **Duties per station.** Station 51 and Station 52 each have their own weekly duty list. Station 51 keeps the current checklist and its old check offs. Station 52 starts empty (it says so) until Doug sends its list; chiefs can still add tasks for the day there
+- Tasks a chief adds are saved to the station on screen (needs ncems-checks 1.9, ids a:51:... and a:52:...). Older added tasks with no station show on Station 51
+- **Station accounts lock the Hub.** Signed in as station51@ the Hub stays on Station 51; station52@ stays on Station 52. The station picker turns into a plain label. Personal accounts keep the picker
+- To change a station's weekly list later, edit WEEK51 or WEEK52 near the top of index.html (one line per day)
 
 ### v3.7 (11/15/2026)
 - **Open shifts are live.** Derek made read only Hub feeds (no names): https://ncems-ot.d-langdon.workers.dev/hub/open-shifts (Crew 1, medic) and https://ncems-c2.d-langdon.workers.dev/hub/open-shifts (Crew 2, EMT), Microsoft ID token, hub.northcountryems.org allowed. The Hub shows the next 7 days

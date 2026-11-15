@@ -58,6 +58,7 @@ button { font: inherit; }
 .top .who { color: var(--faint); font-size: 13px; }
 .top .grow { flex: 1; }
 .top select { height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 12px; font: inherit; font-size: 14px; }
+.top select:disabled { opacity: 1; color: #fff; cursor: default; appearance: none; -webkit-appearance: none; padding: 0 16px; }
 .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--control); background: #000; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .top .pill { height: 36px; padding: 0 16px; font-size: 14px; }
 .update-bar { display: none; width: 100%; border: 0; background: var(--warn); color: #000; font-weight: 600; padding: 10px; cursor: pointer; }
@@ -508,7 +509,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.7';
+var HUB_VERSION = '3.8';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -547,12 +548,21 @@ var STATIONS = {
   '51': { name: 'Station 51', place: 'Yacolt', lat: 45.8653, lon: -122.4069 },
   '52': { name: 'Station 52', place: 'Fargher Lake', lat: 45.8786, lon: -122.5409 }
 };
-function setStation(v) { STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; loadWeather(); renderAll(); }
+function setStation(v) { if (lockedStation()) v = lockedStation(); STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; loadWeather(); renderAll(); }
+/* 3.8: the station accounts (station51@ and station52@) lock the Hub to their own station.
+   Personal accounts keep the picker. */
+function lockedStation() { var m = /^station(5[12])@northcountryems\.org$/.exec(email()); return m ? m[1] : ''; }
+function applyStationLock() {
+  var lk = lockedStation(), pk = $('stn-pick');
+  if (lk && STATION !== lk) { STATION = lk; store('ncems_hub_station', STATION); WX.data = null; loadWeather(); }
+  if (pk) { pk.disabled = !!lk; pk.title = lk ? 'Locked to this station account' : ''; }
+}
 
-/* ===== WEEKLY STATION DUTIES =====
-   From the NCEMS / FD13 Weekly Station Duties checklist (6.2025). Rig checks on that list show on
-   Vehicle checks instead (Doug, 11/14). The daily cleaning list from page 1 is not shown. */
-var WEEK = {
+/* ===== WEEKLY STATION DUTIES (one list per station, 3.8) =====
+   Station 51 is the NCEMS / FD13 Weekly Station Duties checklist (6.2025). Rig checks on that list show on
+   Vehicle checks instead (Doug, 11/14). The daily cleaning list from page 1 is not shown.
+   Station 52 starts empty until Doug sends its list; chiefs can still add tasks for the day. */
+var WEEK51 = {
   Sunday:    ['Hose, squeegee and pick up Medic Bays', 'Check and clean First Aid / Walk-in Room', 'EMS laundry: linens and straps/tarps only'],
   Monday:    ['Sweep both sets of outside stairs', 'Wipe down weight room equipment'],
   Tuesday:   ['Sweep Station 51 sidewalk', 'Disinfect women’s and men’s dorm showers'],
@@ -561,6 +571,13 @@ var WEEK = {
   Friday:    ['Sweep and mop Fire Stairwell', 'Station 1.5 (Admin): trash, recycling, vacuum, bathrooms'],
   Saturday:  ['Clean Station 51 office windows, inside and out', 'Check station refrigerators, toss expired food', 'Start and check the station generator']
 };
+var WEEK52 = {};
+var WEEKS = { '51': WEEK51, '52': WEEK52 };
+function stationWeek() { return WEEKS[STATION] || {}; }
+/* Saved ids: Station 51 weekly items keep w:Day:n so old check offs stay; Station 52 uses w52:Day:n.
+   Added tasks are a:51:... or a:52:... (ncems-checks 1.9); older a:... ids without a station belong to 51. */
+function weeklyId(day, i) { return (STATION === '51' ? 'w:' : 'w' + STATION + ':') + day + ':' + i; }
+function addedStation(id) { var m = /^a:(5\d):/.exec(id); return m ? m[1] : '51'; }
 var RIG_DAYS = { Monday: ['Rescue 2'], Tuesday: ['Rescue 7', 'Rescue 8'], Wednesday: ['Rescue 3', 'Rescue 4', 'Rescue 5'], Thursday: ['Rescue 1'], Friday: ['M14', 'M12'] };
 
 /* ===== MICROSOFT SIGN IN (NCEMS Hub app registration) ===== */
@@ -799,8 +816,8 @@ function renderChecksDesk() {
 function dutyList() {
   var d = dutyDate(), day = DAYS[d.getDay()];
   var saved = {}; ((HUB && HUB.duties) || []).forEach(function(x){ saved[x.id] = x; });
-  var items = (WEEK[day] || []).map(function(t, i){ var id = 'w:' + day + ':' + i, s = saved[id] || {}; return { id: id, text: t, done: !!s.done_at, by: s.done_name || '', at: s.done_at || '', added: '' }; });
-  ((HUB && HUB.duties) || []).filter(function(x){ return x.id.indexOf('a:') === 0; }).forEach(function(x){
+  var items = (stationWeek()[day] || []).map(function(t, i){ var id = weeklyId(day, i), s = saved[id] || {}; return { id: id, text: t, done: !!s.done_at, by: s.done_name || '', at: s.done_at || '', added: '' }; });
+  ((HUB && HUB.duties) || []).filter(function(x){ return x.id.indexOf('a:') === 0 && addedStation(x.id) === STATION; }).forEach(function(x){
     items.push({ id: x.id, text: x.text, done: !!x.done_at, by: x.done_name || '', at: x.done_at || '', added: 'Added by ' + adderTitle(x) });
   });
   return items;
@@ -826,7 +843,7 @@ function renderDuties() {
       (x.added ? '<div class="sub" style="color:var(--warn)">' + esc(x.added) + '</div>' : '') + '</div>' +
       (x.done ? '<span class="sub">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</span>' : '') +
       (x.added && HUB && HUB.canAdd ? '<button class="x-btn" type="button" data-rm="' + esc(x.id) + '">Remove</button>' : '') + '</label>';
-  }).join('') + '<div class="dtmr"><p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('') + '</div>';
+  }).join('') + (items.length ? '' : '<p class="sub" style="padding:8px 0">No weekly list for ' + esc(STATIONS[STATION].name) + ' yet. Chiefs can add tasks for today below.</p>') + '<div class="dtmr"><p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + ((stationWeek()[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('') || '<div class="sub" style="padding:4px 0">No weekly list for this station yet.</div>') + '</div>';
   $('duty-add').innerHTML = HUB && HUB.canAdd ? '<div class="add-row"><label class="sr" for="duty-new">Add a task for today</label><input id="duty-new" type="text" maxlength="160" placeholder="BC: add a task for today"><button class="pill ghost" type="button" style="height:36px" onclick="addDuty()">Add</button></div><p class="sub" id="duty-msg"></p>' : '';
   $('duties-body').querySelectorAll('[data-duty]').forEach(function(cb){
     cb.addEventListener('change', function(){ tickDuty(cb.dataset.duty, cb.dataset.text, cb.checked, cb); });
@@ -842,7 +859,7 @@ function tickDuty(id, text, done, cb) {
 }
 function addDuty() {
   var el = $('duty-new'), t = (el.value || '').trim(); if (!t) return;
-  hubPost('/fleet/duty/add', { day: HUB.day, text: t }).then(function(j){ el.value = ''; dutySaved(j); })
+  hubPost('/fleet/duty/add', { day: HUB.day, station: STATION, text: t }).then(function(j){ el.value = ''; dutySaved(j); })
     .catch(function(e){ $('duty-msg').textContent = 'Could not add: ' + (e.message || e); });
 }
 function removeDuty(id) {
@@ -1134,7 +1151,7 @@ function wallDuties(idx, n) {
         '<div class="txt" style="color:' + (x.done ? 'var(--dim)' : '#fff') + '">' + esc(x.text) + (x.added ? '<div style="font-size:26px;font-weight:500;color:var(--warn);margin-top:6px">' + esc(x.added) + '</div>' : '') + '</div>' +
         (x.done ? '<div style="font-size:28px;color:var(--faint)">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</div>' : '') + '</div>';
     }).join('') + '</div>' +
-    '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + (WEEK[next] || []).map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') + '</div></div>';
+    '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + ((stationWeek()[next] || []).map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') || '<div style="font-size:28px;color:#8a8a8a">No weekly list yet</div>') + '</div></div>';
 }
 function wallWeather(idx, n) {
   var st = STATIONS[STATION], w = WX.data, now = w.hourly[0] || {}, hl = wxHighLow(w);
@@ -1480,6 +1497,7 @@ function showView() {
   document.body.classList.toggle('deskui', MODE === 'desk');
   if (!signed) return;
   $('who').textContent = msalAccount.name || '';
+  applyStationLock();
   $('stn-pick').value = STATION;
   if (MODE === 'wall') {
     renderWall();
