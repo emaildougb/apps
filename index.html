@@ -502,7 +502,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.6';
+var HUB_VERSION = '3.6.1';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1229,7 +1229,7 @@ function loadMapData() {
       DM.quakes = (j.features || []).map(function(f){
         var c = f.geometry.coordinates;
         return { mag: f.properties.mag, place: f.properties.place || '', t: f.properties.time, lat: c[1], lon: c[0], depth: c[2] };
-      }).filter(function(q){ return q.mag != null && miles(46.0, -122.3, q.lat, q.lon) <= 70; }).sort(function(a, b){ return b.t - a.t; });
+      }).filter(function(q){ return q.mag != null && miles(46.05, -122.3, q.lat, q.lon) <= 40; }).sort(function(a, b){ return b.t - a.t; });
     }),
     getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + STATIONS['51'].lat + ',' + STATIONS['52'].lat + '&longitude=' + STATIONS['51'].lon + ',' + STATIONS['52'].lon + '&current=us_aqi,pm2_5').then(function(j){
       var arr = Array.isArray(j) ? j : [j];
@@ -1274,7 +1274,7 @@ function mapSideHtml(big) {
   }).join('') : '<div class="ms-none">None right now</div>') + (DM.rx ? '<div class="ms-sub">' + DM.rx + ' prescribed burn' + (DM.rx === 1 ? '' : 's') + ' in the area</div>' : '') + '</div>';
   var qs = DM.quakes, big1 = qs.slice().sort(function(a, b){ return b.mag - a.mag; })[0];
   h += '<div class="ms-sec"><div class="ms-h">Earthquakes, last 7 days</div>' + (qs.length
-    ? '<div class="ms-row"><span>' + qs.length + ' near Mount St. Helens and the district</span></div>' +
+    ? '<div class="ms-row"><span>' + qs.length + ' within 40 miles of the district</span></div>' +
       '<div class="ms-item"><b style="color:#ffd84c">Largest M' + big1.mag.toFixed(1) + '</b><span class="ms-sub">' + esc(big1.place) + ' · ' + ago(big1.t) + '</span></div>'
     : '<div class="ms-none">None</div>') + '</div>';
   var hs = heliList();
@@ -1339,7 +1339,7 @@ function renderCams(el, big) {
   if (!el) return;
   var t = Math.floor(Date.now() / 120000);
   el.innerHTML = CAMS.map(function(c){
-    return '<figure class="cam' + (big ? ' big' : '') + '"><img src="' + esc(c.url) + '?t=' + t + '" alt="' + esc(c.name) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"><figcaption>' + esc(c.name) + '</figcaption></figure>';
+    return '<figure class="cam' + (big ? ' big' : '') + '"><img src="' + esc(c.url) + '?t=' + t + '" alt="' + esc(c.name) + '" onerror="this.style.visibility=\'hidden\'"><figcaption>' + esc(c.name) + '</figcaption></figure>';
   }).join('');
 }
 var DESK_MAP = null;

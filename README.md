@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.6. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.6.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.6.1 (11/15/2026)
+- Road cameras load right away (they waited for a scroll on some screens). Earthquakes now counted within 40 miles of the district
 
 ### v3.6 (11/15/2026)
 - **District map** (idea from God's Eye View, godseyeview.ai, kept to our district). Desk sidebar page, phone Weather tab, and two new Wall slides (District map, Roads)
