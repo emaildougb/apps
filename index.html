@@ -275,6 +275,11 @@ body.deskui .dock { display: grid; grid-template-columns: repeat(3, minmax(0, 1f
 @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
 
 /* ---------- District map (3.6) ---------- */
+.os-row { display: flex; align-items: center; gap: 14px; min-height: 52px; border-top: 1px solid var(--rule); padding: 6px 0; }
+.os-row:first-child { border-top: 0; }
+.os-date { width: 92px; flex: none; font-weight: 600; }
+.os-date .sub { font-weight: 400; }
+.os-unit { font-weight: 600; }
 .map-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; }
 #dmap { height: 560px; border-radius: 14px; overflow: hidden; background: #0b0b0b; position: relative; z-index: 0; }
 #stage [data-wmap] { position: relative; z-index: 0; }
@@ -428,10 +433,10 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
       <div id="notes-body"></div>
     </section>
 
-    <section class="panel desk-only" data-desk="shifts" aria-labelledby="h-shifts">
-      <div class="ph"><h2 id="h-shifts">Open shifts</h2></div>
-      <p class="empty">The next open shifts will show here as soon as Derek adds the Hub to his Open Shifts feed. Until then, open the Open Shifts app to see them and sign up.</p>
-      <a class="pill" href="https://shifts.northcountryems.org/" style="text-decoration:none;margin-top:6px">Open the Open Shifts app</a>
+    <section class="panel desk-only" data-tab="home" data-desk="shifts" aria-labelledby="h-shifts">
+      <div class="ph"><h2 id="h-shifts">Open shifts, next 7 days</h2><span class="meta" id="shifts-meta"></span></div>
+      <div id="shifts-body"><p class="empty">Loading…</p></div>
+      <a class="pill ghost" href="https://shifts.northcountryems.org/" style="text-decoration:none;margin-top:12px;height:38px;font-size:14px">Sign up in Open Shifts</a>
     </section>
 
     <section class="panel desk-only" data-tab="weather" data-desk="map" aria-labelledby="h-map">
@@ -503,7 +508,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.6.3';
+var HUB_VERSION = '3.7';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -944,7 +949,7 @@ function renderDeskHome() {
     veh = '<div class="stat">' + ring(52, 7, s.pct, col) + '<div><div class="l">Vehicles checked today</div><div class="v">' + s.pct + '% · ' + s.done + ' of ' + s.total + '</div><div class="w" style="color:' + col + '">' + (left > 0 ? 'Watch: ' + left + ' due by 11:00' : 'All checked') + '</div></div></div>';
   } else veh = '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Vehicles checked today</div><div class="v">—</div><div class="w sub">Loading</div></div></div>';
   $('stats-body').innerHTML = veh +
-    '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Crew coverage this week</div><div class="v">—</div><div class="w sub">Shows once Open Shifts is connected</div></div></div>' +
+    shiftsStat() +
     '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Training completion</div><div class="v">—</div><div class="w sub">Shows once the LMS is connected</div></div></div>';
   /* Station notes: the notice BCs post from the i button */
   $('notes-act').innerHTML = isAdmin() ? '<button class="link-btn" type="button" onclick="openInfo()">' + (hasNotice() ? 'Change' : 'Post a note') + '</button>' : '';
@@ -968,6 +973,7 @@ function goView(v, soonKey) {
   if (VIEW === 'soon') { var so = SOON[SOON_KEY] || ['Coming later', '']; $('d-title').textContent = so[0]; $('soon-body').innerHTML = '<p class="empty" style="margin:0">' + esc(so[1]) + '</p>'; }
   else $('d-title').textContent = VIEW_TITLE[VIEW];
   if (VIEW === 'map') ensureDeskMap();
+  if (VIEW === 'shifts') loadShifts();
   window.scrollTo(0, 0);
 }
 document.querySelectorAll('.side button').forEach(function(b){ b.addEventListener('click', function(){ goView(b.dataset.v, b.dataset.soon); }); });
@@ -1166,6 +1172,7 @@ function wallToday(idx, n) {
 function wallSlides() {
   var list = [];
   if (HUB && shiftUnits(HUB.day).length) list.push(wallToday);
+  if (openShifts7().length) list.push(wallShifts);
   if (FLEET.data) list.push(wallChecks);
   list.push(wallDuties);
   if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
@@ -1187,6 +1194,85 @@ function wallPoke() {
 }
 ['mousemove', 'touchstart', 'click'].forEach(function(ev){ $('wall').addEventListener(ev, wallPoke, { passive: true }); });
 window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); });
+
+
+/* ===== OPEN SHIFTS (3.7) =====
+   Derek's read only Hub feeds (11/15): no names, just the shift. Same Microsoft ID token as everything else.
+   Each shift: date "YYYY-MM-DD", unit, crew (1 medic, 2 EMT), start, end, hours, status open or filled.
+   We show the next 7 days. Never parse the date with new Date(), build it from the parts. */
+var OS_URLS = { 1: 'https://ncems-ot.d-langdon.workers.dev/hub/open-shifts', 2: 'https://ncems-c2.d-langdon.workers.dev/hub/open-shifts' };
+var OS = { list: [], err: '', at: 0, loaded: false };
+function pacificToday() {
+  var p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  var g = function(t){ return (p.filter(function(x){ return x.type === t; })[0] || {}).value; };
+  return g('year') + '-' + g('month') + '-' + g('day');
+}
+function ymdParts(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? { y: +m[1], m: +m[2], d: +m[3] } : null; }
+function ymdDiff(a, b) { var A = ymdParts(a), B = ymdParts(b); if (!A || !B) return null; return Math.round((Date.UTC(B.y, B.m - 1, B.d) - Date.UTC(A.y, A.m - 1, A.d)) / 864e5); }
+function ymdLabel(s) {
+  var p = ymdParts(s); if (!p) return { day: '', date: s || '' };
+  var wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(p.y, p.m - 1, p.d)).getUTCDay()];
+  var mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][p.m - 1];
+  return { day: wd, date: mo + ' ' + p.d };
+}
+function loadShifts() {
+  if (!msalAccount) return Promise.resolve();
+  return idToken().then(function(t){
+    return Promise.allSettled([1, 2].map(function(c){
+      return fetch(OS_URLS[c], { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); });
+    }));
+  }).then(function(res){
+    var list = [], bad = 0;
+    res.forEach(function(r, i){
+      if (r.status !== 'fulfilled') { bad++; return; }
+      (r.value.shifts || []).forEach(function(x){ list.push({ date: String(x.date || ''), unit: String(x.unit || ''), crew: +x.crew || (i + 1), start: String(x.start || ''), end: String(x.end || ''), hours: x.hours, status: String(x.status || '').toLowerCase() }); });
+    });
+    if (bad === 2 && OS.loaded) { OS.err = 'Open Shifts is not answering right now'; }
+    else { OS.list = list; OS.err = bad ? 'One crew list did not load' : ''; OS.loaded = true; OS.at = Date.now(); }
+    renderShifts();
+  }).catch(function(){ OS.err = 'Open Shifts is not answering right now'; renderShifts(); });
+}
+function shifts7() {
+  var today = pacificToday();
+  return OS.list.filter(function(x){ var d = ymdDiff(today, x.date); return d != null && d >= 0 && d <= 6; })
+    .sort(function(a, b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : a.crew - b.crew; });
+}
+function openShifts7() { return shifts7().filter(function(x){ return x.status !== 'filled'; }); }
+function crewWord(c) { return c === 1 ? 'Crew 1, medic' : 'Crew 2, EMT'; }
+function whenWord(x) { var d = ymdDiff(pacificToday(), x.date); return d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : ymdLabel(x.date).day; }
+function shiftsStat() {
+  if (!OS.loaded) return '<div class="stat">' + ring(52, 7, 0, '#2a2a2a') + '<div><div class="l">Open shifts, next 7 days</div><div class="v">—</div><div class="w sub">' + (OS.err ? esc(OS.err) : 'Loading') + '</div></div></div>';
+  var all = shifts7(), open = all.filter(function(x){ return x.status !== 'filled'; }), filled = all.length - open.length;
+  var c1 = open.filter(function(x){ return x.crew === 1; }).length, c2 = open.length - c1;
+  var pct = all.length ? Math.round(filled / all.length * 100) : 100, col = open.length ? 'var(--warn)' : 'var(--good)';
+  return '<div class="stat">' + ring(52, 7, open.length ? pct : 100, col) + '<div><div class="l">Open shifts, next 7 days</div><div class="v">' + open.length + (open.length === 1 ? ' open' : ' open') + '</div><div class="w" style="color:' + col + '">' +
+    (open.length ? 'Crew 1: ' + c1 + ' · Crew 2: ' + c2 : 'All covered') + '</div></div></div>';
+}
+function renderShifts() {
+  var b = $('shifts-body'); if (!b) return;
+  $('shifts-meta').textContent = OS.at ? 'Updated ' + hhmm(new Date(OS.at)) : '';
+  if (!OS.loaded) { b.innerHTML = '<p class="empty">' + (OS.err ? esc(OS.err) + '. Open the Open Shifts app to check.' : 'Loading…') + '</p>'; }
+  else {
+    var open = openShifts7();
+    b.innerHTML = (OS.err ? '<p class="sub" style="color:var(--warn)">' + esc(OS.err) + '</p>' : '') + (open.length ? open.map(function(x){
+      var l = ymdLabel(x.date);
+      return '<div class="os-row"><div class="os-date">' + esc(whenWord(x)) + '<div class="sub">' + esc(l.date) + '</div></div><div class="grow"><span class="os-unit">' + esc(x.unit) + '</span><div class="sub">' + esc(crewWord(x.crew)) +
+        (x.start ? ' · ' + esc(x.start) + ' to ' + esc(x.end) : '') + (x.hours ? ' · ' + esc(x.hours) + ' h' : '') + '</div></div><span class="tag warn">Open</span></div>';
+    }).join('') : '<p class="empty">No open shifts in the next 7 days.</p>');
+  }
+  if (MODE !== 'wall' && $('stats-body')) renderDeskHome();
+  if (MODE === 'wall') renderWall();
+}
+function wallShifts(idx, n) {
+  var open = openShifts7(), shown = open.slice(0, 6);
+  return wHead('Open shifts', open.length + (open.length === 1 ? ' open shift' : ' open shifts') + ' in the next 7 days · sign up in Open Shifts', idx, n) +
+    '<div class="w-panel" style="padding:12px 48px;flex:1;min-height:0">' + shown.map(function(x){
+      var l = ymdLabel(x.date);
+      return '<div class="w-row" style="min-height:120px"><div style="width:300px;flex:none"><div style="font-size:48px;font-weight:600">' + esc(whenWord(x)) + '</div><div style="font-size:28px;color:var(--muted)">' + esc(l.date) + '</div></div>' +
+        '<div style="flex:1;min-width:0"><div style="font-size:52px;font-weight:600">' + esc(x.unit) + '</div><div style="font-size:30px;color:var(--muted)">' + esc(crewWord(x.crew)) + (x.hours ? ' · ' + esc(x.hours) + ' hours' : '') + '</div></div>' +
+        '<span class="w-tag" style="background:var(--warn-bg);color:var(--warn)">Open</span></div>';
+    }).join('') + (open.length > shown.length ? '<div style="font-size:30px;color:var(--muted);padding-top:18px">And ' + (open.length - shown.length) + ' more</div>' : '') + '</div>';
+}
 
 /* ===== DISTRICT MAP (3.6) =====
    Free public feeds, no keys: CARTO dark map, NOAA radar (NWS MRMS), wildfires from NIFC (WFIGS), earthquakes from USGS,
@@ -1409,7 +1495,7 @@ function boot() {
   initMsal().then(function(){
     showView();
     if (!msalAccount) return;
-    loadApps(); loadNotice(); loadFleet(); loadWeather();
+    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts();
     if (MODE === 'wall') { loadMapData(); loadAir(); }
   }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
 }
@@ -1422,6 +1508,7 @@ setInterval(function(){
   if (MODE !== 'wall') $('d-clock').textContent = hhmm(new Date());
 }, 15000);
 setInterval(function(){ if (msalAccount && !document.hidden) { loadNotice(); loadFleet(); } }, 120000);
+setInterval(function(){ if (msalAccount && !document.hidden) loadShifts(); }, 5 * 60e3);
 setInterval(function(){ if (msalAccount) { loadWeather(); checkForUpdate(); } }, 15 * 60e3);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && msalAccount) { loadNotice(); loadFleet(); checkForUpdate(); } });
 

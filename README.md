@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.6.3. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.7. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,12 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.7 (11/15/2026)
+- **Open shifts are live.** Derek made read only Hub feeds (no names): https://ncems-ot.d-langdon.workers.dev/hub/open-shifts (Crew 1, medic) and https://ncems-c2.d-langdon.workers.dev/hub/open-shifts (Crew 2, EMT), Microsoft ID token, hub.northcountryems.org allowed. The Hub shows the next 7 days
+- Desk: Open shifts page lists each open shift (day, unit, crew, hours) with a Sign up in Open Shifts button. Today's middle number is now Open shifts, next 7 days with Crew 1 and Crew 2 counts
+- Wall: Open shifts slide right after Today (only when something is open). Phone: the list is on the Today tab
+- Refreshes every 5 minutes
 
 ### v3.6.3 (11/15/2026)
 - Apps in two rows of three on Desk and phones: HOSCAP, Open Shifts, Apparatus Checker on top; Facilities & Grounds, Incident Report, CG Staff underneath. Desk tiles have the logo on the left. During Duty Incident Report shows as Incident Report. HOSCAP button opens HOSCAP (each person signs in with their own login)
