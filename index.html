@@ -279,6 +279,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
     <div class="sb-title">NCEMS Desk</div>
     <button type="button" data-v="home">Today</button>
     <button type="button" data-v="schedule">Schedule</button>
+    <button type="button" data-v="shifts">Open shifts</button>
     <button type="button" data-v="duties">Daily tasks</button>
     <button type="button" data-v="soon" data-soon="training">Training and events <span class="s">Soon</span></button>
     <button type="button" data-v="soon" data-soon="videos">Training videos <span class="s">Soon</span></button>
@@ -322,7 +323,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
   <div class="notice" id="notice" onclick="openInfo()"><b id="notice-kind">Notice</b><span id="notice-text"></span></div>
 
   <main class="desk" id="desk">
-    <div class="title-row on" data-tab="home" data-desk="home schedule duties checks weather notes soon">
+    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather notes soon">
       <div>
         <h1 id="d-title">Today</h1>
         <p id="d-sub"></p>
@@ -367,6 +368,12 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
     <section class="panel desk-only d6" data-desk="home notes" aria-labelledby="h-notes">
       <div class="ph"><h2 id="h-notes">Station notes</h2><span id="notes-act"></span></div>
       <div id="notes-body"></div>
+    </section>
+
+    <section class="panel desk-only" data-desk="shifts" aria-labelledby="h-shifts">
+      <div class="ph"><h2 id="h-shifts">Open shifts</h2></div>
+      <p class="empty">The next open shifts will show here as soon as Derek adds the Hub to his Open Shifts feed. Until then, open the Open Shifts app to see them and sign up.</p>
+      <a class="pill" href="https://shifts.northcountryems.org/" style="text-decoration:none;margin-top:6px">Open the Open Shifts app</a>
     </section>
 
     <section class="panel desk-only" data-desk="soon" aria-label="Coming later">
@@ -430,7 +437,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.3';
+var HUB_VERSION = '3.4';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -888,7 +895,7 @@ var SOON = {
   lms: ['Training Status', 'Training records and completion will show here once the new LMS is connected.'],
   fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
 };
-var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', notes: 'Station notes' };
+var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', notes: 'Station notes' };
 var VIEW = 'home', SOON_KEY = '';
 function goView(v, soonKey) {
   VIEW = VIEW_TITLE[v] || v === 'soon' ? v : 'home'; SOON_KEY = soonKey || '';
