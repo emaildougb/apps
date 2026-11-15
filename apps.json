@@ -1,15 +1,9 @@
 {
-  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. Every button shows to everyone (no sign-in on the hub since 2.0; each app signs you in itself). style: dark for the darker green, red for red. Use \\n in a title for a line break. Clinical reference lives in the clinical repo (clinical.northcountryems.org). icon: the small picture on the button (files in the icons folder).",
+  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. Every button shows to everyone (no sign-in on the hub since 2.0; each app signs you in itself). style: dark for the darker green, red for red. Use \\n in a title for a line break. Clinical reference lives in the clinical repo (clinical.northcountryems.org). icon: the small picture on the button (files in the icons folder). Order on the Hub: 3 across, top row first (Doug 11/15: HOSCAP, Open Shifts, Apparatus Checker, then Facilities & Grounds, Incident Report, CG Staff).",
   "operations": [
     {
       "label": "Operations",
       "buttons": [
-        {
-          "title": "Open\nShifts",
-          "sub": "Overtime and open shifts",
-          "url": "https://shifts.northcountryems.org/",
-          "icon": "icons/shifts.png"
-        },
         {
           "title": "HOSCAP",
           "sub": "Hospital status, sign in with your HOSCAP login",
@@ -17,35 +11,35 @@
           "icon": "icons/hoscap.png"
         },
         {
-          "title": "During Duty\nIncident Report",
-          "sub": "Service related reporting",
-          "url": "https://reports.northcountryems.org/",
-          "style": "red",
-          "icon": "icons/ir.png"
-        }
-      ]
-    },
-    {
-      "label": "Logistics",
-      "buttons": [
+          "title": "Open\nShifts",
+          "sub": "Overtime and open shifts",
+          "url": "https://shifts.northcountryems.org/",
+          "icon": "icons/shifts.png"
+        },
         {
           "title": "Apparatus\nChecker",
           "sub": "Daily rig checks",
           "url": "https://checks.northcountryems.org/",
           "icon": "icons/apparatus.png"
-        },
+        }
+      ]
+    },
+    {
+      "label": "More",
+      "buttons": [
         {
           "title": "Facilities\n& Grounds",
           "sub": "Buildings and grounds",
           "url": "https://fng.northcountryems.org/",
           "style": "dark",
           "icon": "icons/fng.png"
-        }
-      ]
-    },
-    {
-      "label": "BC / Chief",
-      "buttons": [
+        },
+        {
+          "title": "Incident Report",
+          "sub": "Service related reporting",
+          "url": "https://reports.northcountryems.org/",
+          "icon": "icons/ir.png"
+        },
         {
           "title": "CG Staff",
           "sub": "CG Staff only",

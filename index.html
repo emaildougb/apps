@@ -89,7 +89,6 @@ main.desk { padding: 20px 24px 40px; display: grid; grid-template-columns: repea
 .app-btn img, .dock img { width: 40px; height: 40px; border-radius: 10px; flex: none; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
 .app-btn .t, .dock .t { font-weight: 600; font-size: 13px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; }
 .app-btn { min-height: 104px; }
-@media (max-width: 1300px) { .dock .t { font-size: 12px; } .dock a { padding: 10px 6px; } }
 
 /* Rows */
 .row { display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid var(--rule); padding: 6px 0; }
@@ -176,7 +175,7 @@ body.deskui .side { display: flex; flex-direction: column; gap: 2px; position: f
 .side button:hover { color: #fff; }
 .side button.on { background: var(--raised); color: #fff; font-weight: 600; }
 .side button .s { font-size: 11px; color: var(--dim); font-weight: 400; }
-body.deskui #app { padding-left: 184px; padding-bottom: 128px; }
+body.deskui #app { padding-left: 184px; padding-bottom: 160px; }
 body.deskui .duty-row { font-size: 14px; min-height: 44px; }
 body.deskui.v-home .notice:not(.urgent) { display: none; }
 body.deskui .top > img, body.deskui .top .brand-wrap, body.deskui .top #wall-btn, body.deskui #d-clock { display: none; }
@@ -224,8 +223,10 @@ body.deskui.v-home .dtmr { display: none; }
 .note:first-child { border-top: 0; padding-top: 0; }
 .note .t { font-weight: 600; font-size: 14px; line-height: 1.4; }
 .link-btn { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; }
-body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; right: 0; bottom: 0; padding: 12px 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: #000; border-top: 1px solid #1a1a1a; z-index: 6; }
-.dock a { flex: 1 1 0; height: 96px; }
+body.deskui .dock { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; position: fixed; left: 184px; right: 0; bottom: 0; padding: 12px 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: #000; border-top: 1px solid #1a1a1a; z-index: 6; }
+.dock a { height: 58px; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 0 16px; text-align: left; }
+.dock img { width: 34px; height: 34px; border-radius: 8px; }
+.dock .t { font-size: 14px; }
 
 /* Info sheet */
 .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -502,7 +503,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.6.2';
+var HUB_VERSION = '3.6.3';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -632,7 +633,7 @@ function renderApps() {
   /* Desk: every app in one line along the bottom of the screen */
   $('dock').innerHTML = APPS.operations.reduce(function(a, sec){ return a.concat(sec.buttons || []); }, []).map(function(b){
     var tt = String(b.title).replace(/\n/g, ' ');
-    return '<a href="' + esc(b.url) + '" style="flex-grow:' + Math.max(1, Math.min(2, tt.length / 16)).toFixed(2) + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
+    return '<a href="' + esc(b.url) + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
       '<div class="t">' + esc(String(b.title).replace(/\n/g, ' ')) + '</div></a>';
   }).join('');
   $('apps-body').innerHTML = '<div class="app-grid">' + APPS.operations.reduce(function(a, sec){ return a.concat(sec.buttons || []); }, []).map(function(b){
