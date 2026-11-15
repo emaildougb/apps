@@ -157,7 +157,7 @@ body.deskui .side { display: flex; flex-direction: column; gap: 2px; position: f
 .side button:hover { color: #fff; }
 .side button.on { background: var(--raised); color: #fff; font-weight: 600; }
 .side button .s { font-size: 11px; color: var(--dim); font-weight: 400; }
-body.deskui #app { padding-left: 184px; padding-bottom: 84px; }
+body.deskui #app { padding-left: 184px; padding-bottom: 96px; }
 body.deskui .duty-row { font-size: 14px; min-height: 44px; }
 body.deskui.v-home .notice:not(.urgent) { display: none; }
 body.deskui .top > img, body.deskui .top .brand-wrap, body.deskui .top #wall-btn, body.deskui #d-clock { display: none; }
@@ -206,12 +206,11 @@ body.deskui.v-home .dtmr { display: none; }
 .note .t { font-weight: 600; font-size: 14px; line-height: 1.4; }
 .link-btn { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; }
 body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; right: 0; bottom: 0; padding: 12px 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: #000; border-top: 1px solid #1a1a1a; z-index: 6; }
-.dock a { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 14px; border-radius: 14px; background: var(--raised); color: #fff; text-decoration: none; }
+.dock a { flex: 1 1 auto; min-width: 0; justify-content: center; display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 16px; border-radius: 14px; background: var(--raised); color: #fff; text-decoration: none; }
 .dock a:hover { background: var(--nest); }
-.dock a.red { box-shadow: inset 3px 0 0 #c13e3e; }
-.dock img { width: 28px; height: 28px; border-radius: 7px; flex: none; }
-.dock .t { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dock .s { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dock img { width: 34px; height: 34px; border-radius: 8px; flex: none; }
+@media (max-width: 1280px) { .dock img { display: none; } .dock a { padding: 0 12px; } }
+.dock .t { font-weight: 600; font-size: 14px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; }
 
 /* Info sheet */
 .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -252,10 +251,8 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
 .w-task { display: flex; align-items: center; gap: 32px; min-height: 140px; border-bottom: 1px solid var(--rule); }
 .w-task .txt { flex: 1; font-size: 48px; font-weight: 600; line-height: 1.15; }
 .w-big { font-size: 112px; font-weight: 600; line-height: 1; }
-#wall-back { position: absolute; right: 24px; bottom: 24px; z-index: 3; opacity: 0; pointer-events: none; transition: opacity .3s; }
-#wall.cursor #wall-back { opacity: 1; pointer-events: auto; }
 #wall-sign { position: absolute; left: 24px; bottom: 24px; z-index: 3; color: var(--bad); font-size: 18px; }
-#wall-keys { position: absolute; right: 24px; bottom: 80px; z-index: 3; color: var(--faint); font-size: 14px; opacity: 0; transition: opacity .3s; }
+#wall-keys { position: absolute; right: 24px; bottom: 24px; z-index: 3; color: var(--faint); font-size: 14px; opacity: 0; transition: opacity .3s; }
 #wall.cursor #wall-keys { opacity: 1; }
 #wall-paused { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 3; display: none; padding: 10px 22px; border-radius: 999px; background: var(--raised); color: #fff; font-size: 18px; font-weight: 600; }
 #wall-paused.show { display: block; }
@@ -288,8 +285,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
     <button type="button" data-v="checks">Vehicle checks</button>
     <button type="button" data-v="weather">Weather</button>
     <button type="button" data-v="notes">Station notes</button>
-    <button type="button" data-v="soon" data-soon="lms">LMS <span class="s">Soon</span></button>
-    <button type="button" data-v="soon" data-soon="fd13">Fire District 13 <span class="s">Soon</span></button>
+    <button type="button" data-v="soon" data-soon="lms">Training Status <span class="s">Soon</span></button>
   </aside>
   <header class="top">
     <img src="logo.png" alt="">
@@ -304,7 +300,21 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
     <select id="stn-pick" onchange="setStation(this.value)">
       <option value="51">Station 51</option>
       <option value="52">Station 52</option>
+      <option value="fd13" disabled>FD13 (coming soon)</option>
     </select>
+      <div class="d-ctl">
+      <label for="spd">Rotate</label>
+      <select id="spd" onchange="setSpeed(this.value)">
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+        <option value="15">15 seconds</option>
+        <option value="custom">Custom</option>
+      </select>
+      <label class="sr" for="spd-c">Seconds, 3 to 20</label>
+      <input id="spd-c" class="hide" type="number" min="3" max="20" step="1" onchange="setSpeed(this.value)" title="Seconds per slide, 3 to 20">
+      <button class="pill ghost" type="button" onclick="startWall()" title="Turn this screen into the Wall. It stays the Wall on this computer until someone taps Back to Desk.">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18v12H3z"/><path d="M8 21h8M12 17v4"/></svg>Wall</button>
+      </div>
     <button class="pill ghost" type="button" id="wall-btn" onclick="startWall()" title="Turn this screen into the Wall. It stays the Wall on this computer until someone taps Back to Desk.">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18v12H3z"/><path d="M8 21h8M12 17v4"/></svg>Wall</button>
     <button class="icon-btn" type="button" onclick="openInfo()" aria-label="Details and sign out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01" stroke-linecap="round"/></svg></button>
@@ -318,19 +328,6 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
         <p id="d-sub"></p>
       </div>
       <div class="clock-sm" id="d-clock"></div>
-      <div class="d-ctl">
-        <label for="spd">Rotate every</label>
-        <select id="spd" onchange="setSpeed(this.value)">
-          <option value="5">5 seconds</option>
-          <option value="10">10 seconds</option>
-          <option value="15">15 seconds</option>
-          <option value="custom">Custom</option>
-        </select>
-        <label class="sr" for="spd-c">Seconds, 3 to 20</label>
-        <input id="spd-c" class="hide" type="number" min="3" max="20" step="1" onchange="setSpeed(this.value)" title="Seconds per slide, 3 to 20">
-        <button class="pill ghost" type="button" onclick="startWall()" title="Turn this screen into the Wall. It stays the Wall on this computer until someone taps Back to Desk.">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18v12H3z"/><path d="M8 21h8M12 17v4"/></svg>Wall</button>
-      </div>
     </div>
 
     <section class="panel desk-only d8" data-desk="home" aria-labelledby="h-crews">
@@ -426,15 +423,14 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
 <!-- Wall: the station TV. Cycles on its own; moving the mouse or tapping shows Back to Desk -->
 <div id="wall" class="hide" aria-live="off">
   <div class="stage" id="stage"></div>
-  <button class="pill" id="wall-back" type="button" onclick="stopWall()">Back to Desk</button>
   <div id="wall-sign"></div>
-  <div id="wall-keys">Arrow keys change slides · Space pauses · Enter continues</div>
+  <div id="wall-keys">Arrow keys change slides · Space pauses · Enter continues · Esc goes back to Desk</div>
   <div id="wall-paused" role="status">Paused · press Enter to continue</div>
 </div>
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.2';
+var HUB_VERSION = '3.3';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -538,7 +534,7 @@ function idToken() {
       if (MODE !== 'wall' && e && /interaction_required|login_required|consent_required/.test(e.errorCode || '')) {
         msalApp.acquireTokenRedirect({ scopes: ['User.Read'], account: msalAccount }); return new Promise(function(){});
       }
-      if (MODE === 'wall') $('wall-sign').textContent = 'Sign in needed: tap Back to Desk, then sign in again.';
+      if (MODE === 'wall') $('wall-sign').textContent = 'Sign in needed: press Esc, then sign in again.';
       throw e;
     });
 }
@@ -563,8 +559,8 @@ function renderApps() {
   if (!APPS) { $('apps-body').innerHTML = '<p class="empty">Loading…</p>'; return; }
   /* Desk: every app in one line along the bottom of the screen */
   $('dock').innerHTML = APPS.operations.reduce(function(a, sec){ return a.concat(sec.buttons || []); }, []).map(function(b){
-    return '<a class="' + (b.style === 'red' ? 'red' : '') + '" href="' + esc(b.url) + '" title="' + esc(b.sub || '') + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
-      '<div style="min-width:0"><div class="t">' + esc(String(b.title).replace(/\n/g, ' ')) + '</div>' + (b.sub ? '<div class="s">' + esc(b.sub) + '</div>' : '') + '</div></a>';
+    return '<a href="' + esc(b.url) + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
+      '<div class="t">' + esc(String(b.title).replace(/\n/g, ' ')) + '</div></a>';
   }).join('');
   $('apps-body').innerHTML = APPS.operations.map(function(sec){
     var bs = sec.buttons || []; if (!bs.length) return '';
@@ -730,9 +726,18 @@ function dutyList() {
   var saved = {}; ((HUB && HUB.duties) || []).forEach(function(x){ saved[x.id] = x; });
   var items = (WEEK[day] || []).map(function(t, i){ var id = 'w:' + day + ':' + i, s = saved[id] || {}; return { id: id, text: t, done: !!s.done_at, by: s.done_name || '', at: s.done_at || '', added: '' }; });
   ((HUB && HUB.duties) || []).filter(function(x){ return x.id.indexOf('a:') === 0; }).forEach(function(x){
-    items.push({ id: x.id, text: x.text, done: !!x.done_at, by: x.done_name || '', at: x.done_at || '', added: x.added_name ? 'Added by ' + x.added_name : 'Added by a BC' });
+    items.push({ id: x.id, text: x.text, done: !!x.done_at, by: x.done_name || '', at: x.done_at || '', added: 'Added by ' + adderTitle(x) });
   });
   return items;
+}
+/* Only these people can add duties (ncems-checks 1.7 checks it). Shown as "Added by BC Boyce" */
+var ADDER_TITLES = { 'd.boyce': 'BC Boyce', 'd.langdon': 'BC Langdon', 'd.madler': 'BC Madler', 'b.shirley': 'Chief Shirley', 'j.robertson': 'AC Robertson', 's.schutts': 'AC Schutts' };
+function adderTitle(x) {
+  var e = String(x.added_by || '').toLowerCase(), u = e.slice(-DOMAIN.length) === DOMAIN ? e.slice(0, -DOMAIN.length) : '';
+  if (ADDER_TITLES[u]) return ADDER_TITLES[u];
+  var last = String(x.added_name || '').trim().split(/\s+/).pop().toLowerCase();
+  for (var k in ADDER_TITLES) if (last && ADDER_TITLES[k].toLowerCase().split(' ').pop() === last) return ADDER_TITLES[k];
+  return x.added_name || 'a BC';
 }
 function firstName(n) { var p = String(n || '').trim().split(/\s+/); return p.length > 1 ? p[0].charAt(0) + '. ' + p[p.length - 1] : p[0] || ''; }
 function renderDuties() {
@@ -880,7 +885,7 @@ function renderDeskHome() {
 var SOON = {
   training: ['Training and events', 'Classes, drills and county events will show here once the training calendar is connected.'],
   videos: ['Training videos', 'Training videos will show here in a later build.'],
-  lms: ['LMS', 'Training records and completion will show here once the new LMS is connected.'],
+  lms: ['Training Status', 'Training records and completion will show here once the new LMS is connected.'],
   fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
 };
 var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', notes: 'Station notes' };
@@ -994,6 +999,12 @@ document.addEventListener('keydown', function(e){
   else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); wallGo(-1); }
   else if (k === ' ' || k === 'Spacebar') { e.preventDefault(); wallPause(!WALL.paused); }
   else if (k === 'Enter') { e.preventDefault(); if (WALL.paused) wallPause(false); }
+  else if (k === 'Escape' || k === 'Esc') { e.preventDefault(); stopWall(); }
+});
+/* In full screen the browser uses Esc to leave full screen and the page never sees the key, so leaving full screen also leaves the Wall */
+document.addEventListener('fullscreenchange', function(){
+  if (document.fullscreenElement) WALL.fs = true;
+  else if (WALL.fs) { WALL.fs = false; if (MODE === 'wall') stopWall(); }
 });
 function startWall() {
   store('ncems_hub_mode', 'wall'); MODE = 'wall';
@@ -1002,6 +1013,7 @@ function startWall() {
 }
 function stopWall() {
   store('ncems_hub_mode', null); MODE = IS_TOUCH_DEVICE || window.innerWidth < 700 ? 'pocket' : 'desk';
+  WALL.fs = false;
   try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
   clearTimeout(WALL.timer); WALL.timer = null; WALL.paused = false; $('wall-paused').classList.remove('show');
   showView();
