@@ -19,6 +19,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 /* Hub 3.0: Wall (station TV), Desk (computers) and Pocket (phones). One dark look, true black,
    panels one shade lighter, color only on data. Text sizes on the Wall are about 3x Desk so it reads at 10 feet. */
@@ -270,6 +272,47 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
 #wall-paused { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 3; display: none; padding: 10px 22px; border-radius: 999px; background: var(--raised); color: #fff; font-size: 18px; font-weight: 600; }
 #wall-paused.show { display: block; }
 @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
+
+/* ---------- District map (3.6) ---------- */
+.map-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; }
+#dmap { height: 560px; border-radius: 14px; overflow: hidden; background: #0b0b0b; position: relative; z-index: 0; }
+#stage [data-wmap] { position: relative; z-index: 0; }
+.cams { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.cam { margin: 0; }
+.cam img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 10px; background: var(--raised); display: block; }
+.cam figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.map-credit { font-size: 11px; color: var(--dim); margin: 12px 0 0; }
+body.pocket .map-wrap { grid-template-columns: 1fr; }
+body.pocket #dmap { height: 340px; }
+body.pocket .cams { grid-template-columns: 1fr 1fr; }
+.ms-sec { padding: 10px 0; border-top: 1px solid var(--rule); }
+.ms-sec:first-child { border-top: 0; padding-top: 0; }
+.ms-h { font-size: 12px; color: var(--faint); margin-bottom: 6px; }
+.ms-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.ms-row b { font-size: 18px; }
+.ms-item { padding: 3px 0; font-size: 14px; }
+.ms-item b { display: block; }
+.ms-sub { display: block; font-size: 12px; color: var(--muted); }
+.ms-row .ms-sub { display: inline; }
+.ms-none { font-size: 14px; color: var(--muted); }
+.ms.big .ms-sec { padding: 12px 0; }
+.ms.big .ms-h { font-size: 24px; margin-bottom: 6px; }
+.ms.big .ms-row, .ms.big .ms-item, .ms.big .ms-none { font-size: 28px; }
+.ms.big .ms-row b { font-size: 40px; }
+.ms.big .ms-sub { font-size: 22px; }
+.leaflet-container { background: #0b0b0b; font-family: var(--font); }
+.leaflet-control-attribution { background: rgba(0,0,0,.6) !important; color: #888 !important; font-size: 10px; }
+.leaflet-control-attribution a { color: #aaa !important; }
+.leaflet-bar a { background: #1c1c1c; color: #fff; border-color: #333; }
+.dm-lab { width: 0 !important; height: 0 !important; }
+.dm-lab span { position: absolute; left: 10px; top: -9px; white-space: nowrap; font-size: 12px; font-weight: 600; color: #fff; text-shadow: 0 0 4px #000, 0 0 2px #000; }
+.dm-lab.left span { left: auto; right: 10px; }
+.dm-lab.mtn span { color: #c9c9c9; }
+#stage .dm-lab span { font-size: 26px; top: -17px; left: 16px; }
+#stage .dm-lab.left span { left: auto; right: 16px; }
+.dm-heli { background: none; border: 0; }
+.dm-tip { background: rgba(0,0,0,.8); color: #fff; border: 0; box-shadow: none; font-size: 12px; }
+#stage .dm-tip { font-size: 22px; }
 </style>
 </head>
 <body>
@@ -298,6 +341,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
     <button type="button" data-v="soon" data-soon="videos">Training videos <span class="s">Soon</span></button>
     <button type="button" data-v="checks">Vehicle checks</button>
     <button type="button" data-v="weather">Weather</button>
+    <button type="button" data-v="map">District map</button>
     <button type="button" data-v="notes">Station notes</button>
     <button type="button" data-v="soon" data-soon="lms">Training Status <span class="s">Soon</span></button>
   </aside>
@@ -336,7 +380,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
   <div class="notice" id="notice" onclick="openInfo()"><b id="notice-kind">Notice</b><span id="notice-text"></span></div>
 
   <main class="desk" id="desk">
-    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather notes soon">
+    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather map notes soon">
       <div>
         <h1 id="d-title">Today</h1>
         <p id="d-sub"></p>
@@ -387,6 +431,14 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
       <div class="ph"><h2 id="h-shifts">Open shifts</h2></div>
       <p class="empty">The next open shifts will show here as soon as Derek adds the Hub to his Open Shifts feed. Until then, open the Open Shifts app to see them and sign up.</p>
       <a class="pill" href="https://shifts.northcountryems.org/" style="text-decoration:none;margin-top:6px">Open the Open Shifts app</a>
+    </section>
+
+    <section class="panel desk-only" data-tab="weather" data-desk="map" aria-labelledby="h-map">
+      <div class="ph"><h2 id="h-map">District map</h2><span class="meta" id="map-meta"></span></div>
+      <div class="map-wrap"><div id="dmap"></div><div id="map-side"></div></div>
+      <p class="stn" style="margin-top:18px">Road cameras</p>
+      <div class="cams" id="cams"></div>
+      <p class="map-credit">Radar NOAA. Wildfires NIFC. Earthquakes USGS. Air quality Open-Meteo. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map © OpenStreetMap, © CARTO.</p>
     </section>
 
     <section class="panel desk-only" data-desk="soon" aria-label="Coming later">
@@ -450,7 +502,7 @@ body.deskui .dock { display: flex; gap: 10px; position: fixed; left: 184px; righ
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.5';
+var HUB_VERSION = '3.6';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -905,7 +957,7 @@ var SOON = {
   lms: ['Training Status', 'Training records and completion will show here once the new LMS is connected.'],
   fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
 };
-var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', notes: 'Station notes' };
+var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Station notes' };
 var VIEW = 'home', SOON_KEY = '';
 function goView(v, soonKey) {
   VIEW = VIEW_TITLE[v] || v === 'soon' ? v : 'home'; SOON_KEY = soonKey || '';
@@ -914,6 +966,7 @@ function goView(v, soonKey) {
   document.querySelectorAll('#desk > *').forEach(function(el){ el.classList.toggle('von', (' ' + (el.dataset.desk || '') + ' ').indexOf(' ' + VIEW + ' ') >= 0); });
   if (VIEW === 'soon') { var so = SOON[SOON_KEY] || ['Coming later', '']; $('d-title').textContent = so[0]; $('soon-body').innerHTML = '<p class="empty" style="margin:0">' + esc(so[1]) + '</p>'; }
   else $('d-title').textContent = VIEW_TITLE[VIEW];
+  if (VIEW === 'map') ensureDeskMap();
   window.scrollTo(0, 0);
 }
 document.querySelectorAll('.side button').forEach(function(b){ b.addEventListener('click', function(){ goView(b.dataset.v, b.dataset.soon); }); });
@@ -981,6 +1034,7 @@ function goTab(t) {
   document.querySelectorAll('#desk [data-tab]').forEach(function(el){
     el.classList.toggle('on', el.dataset.tab === t || el.dataset.also === t);
   });
+  if (t === 'weather') ensureDeskMap();
   window.scrollTo(0, 0);
 }
 
@@ -1026,6 +1080,7 @@ document.addEventListener('fullscreenchange', function(){
 });
 function startWall() {
   store('ncems_hub_mode', 'wall'); MODE = 'wall';
+  if (!DM.loaded) loadMapData(); if (!DM.air) loadAir();
   try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){}); } catch (e) {}
   showView();
 }
@@ -1113,6 +1168,8 @@ function wallSlides() {
   if (FLEET.data) list.push(wallChecks);
   list.push(wallDuties);
   if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
+  if (mapReady()) list.push(wallMap);
+  list.push(wallRoads);
   return list;
 }
 function renderWall() {
@@ -1120,6 +1177,7 @@ function renderWall() {
   if (WALL.i >= n) WALL.i = 0;
   $('stage').innerHTML = list.map(function(fn, i){ return '<section class="slide' + (i === WALL.i ? ' on' : '') + '">' + fn(i, n) + '</section>'; }).join('');
   fitStage();
+  mountWallMap();
 }
 function wallTick() { WALL.i = (WALL.i + 1) % Math.max(1, wallSlides().length); renderWall(); wallSchedule(); }
 function wallPoke() {
@@ -1128,6 +1186,201 @@ function wallPoke() {
 }
 ['mousemove', 'touchstart', 'click'].forEach(function(ev){ $('wall').addEventListener(ev, wallPoke, { passive: true }); });
 window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); });
+
+/* ===== DISTRICT MAP (3.6) =====
+   Free public feeds, no keys: CARTO dark map, NOAA radar (NWS MRMS), wildfires from NIFC (WFIGS), earthquakes from USGS,
+   air quality from Open-Meteo, WSDOT road cameras. Helicopters come from public ADS-B through ncems-checks /fleet/air,
+   because those feeds don't allow browser calls. Inspired by God's Eye View (godseyeview.ai), kept to our district. */
+var DM_CENTER = [45.95, -122.40], DM_ZOOM = 10;
+var DM_BOX = '-123.2,45.3,-121.4,46.6';
+var ST_HELENS = { name: 'Mount St. Helens', lat: 46.1912, lon: -122.1944 };
+var CAMS = [
+  { name: 'SR 503 at Rock Creek Rd', url: 'https://images.wsdot.wa.gov/sw/503vc01372.jpg' },
+  { name: 'SR 503 at Main St, Battle Ground', url: 'https://images.wsdot.wa.gov/sw/503vc00812.jpg' },
+  { name: 'SR 503 at 179th St', url: 'https://images.wsdot.wa.gov/sw/503vc00608.jpg' },
+  { name: 'I-5 at Woodland', url: 'https://images.wsdot.wa.gov/sw/005vc02098.jpg' }
+];
+var DM = { fires: [], perims: null, rx: 0, quakes: [], aqi: {}, air: null, airErr: '', at: 0, loaded: false };
+var MAPS = [];
+function miles(lat1, lon1, lat2, lon2) {
+  var R = 3958.8, r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+function fromSt51(lat, lon) { var s = STATIONS['51']; return Math.round(miles(s.lat, s.lon, lat, lon)); }
+function arcQuery(layer, fields) {
+  return 'https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/' + layer + '/FeatureServer/0/query?where=1%3D1&geometry=' +
+    encodeURIComponent(DM_BOX) + '&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=' + fields +
+    '&outSR=4326&geometryPrecision=4&maxAllowableOffset=0.002&f=geojson';
+}
+function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }); }
+function loadMapData() {
+  var jobs = [
+    getJSON(arcQuery('WFIGS_Incident_Locations_Current', 'IncidentName,IncidentSize,PercentContained,IncidentTypeCategory,FireDiscoveryDateTime')).then(function(j){
+      var fs = (j.features || []).filter(function(f){ return f.geometry && f.geometry.coordinates; });
+      DM.rx = fs.filter(function(f){ return f.properties.IncidentTypeCategory === 'RX'; }).length;
+      DM.fires = fs.filter(function(f){ return f.properties.IncidentTypeCategory !== 'RX'; }).map(function(f){
+        var p = f.properties, c = f.geometry.coordinates;
+        return { name: p.IncidentName || 'Fire', acres: p.IncidentSize, pct: p.PercentContained, lat: c[1], lon: c[0], mi: fromSt51(c[1], c[0]) };
+      }).sort(function(a, b){ return a.mi - b.mi; });
+    }),
+    getJSON(arcQuery('WFIGS_Interagency_Perimeters_Current', 'poly_IncidentName')).then(function(j){ DM.perims = j; }),
+    getJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson').then(function(j){
+      DM.quakes = (j.features || []).map(function(f){
+        var c = f.geometry.coordinates;
+        return { mag: f.properties.mag, place: f.properties.place || '', t: f.properties.time, lat: c[1], lon: c[0], depth: c[2] };
+      }).filter(function(q){ return q.mag != null && miles(46.0, -122.3, q.lat, q.lon) <= 70; }).sort(function(a, b){ return b.t - a.t; });
+    }),
+    getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + STATIONS['51'].lat + ',' + STATIONS['52'].lat + '&longitude=' + STATIONS['51'].lon + ',' + STATIONS['52'].lon + '&current=us_aqi,pm2_5').then(function(j){
+      var arr = Array.isArray(j) ? j : [j];
+      DM.aqi = { '51': arr[0] && arr[0].current, '52': arr[1] && arr[1].current };
+    })
+  ];
+  return Promise.allSettled(jobs).then(function(){ DM.loaded = true; DM.at = Date.now(); drawMaps(); renderMapSide(); });
+}
+function loadAir() {
+  if (!msalAccount) return Promise.resolve();
+  return idToken().then(function(t){ return fetch(FLEET_URL + '/fleet/air', { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' }); })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){ if (j && j.ok) { DM.air = j; DM.airErr = ''; } else DM.airErr = 'Aircraft feed not available'; drawAir(); renderMapSide(); })
+    .catch(function(){ DM.airErr = 'Aircraft feed not available'; renderMapSide(); });
+}
+function aqiInfo(v) {
+  if (v == null) return { t: 'No reading', c: 'var(--faint)' };
+  if (v <= 50) return { t: 'Good', c: 'var(--good)' };
+  if (v <= 100) return { t: 'Moderate', c: 'var(--warn)' };
+  if (v <= 150) return { t: 'Unhealthy for sensitive groups', c: '#f08a3c' };
+  if (v <= 200) return { t: 'Unhealthy', c: 'var(--bad)' };
+  return { t: 'Very unhealthy', c: '#c77dff' };
+}
+function ago(ms) {
+  var m = Math.round((Date.now() - ms) / 60000);
+  if (m < 60) return m + ' min ago';
+  var h = Math.round(m / 60); if (h < 48) return h + ' h ago';
+  return Math.round(h / 24) + ' days ago';
+}
+function heliList() { return (DM.air && DM.air.heli) || []; }
+/* The list beside the map. big = Wall sizes */
+function mapSideHtml(big) {
+  var cls = big ? 'ms big' : 'ms';
+  var h = '<div class="' + cls + '">';
+  h += '<div class="ms-sec"><div class="ms-h">Air quality</div>' + ['51', '52'].map(function(st){
+    var a = DM.aqi[st], v = a && a.us_aqi != null ? Math.round(a.us_aqi) : null, i = aqiInfo(v);
+    return '<div class="ms-row"><span>Station ' + st + '</span><b style="color:' + i.c + '">' + (v == null ? '–' : v) + '</b><span class="ms-sub" style="color:' + i.c + '">' + i.t + '</span></div>';
+  }).join('') + '</div>';
+  var fires = DM.fires.filter(function(f){ return f.mi <= 75; });
+  h += '<div class="ms-sec"><div class="ms-h">Wildfires within 75 miles</div>' + (fires.length ? fires.slice(0, big ? 2 : 4).map(function(f){
+    return '<div class="ms-item"><b style="color:#ff8a4c">' + esc(f.name) + '</b><span class="ms-sub">' + f.mi + ' mi from 51' + (f.acres ? ' · ' + Math.round(f.acres).toLocaleString() + ' acres' : '') + (f.pct != null ? ' · ' + f.pct + '% contained' : '') + '</span></div>';
+  }).join('') : '<div class="ms-none">None right now</div>') + (DM.rx ? '<div class="ms-sub">' + DM.rx + ' prescribed burn' + (DM.rx === 1 ? '' : 's') + ' in the area</div>' : '') + '</div>';
+  var qs = DM.quakes, big1 = qs.slice().sort(function(a, b){ return b.mag - a.mag; })[0];
+  h += '<div class="ms-sec"><div class="ms-h">Earthquakes, last 7 days</div>' + (qs.length
+    ? '<div class="ms-row"><span>' + qs.length + ' near Mount St. Helens and the district</span></div>' +
+      '<div class="ms-item"><b style="color:#ffd84c">Largest M' + big1.mag.toFixed(1) + '</b><span class="ms-sub">' + esc(big1.place) + ' · ' + ago(big1.t) + '</span></div>'
+    : '<div class="ms-none">None</div>') + '</div>';
+  var hs = heliList();
+  h += '<div class="ms-sec"><div class="ms-h">Helicopters in the air</div>' + (DM.airErr && !DM.air ? '<div class="ms-none">' + esc(DM.airErr) + '</div>'
+    : hs.length ? hs.slice(0, big ? 2 : 5).map(function(a){
+      return '<div class="ms-item"><b style="color:#5ad1ff">' + esc(a.flight || a.reg || a.hex) + '</b><span class="ms-sub">' + esc(a.type || 'Helicopter') +
+        (a.alt != null && a.alt !== 'ground' ? ' · ' + Math.round(a.alt).toLocaleString() + ' ft' : a.alt === 'ground' ? ' · on the ground' : '') + ' · ' + fromSt51(a.lat, a.lon) + ' mi from 51</span></div>';
+    }).join('') : '<div class="ms-none">' + (DM.air ? 'None right now' : 'Loading…') + '</div>') + '</div>';
+  return h + '</div>';
+}
+function renderMapSide() {
+  var s = $('map-side'); if (s) s.innerHTML = mapSideHtml(false);
+  var m = $('map-meta'); if (m) m.textContent = DM.at ? 'Updated ' + hhmm(new Date(DM.at)) : '';
+  var w = document.querySelector('#stage .w-mapside'); if (w) w.innerHTML = mapSideHtml(true);
+}
+function mapReady() { return typeof L !== 'undefined'; }
+function makeMap(el, wall) {
+  if (!mapReady()) return null;
+  var map = L.map(el, { center: DM_CENTER, zoom: DM_ZOOM, zoomControl: !wall, attributionControl: true, dragging: !wall, scrollWheelZoom: false, doubleClickZoom: !wall, boxZoom: false, keyboard: false, touchZoom: !wall });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 18, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
+  var radar = L.tileLayer.wms('https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows', { layers: 'conus_bref_qcd', format: 'image/png', transparent: true, opacity: 0.55, attribution: 'Radar NOAA' }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 18, pane: 'shadowPane' }).addTo(map);
+  var g = { perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), quakes: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
+  var lab = function(t, cls){ return L.divIcon({ className: 'dm-lab ' + (cls || ''), html: '<span>' + t + '</span>', iconSize: [0, 0] }); };
+  ['51', '52'].forEach(function(st){
+    var s = STATIONS[st];
+    L.circleMarker([s.lat, s.lon], { radius: wall ? 9 : 6, color: '#000', weight: 2, fillColor: '#fff', fillOpacity: 1 }).addTo(g.base);
+    L.marker([s.lat, s.lon], { icon: lab('Station ' + st, st === '52' ? 'st left' : 'st'), interactive: false }).addTo(g.base);
+  });
+  L.marker([ST_HELENS.lat, ST_HELENS.lon], { icon: lab('▲ Mount St. Helens', 'mtn'), interactive: false }).addTo(g.base);
+  var o = { map: map, g: g, wall: wall, radar: radar };
+  MAPS.push(o);
+  drawMap(o); drawAirOn(o);
+  setInterval(function(){ radar.setParams({ t: Date.now() }); }, 5 * 60e3);
+  return o;
+}
+function drawMap(o) {
+  var g = o.g, w = o.wall;
+  g.perim.clearLayers(); g.fires.clearLayers(); g.quakes.clearLayers();
+  if (DM.perims && DM.perims.features && DM.perims.features.length) L.geoJSON(DM.perims, { style: { color: '#ff7a3c', weight: 2, fillColor: '#ff7a3c', fillOpacity: 0.18 }, interactive: false }).addTo(g.perim);
+  DM.fires.forEach(function(f){
+    var r = Math.max(w ? 9 : 6, Math.min(w ? 30 : 20, Math.sqrt(f.acres || 1) / 3));
+    L.circleMarker([f.lat, f.lon], { radius: r, color: '#ff7a3c', weight: 2, fillColor: '#ff4d1a', fillOpacity: 0.6 })
+      .bindTooltip(esc(f.name) + (f.acres ? ' · ' + Math.round(f.acres) + ' ac' : ''), { permanent: w, direction: 'right', className: 'dm-tip' }).addTo(g.fires);
+  });
+  DM.quakes.forEach(function(q){
+    L.circleMarker([q.lat, q.lon], { radius: Math.max(3, q.mag * (w ? 5 : 3.5)), color: '#ffd84c', weight: 1.5, fillColor: '#ffd84c', fillOpacity: Date.now() - q.t < 864e5 ? 0.6 : 0.2 })
+      .bindTooltip('M' + q.mag.toFixed(1) + ' · ' + esc(q.place) + ' · ' + ago(q.t), { className: 'dm-tip' }).addTo(g.quakes);
+  });
+}
+function drawAirOn(o) {
+  o.g.air.clearLayers();
+  heliList().forEach(function(a){
+    var icon = L.divIcon({ className: 'dm-heli', iconSize: [30, 30], iconAnchor: [15, 15],
+      html: '<svg viewBox="0 0 24 24" width="30" height="30" style="transform:rotate(' + (a.track || 0) + 'deg)"><path d="M12 2l5 18-5-4-5 4z" fill="#5ad1ff" stroke="#000" stroke-width="1"/></svg>' });
+    L.marker([a.lat, a.lon], { icon: icon }).bindTooltip(esc(a.flight || a.reg || a.hex) + (a.type ? ' · ' + esc(a.type) : ''), { permanent: o.wall, direction: 'right', className: 'dm-tip' }).addTo(o.g.air);
+  });
+}
+function drawMaps() { MAPS.forEach(drawMap); }
+function drawAir() { MAPS.forEach(drawAirOn); }
+function renderCams(el, big) {
+  if (!el) return;
+  var t = Math.floor(Date.now() / 120000);
+  el.innerHTML = CAMS.map(function(c){
+    return '<figure class="cam' + (big ? ' big' : '') + '"><img src="' + esc(c.url) + '?t=' + t + '" alt="' + esc(c.name) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"><figcaption>' + esc(c.name) + '</figcaption></figure>';
+  }).join('');
+}
+var DESK_MAP = null;
+function ensureDeskMap() {
+  var el = $('dmap'); if (!el) return;
+  if (!mapReady()) { el.innerHTML = '<p class="empty" style="padding:16px">The map could not load. Check the internet connection.</p>'; return; }
+  if (!DESK_MAP) DESK_MAP = makeMap(el, false);
+  setTimeout(function(){ if (DESK_MAP) DESK_MAP.map.invalidateSize(); }, 60);
+  renderCams($('cams'), false); renderMapSide();
+  if (!DM.loaded) loadMapData();
+  if (!DM.air) loadAir();
+}
+/* The Wall keeps one map alive and moves it into the map slide each time the slides are rebuilt */
+var WALL_MAP = null, WALL_MAP_EL = null;
+function mountWallMap() {
+  var ph = document.querySelector('#stage [data-wmap]'); if (!ph || !mapReady()) return;
+  if (!WALL_MAP_EL) { WALL_MAP_EL = document.createElement('div'); WALL_MAP_EL.style.cssText = 'width:100%;height:100%'; }
+  ph.appendChild(WALL_MAP_EL);
+  if (!WALL_MAP) WALL_MAP = makeMap(WALL_MAP_EL, true);
+  setTimeout(function(){ if (WALL_MAP) WALL_MAP.map.invalidateSize(); }, 60);
+}
+function wallMap(idx, n) {
+  var fires = DM.fires.filter(function(f){ return f.mi <= 75; }).length, hs = heliList().length;
+  var sub = [fires ? fires + (fires === 1 ? ' wildfire' : ' wildfires') + ' within 75 miles' : 'No wildfires nearby', hs ? hs + (hs === 1 ? ' helicopter' : ' helicopters') + ' in the air' : ''].filter(Boolean).join(' · ');
+  return wHead('District map', esc(sub), idx, n) +
+    '<div style="display:grid;grid-template-columns:minmax(0,1fr) 560px;gap:24px;flex:1;min-height:0">' +
+    '<div class="w-panel" style="padding:0;overflow:hidden;min-height:0" data-wmap></div>' +
+    '<div class="w-panel w-mapside" style="min-height:0;overflow:hidden">' + mapSideHtml(true) + '</div></div>';
+}
+function wallRoads(idx, n) {
+  var t = Math.floor(Date.now() / 120000);
+  return wHead('Roads', 'WSDOT cameras, refreshed every 2 minutes', idx, n) +
+    '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:24px;flex:1;min-height:0">' +
+    CAMS.map(function(c){
+      return '<div class="w-panel" style="padding:0;overflow:hidden;position:relative;min-height:0"><img src="' + esc(c.url) + '?t=' + t + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.visibility=\'hidden\'">' +
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:16px 24px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:34px;font-weight:600">' + esc(c.name) + '</div></div>';
+    }).join('') + '</div>';
+}
+setInterval(function(){ if (msalAccount && !document.hidden && (MODE === 'wall' || DESK_MAP)) loadMapData(); }, 10 * 60e3);
+setInterval(function(){ if (msalAccount && !document.hidden && (MODE === 'wall' || DESK_MAP)) loadAir(); }, 30e3);
+setInterval(function(){ if (DESK_MAP || TAB === 'weather') renderCams($('cams'), false); }, 120e3);
 
 /* ===== SHOW THE RIGHT VIEW ===== */
 function showView() {
@@ -1155,6 +1408,7 @@ function boot() {
     showView();
     if (!msalAccount) return;
     loadApps(); loadNotice(); loadFleet(); loadWeather();
+    if (MODE === 'wall') { loadMapData(); loadAir(); }
   }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
 }
 try { var cn = JSON.parse(store('ncems_hub_notice_v1') || 'null'); if (cn) NOTICE = cn; } catch (e) {}

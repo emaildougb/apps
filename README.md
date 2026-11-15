@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.5. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.6. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,12 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.6 (11/15/2026)
+- **District map** (idea from God's Eye View, godseyeview.ai, kept to our district). Desk sidebar page, phone Weather tab, and two new Wall slides (District map, Roads)
+- Layers, all free public feeds: dark map (OpenStreetMap, CARTO), NOAA weather radar, wildfires and perimeters (NIFC WFIGS, prescribed burns counted separately), earthquakes near Mount St. Helens and the district for 7 days (USGS), air quality at Stations 51 and 52 (Open-Meteo), helicopters in the air within about 60 miles (public ADS-B through ncems-checks 1.8 /fleet/air), four WSDOT road cameras (SR 503 Rock Creek Rd, SR 503 Main St Battle Ground, SR 503 179th St, I-5 Woodland)
+- Refresh: helicopters 30 seconds, fires, quakes and air 10 minutes, cameras 2 minutes, radar 5 minutes
+- Leaflet 1.9.4 from cdnjs draws the map
 
 ### v3.5 (11/15/2026)
 - App logos are back. Apps are tiles with the logo on top and the name under it (no descriptions), the same on Desk (one row along the bottom, longer names get a wider tile) and on phones (three across, one grid, no section labels)
