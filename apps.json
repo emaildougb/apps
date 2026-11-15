@@ -11,6 +11,12 @@
           "icon": "icons/shifts.png"
         },
         {
+          "title": "HOSCAP",
+          "sub": "Hospital status, sign in with your HOSCAP login",
+          "url": "https://emresource.juvare.com/login",
+          "icon": "icons/hoscap.png"
+        },
+        {
           "title": "During Duty\nIncident Report",
           "sub": "Service related reporting",
           "url": "https://reports.northcountryems.org/",
