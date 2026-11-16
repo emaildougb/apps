@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.12.2. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.13. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,13 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.13 (11/16/2026)
+- **Daily Snapshot.** First slide on the Wall, a card at the top of Desk Today, the top of the phone's Today tab, and the Desk page that used to be Station notes (renamed Daily Snapshot; the posted notice now shows under it as "Posted notice")
+- Top line: whether **neuro interventional at Legacy Salmon Creek** is covered today (green covered, red not covered, gray no schedule), with hours or a note when the schedule has one
+- Below it: the Shift Ops cards flagged **Mention at shift briefing** in CG Staff (Briefing = Yes, not Completed), with the triage color, details and owner
+- How it gets here: a scheduled Claude task reads Chief Shirley's monthly neuro IR Excel from Doug's email and writes `nir-coverage.json` in the CG Staff SharePoint folder "Neuro IR Coverage (do not delete)". When Doug, Derek, Dennis or Bryce has CG Staff open (1.33 or newer), CG Staff sends the flagged cards and that file to the ncems-checks Worker (1.10, POST /fleet/brief/sync). The Hub reads GET /fleet/brief. Crews never need access to the CG Staff site
+- If the list is more than 36 hours old the Hub says so (it refreshes when a BC or the Chief opens CG Staff)
 
 ### v3.12.2 (11/16/2026)
 - Wall: This week in training shows every rotation now. When nothing is on the calendar this week it says so and lists what's coming up next (up to 5)

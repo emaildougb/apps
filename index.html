@@ -214,6 +214,20 @@ body.deskui.v-home .dtmr { display: none; }
 .cr-seat .n { font-size: 13px; font-weight: 600; margin-top: 1px; }
 .cr-seat .n.open { color: var(--warn); }
 .bc-big { font-size: 22px; margin-top: 8px; }
+/* Daily snapshot (3.13) */
+.nir { display: flex; align-items: center; gap: 14px; border-radius: 14px; padding: 14px 16px; background: var(--raised); }
+.nir .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.nir .t { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.nir.yes { background: var(--good-bg); } .nir.yes .dot { background: var(--good); } .nir.yes .t b { color: var(--good); }
+.nir.no { background: var(--bad-bg); } .nir.no .dot { background: var(--bad); } .nir.no .t b { color: var(--bad); }
+.nir.none .dot { background: var(--dim); }
+.br-h { font-size: 13px; color: var(--muted); margin: 16px 0 4px; font-weight: 600; }
+.br-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--rule); }
+.br-row:first-of-type { border-top: 0; }
+.br-row .tri { width: 10px; height: 10px; border-radius: 50%; flex: none; margin-top: 6px; background: var(--dim); }
+.br-row .t { font-weight: 600; font-size: 15px; line-height: 1.35; }
+.br-row .d { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+body.deskui.v-home #snap-panel .br-row:nth-of-type(n+7) { display: none; }
 .wx-graph { display: block; width: 100%; height: auto; margin-top: 6px; }
 .w-panel .wx-graph { width: 100%; height: 100%; margin: 0; }
 .bc-tc { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); }
@@ -427,7 +441,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
     <button type="button" data-v="checks">Vehicle checks</button>
     <button type="button" data-v="weather">Weather</button>
     <button type="button" data-v="map">District map</button>
-    <button type="button" data-v="notes">Station notes</button>
+    <button type="button" data-v="notes">Daily Snapshot</button>
     <button type="button" data-v="soon" data-soon="lms">Training Status <span class="s">Soon</span></button>
     <button type="button" data-v="apps">Apps</button>
   </aside>
@@ -474,6 +488,11 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
       <div class="clock-sm" id="d-clock"></div>
     </div>
 
+    <section class="panel span-12 snap" id="snap-panel" data-tab="home" data-desk="home notes" aria-labelledby="h-snap">
+      <div class="ph"><h2 id="h-snap">Daily Snapshot</h2><span class="meta" id="snap-meta"></span></div>
+      <div id="snap-body"><p class="empty">Loading…</p></div>
+    </section>
+
     <section class="panel desk-only d8 on" data-tab="home" data-desk="home" aria-labelledby="h-crews">
       <div class="ph"><h2 id="h-crews">Crews today</h2><span class="meta" id="crews-meta"></span></div>
       <div id="crews-body"><p class="empty">Loading…</p></div>
@@ -510,7 +529,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
     </section>
 
     <section class="panel desk-only d6 on" data-tab="home" data-also="duties" data-desk="home notes" aria-labelledby="h-notes">
-      <div class="ph"><h2 id="h-notes">Station notes</h2><span id="notes-act"></span></div>
+      <div class="ph"><h2 id="h-notes">Posted notice</h2><span id="notes-act"></span></div>
       <div id="notes-body"></div>
     </section>
 
@@ -613,7 +632,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.12.2';
+var HUB_VERSION = '3.13';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1083,7 +1102,7 @@ function renderAll() {
   $('d-clock').textContent = hhmm(new Date());
   renderDeskHome();
   if (document.activeElement && document.activeElement.id === 'duty-new') { renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderApps(); renderNotice(); return; }
-  renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderDuties(); renderApps(); renderNotice();
+  renderShiftDesk(); renderChecksDesk(); renderWeatherDesk(); renderDuties(); renderApps(); renderNotice(); renderSnapshot();
 }
 
 /* ===== DESK 3.2 (computers): Today dashboard, sidebar pages, search ===== */
@@ -1134,7 +1153,7 @@ var SOON = {
   lms: ['Training Status', 'Training records and completion will show here once the new LMS is connected.'],
   fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
 };
-var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Station notes', apps: 'Apps', training: 'Training calendar' };
+var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Daily Snapshot', apps: 'Apps', training: 'Training calendar' };
 var VIEW = 'home', SOON_KEY = '';
 function goView(v, soonKey) {
   VIEW = VIEW_TITLE[v] || v === 'soon' ? v : 'home'; SOON_KEY = soonKey || '';
@@ -1389,6 +1408,7 @@ function wallTraining(idx, n) {
 }
 function wallSlides() {
   var list = [];
+  if (SNAP.loaded) list.push(wallSnapshot);
   if (HUB && shiftUnits(HUB.day).length) list.push(wallToday);
   if (openShifts7().length) list.push(wallShifts);
   if (TC.loaded && (training7().length || trainingNext(1).length)) list.push(wallTraining);
@@ -1419,6 +1439,66 @@ window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); }
    Derek's read only Hub feeds (11/15): no names, just the shift. Same Microsoft ID token as everything else.
    Each shift: date "YYYY-MM-DD", unit, crew (1 medic, 2 EMT), start, end, hours, status open or filled.
    We show the next 7 days. Never parse the date with new Date(), build it from the parts. */
+/* ===== DAILY SNAPSHOT (3.13) =====
+   Doug 11/16: the Station notes page is now the Daily Snapshot page (sidebar 'Daily Snapshot', view 'notes'); the posted notice still shows under it.
+   Line 1: neuro interventional coverage today at Legacy Salmon Creek. Then the Shift Ops items flagged for briefing in CG Staff.
+   Flow: Chief Shirley's monthly Excel -> scheduled Claude task -> CG Staff SharePoint "Neuro IR Coverage (do not delete)/nir-coverage.json".
+   CG Staff (when Doug, Derek, Dennis or Bryce opens it) sends that file plus the Briefing = Yes items to ncems-checks POST /fleet/brief/sync.
+   The Hub reads GET /fleet/brief (any NCEMS sign in). Crews never need access to the CG Staff site. */
+var SNAP = { items: [], itemsAt: '', itemsBy: '', nir: null, nirAt: '', err: '', loaded: false };
+var TRI_COLOR = { Red: '#ff6b6b', Yellow: '#f2c94c', Green: '#6fcf97' };
+function loadSnapshot() {
+  if (!msalAccount) return Promise.resolve();
+  return idToken().then(function(t){ return fetch(FLEET_URL + '/fleet/brief', { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' }); })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){
+      SNAP.items = Array.isArray(j.items) ? j.items : []; SNAP.itemsAt = j.itemsAt || ''; SNAP.itemsBy = j.itemsBy || '';
+      SNAP.nir = j.nir || null; SNAP.nirAt = j.nirAt || ''; SNAP.err = ''; SNAP.loaded = true; renderAll();
+    })
+    .catch(function(e){ SNAP.err = String(e && e.message) === '404' ? 'setup' : 'The briefing list is not answering right now'; renderAll(); });
+}
+function nirToday() {
+  var n = SNAP.nir || {}, hosp = n.hospital || 'Legacy Salmon Creek', d = (n.days || {})[pacificToday()];
+  if (!d) return { state: 'none', hosp: hosp, text: 'No neuro interventional schedule for today', sub: 'Waiting on the schedule from Chief Shirley' };
+  var covered = d.covered === true || /^(y|yes|true|covered)$/i.test(String(d.covered));
+  return { state: covered ? 'yes' : 'no', hosp: hosp, text: covered ? 'covered' : 'not covered', sub: [d.hours, d.note].filter(Boolean).join(' · ') };
+}
+function nirHtml() {
+  var x = nirToday();
+  return '<div class="nir ' + x.state + '"><span class="dot"></span><div><div class="t">' + (x.state === 'none' ? esc(x.text) :
+    'Neuro interventional at ' + esc(x.hosp) + ' is <b>' + esc(x.text) + '</b> today') + '</div>' + (x.sub ? '<div class="sub">' + esc(x.sub) + '</div>' : '') + '</div></div>';
+}
+function briefItems() { return (SNAP.items || []).filter(function(i){ return i && i.title; }); }
+function briefStale() { return SNAP.itemsAt && Date.now() - new Date(SNAP.itemsAt).getTime() > 36 * 3600e3; }
+function renderSnapshot() {
+  var b = $('snap-body'); if (!b) return;
+  if (!SNAP.loaded && !SNAP.err) { b.innerHTML = '<p class="empty">Loading…</p>'; return; }
+  if (SNAP.err === 'setup') { b.innerHTML = nirHtml() + '<p class="empty" style="margin-top:12px">The shift briefing list connects once the ncems-checks Worker update is in.</p>'; $('snap-meta').textContent = ''; return; }
+  var items = briefItems();
+  $('snap-meta').textContent = SNAP.itemsAt ? 'Briefing list from CG Staff · ' + hhmm(new Date(SNAP.itemsAt)) + (briefStale() ? ', ' + new Date(SNAP.itemsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '') : '';
+  b.innerHTML = nirHtml() + '<div class="br-h">For shift briefing</div>' + (items.length ? items.map(function(i){
+    return '<div class="br-row"><span class="tri" style="background:' + (TRI_COLOR[i.triage] || 'var(--dim)') + '"></span><div style="min-width:0"><div class="t">' + esc(i.title) + '</div>' +
+      (i.details ? '<div class="d">' + esc(String(i.details).slice(0, 220)) + '</div>' : '') +
+      (i.assigned && i.assigned !== 'Unassigned' ? '<div class="sub">' + esc(i.assigned) + (i.category ? ' · ' + esc(i.category) : '') + '</div>' : '') + '</div></div>';
+  }).join('') + (items.length > 4 && VIEW === 'home' && MODE === 'desk' ? '<button class="link-btn" onclick="goView(\'notes\')" style="margin-top:8px">See all ' + items.length + '</button>' : '')
+    : '<p class="empty" style="margin:6px 0 0">Nothing flagged for briefing.</p>') +
+    (SNAP.err ? '<p class="empty" style="margin-top:8px">' + esc(SNAP.err) + '</p>' : briefStale() ? '<p class="empty" style="margin-top:8px">This list may be out of date. It refreshes when a BC or the Chief opens CG Staff.</p>' : '');
+}
+function wallSnapshot(idx, n) {
+  var x = nirToday(), dd = new Date(), items = briefItems(), max = hasNotice() ? 4 : 5, shown = items.slice(0, max);
+  var bg = x.state === 'yes' ? 'var(--good-bg)' : x.state === 'no' ? 'var(--bad-bg)' : '#1a1a1a', fg = x.state === 'yes' ? 'var(--good)' : x.state === 'no' ? 'var(--bad)' : 'var(--muted)';
+  return wHead('Daily Snapshot', DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate(), idx, n) +
+    '<div style="background:' + bg + ';border-radius:20px;padding:26px 40px;display:flex;align-items:center;gap:28px"><span style="width:34px;height:34px;border-radius:50%;flex:none;background:' + fg + '"></span><div>' +
+    (x.state === 'none' ? '<div style="font-size:46px;font-weight:600;color:var(--muted)">' + esc(x.text) + '</div>'
+      : '<div style="font-size:52px;font-weight:600">Neuro interventional <b style="color:' + fg + '">' + esc(x.text.toUpperCase()) + '</b> today</div><div style="font-size:30px;color:var(--muted);margin-top:4px">' + esc(x.hosp) + (x.sub ? ' · ' + esc(x.sub) : '') + '</div>') + '</div></div>' +
+    '<div class="w-panel" style="padding:8px 48px;flex:1;min-height:0;overflow:hidden"><div class="w-label" style="padding:16px 0 4px">For shift briefing</div>' + (shown.length ? shown.map(function(i){
+      return '<div class="w-row" style="min-height:0;padding:16px 0;align-items:flex-start;gap:26px"><span style="width:26px;height:26px;border-radius:50%;flex:none;margin-top:14px;background:' + (TRI_COLOR[i.triage] || '#5a5a5a') + '"></span>' +
+        '<div style="min-width:0"><div style="font-size:44px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(i.title) + '</div>' +
+        (i.details ? '<div style="font-size:30px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(i.details) + '</div>' : '') + '</div></div>';
+    }).join('') + (items.length > shown.length ? '<div style="font-size:30px;color:var(--muted);padding-top:14px">And ' + (items.length - shown.length) + ' more on the Hub, Daily Snapshot</div>' : '')
+      : '<div style="font-size:40px;color:var(--muted);padding:20px 0">Nothing flagged for briefing</div>') + '</div>';
+}
+
 /* ===== TRAINING CALENDAR (3.11) =====
    Data lives in training-events.json next to this page (Doug edits that file, never this code).
    It is { "types": { key: {label, bg, text} }, "events": [ ... ] } (a bare list of events also works).
@@ -1863,7 +1943,7 @@ function boot() {
   initMsal().then(function(){
     showView();
     if (!msalAccount) return;
-    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard(); loadTraining();
+    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard(); loadTraining(); loadSnapshot();
     if (MODE === 'wall') { loadMapData(); loadAir(); }
   }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
 }
@@ -1876,7 +1956,7 @@ setInterval(function(){
   if (MODE !== 'wall') $('d-clock').textContent = hhmm(new Date());
 }, 15000);
 setInterval(function(){ if (msalAccount && !document.hidden) { loadNotice(); loadFleet(); } }, 120000);
-setInterval(function(){ if (msalAccount && !document.hidden) { loadShifts(); loadBoard(); } }, 5 * 60e3);
+setInterval(function(){ if (msalAccount && !document.hidden) { loadShifts(); loadBoard(); loadSnapshot(); } }, 5 * 60e3);
 setInterval(function(){ if (msalAccount && !document.hidden) loadTraining(); }, 30 * 60e3);
 setInterval(function(){ if (msalAccount) { loadWeather(); checkForUpdate(); } }, 15 * 60e3);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && msalAccount) { loadNotice(); loadFleet(); checkForUpdate(); } });
