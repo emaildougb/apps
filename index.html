@@ -632,7 +632,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.13';
+var HUB_VERSION = '3.14';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1441,8 +1441,9 @@ window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); }
    We show the next 7 days. Never parse the date with new Date(), build it from the parts. */
 /* ===== DAILY SNAPSHOT (3.13) =====
    Doug 11/16: the Station notes page is now the Daily Snapshot page (sidebar 'Daily Snapshot', view 'notes'); the posted notice still shows under it.
-   Line 1: neuro interventional coverage today at Legacy Salmon Creek. Then the Shift Ops items flagged for briefing in CG Staff.
-   Flow: Chief Shirley's monthly Excel -> scheduled Claude task -> CG Staff SharePoint "Neuro IR Coverage (do not delete)/nir-coverage.json".
+   Line 1: neuro interventional coverage today at PeaceHealth Southwest (PHSW). Then the Shift Ops items flagged for briefing in CG Staff.
+   3.14 Doug: the Wall never shows the card details (often pasted email text). It shows the BC's short 'say' line, or just the title.
+   Flow: the PeaceHealth Transfer Center's monthly Excel (Chief Shirley forwards it) -> scheduled Claude task -> CG Staff SharePoint "Neuro IR Coverage (do not delete)/nir-coverage.json".
    CG Staff (when Doug, Derek, Dennis or Bryce opens it) sends that file plus the Briefing = Yes items to ncems-checks POST /fleet/brief/sync.
    The Hub reads GET /fleet/brief (any NCEMS sign in). Crews never need access to the CG Staff site. */
 var SNAP = { items: [], itemsAt: '', itemsBy: '', nir: null, nirAt: '', err: '', loaded: false };
@@ -1458,8 +1459,8 @@ function loadSnapshot() {
     .catch(function(e){ SNAP.err = String(e && e.message) === '404' ? 'setup' : 'The briefing list is not answering right now'; renderAll(); });
 }
 function nirToday() {
-  var n = SNAP.nir || {}, hosp = n.hospital || 'Legacy Salmon Creek', d = (n.days || {})[pacificToday()];
-  if (!d) return { state: 'none', hosp: hosp, text: 'No neuro interventional schedule for today', sub: 'Waiting on the schedule from Chief Shirley' };
+  var n = SNAP.nir || {}, hosp = n.hospital || 'PeaceHealth Southwest', d = (n.days || {})[pacificToday()];
+  if (!d) return { state: 'none', hosp: hosp, text: 'No neuro interventional schedule for today', sub: 'Waiting on the PHSW schedule' };
   var covered = d.covered === true || /^(y|yes|true|covered)$/i.test(String(d.covered));
   return { state: covered ? 'yes' : 'no', hosp: hosp, text: covered ? 'covered' : 'not covered', sub: [d.hours, d.note].filter(Boolean).join(' · ') };
 }
@@ -1468,6 +1469,10 @@ function nirHtml() {
   return '<div class="nir ' + x.state + '"><span class="dot"></span><div><div class="t">' + (x.state === 'none' ? esc(x.text) :
     'Neuro interventional at ' + esc(x.hosp) + ' is <b>' + esc(x.text) + '</b> today') + '</div>' + (x.sub ? '<div class="sub">' + esc(x.sub) + '</div>' : '') + '</div></div>';
 }
+function briefTitle(t) {   /* 3.14: drop source tags like "(10/15-10/17 shift notes)" and RE:/FW: */
+  return String(t || '').replace(/^\s*((re|fw|fwd)\s*:\s*)+/i, '').replace(/\s*\([^)]*\)\s*$/, '').trim() || String(t || '');
+}
+function briefWho(i) { return [i.assigned && i.assigned !== 'Unassigned' ? i.assigned : '', i.category].filter(Boolean).join(' · '); }
 function briefItems() { return (SNAP.items || []).filter(function(i){ return i && i.title; }); }
 function briefStale() { return SNAP.itemsAt && Date.now() - new Date(SNAP.itemsAt).getTime() > 36 * 3600e3; }
 function renderSnapshot() {
@@ -1477,8 +1482,8 @@ function renderSnapshot() {
   var items = briefItems();
   $('snap-meta').textContent = SNAP.itemsAt ? 'Briefing list from CG Staff · ' + hhmm(new Date(SNAP.itemsAt)) + (briefStale() ? ', ' + new Date(SNAP.itemsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '') : '';
   b.innerHTML = nirHtml() + '<div class="br-h">For shift briefing</div>' + (items.length ? items.map(function(i){
-    return '<div class="br-row"><span class="tri" style="background:' + (TRI_COLOR[i.triage] || 'var(--dim)') + '"></span><div style="min-width:0"><div class="t">' + esc(i.title) + '</div>' +
-      (i.details ? '<div class="d">' + esc(String(i.details).slice(0, 220)) + '</div>' : '') +
+    return '<div class="br-row"><span class="tri" style="background:' + (TRI_COLOR[i.triage] || 'var(--dim)') + '"></span><div style="min-width:0"><div class="t">' + esc(briefTitle(i.title)) + '</div>' +
+      (i.say ? '<div class="d">' + esc(i.say) + '</div>' : i.details ? '<div class="d">' + esc(String(i.details).slice(0, 220)) + '</div>' : '') +
       (i.assigned && i.assigned !== 'Unassigned' ? '<div class="sub">' + esc(i.assigned) + (i.category ? ' · ' + esc(i.category) : '') + '</div>' : '') + '</div></div>';
   }).join('') + (items.length > 4 && VIEW === 'home' && MODE === 'desk' ? '<button class="link-btn" onclick="goView(\'notes\')" style="margin-top:8px">See all ' + items.length + '</button>' : '')
     : '<p class="empty" style="margin:6px 0 0">Nothing flagged for briefing.</p>') +
@@ -1493,8 +1498,8 @@ function wallSnapshot(idx, n) {
       : '<div style="font-size:52px;font-weight:600">Neuro interventional <b style="color:' + fg + '">' + esc(x.text.toUpperCase()) + '</b> today</div><div style="font-size:30px;color:var(--muted);margin-top:4px">' + esc(x.hosp) + (x.sub ? ' · ' + esc(x.sub) : '') + '</div>') + '</div></div>' +
     '<div class="w-panel" style="padding:8px 48px;flex:1;min-height:0;overflow:hidden"><div class="w-label" style="padding:16px 0 4px">For shift briefing</div>' + (shown.length ? shown.map(function(i){
       return '<div class="w-row" style="min-height:0;padding:16px 0;align-items:flex-start;gap:26px"><span style="width:26px;height:26px;border-radius:50%;flex:none;margin-top:14px;background:' + (TRI_COLOR[i.triage] || '#5a5a5a') + '"></span>' +
-        '<div style="min-width:0"><div style="font-size:44px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(i.title) + '</div>' +
-        (i.details ? '<div style="font-size:30px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(i.details) + '</div>' : '') + '</div></div>';
+        '<div style="min-width:0"><div style="font-size:44px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(briefTitle(i.title)) + '</div>' +
+        '<div style="font-size:30px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(i.say || briefWho(i)) + '</div></div></div>';
     }).join('') + (items.length > shown.length ? '<div style="font-size:30px;color:var(--muted);padding-top:14px">And ' + (items.length - shown.length) + ' more on the Hub, Daily Snapshot</div>' : '')
       : '<div style="font-size:40px;color:var(--muted);padding:20px 0">Nothing flagged for briefing</div>') + '</div>';
 }
