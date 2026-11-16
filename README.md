@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.9. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.10. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,10 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.10 (11/15/2026)
+- **Rigs on the crew cards match what each unit is really in.** Medic crews always check their primary ambulance first, so the first rig checked today by someone on a unit's crew is that unit's rig (Desk Today, Schedule, Wall). If nobody on the crew has checked yet, it uses a rig claimed for that unit in the Checker, then the unit's usual rig (marked last known). One rig per unit
+- Vehicles checked today and the Vehicle checks list use the same matching, so a rig nobody is in today doesn't count against the percent
 
 ### v3.9 (11/15/2026)
 - **Duty battalion chief is live** from Derek's board feed (https://ncems-ot.d-langdon.workers.dev/hub/board, Hub ID token). Rule from Doug: if Derek Langdon or Dennis Madler is on the schedule anywhere that duty day (BC row or any medic unit), they are the duty BC. If one of them is on and Doug is too, Doug shows underneath as Training chief. If neither is on, Doug is the duty BC. Duty day rolls over at 07:30. Shows on Desk Today and in the Wall Today subtitle

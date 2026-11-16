@@ -527,7 +527,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.9';
+var HUB_VERSION = '3.10';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -742,16 +742,40 @@ function rigLabel(id) { return String(id || '').replace(/^M(?=\d)/, ''); }
 /* ===== ON SHIFT ===== Call signs M51 and M52 are first out at Stations 51 and 52, M54 third out, M53 summer only.
    A unit sits under the station of the rig its crew claimed today; no claim yet means its primary rig, marked last known. */
 var CALLS = ['M51', 'M52', 'M53', 'M54'];
+/* 3.10 (Doug 11/15): medic crews always check their primary ambulance first. So the first rig checked today by
+   someone on a unit's crew is that unit's rig. A unit nobody on the crew has checked yet falls back to a rig claimed
+   for it in the Checker, then to its usual rig (last known). One rig per unit, first come first served. */
+function crewRigs() {
+  if (!HUB || !HUB.crews) return {};
+  var crews = HUB.crews[HUB.day] || {}, rigs = (HUB.fleet && HUB.fleet.rigs) || [], info = HUB.crewInfo || {};
+  var nm = function(x){ return String(x || '').toLowerCase().replace(/[^a-z]/g, ''); };
+  var who = {};
+  Object.keys(crews).forEach(function(c){ (crews[c] || []).forEach(function(p){ who[nm(p.person)] = c; }); });
+  var out = {}, used = {};
+  var checks = rigs.filter(function(r){ return r.check && r.check.at && who[nm(r.check.byName)]; })
+    .sort(function(a, b){ return a.check.at < b.check.at ? -1 : 1; });
+  checks.forEach(function(r){ var c = who[nm(r.check.byName)]; if (!out[c] && !used[r.rig]) { out[c] = { rig: r, last: false }; used[r.rig] = c; } });
+  CALLS.forEach(function(c){
+    if (out[c] || !crews[c] || !crews[c].length) return;
+    var cl = rigs.filter(function(r){ return r.claim && r.claim.crew === c && !used[r.rig]; }).sort(function(a, b){ return (a.claim.at || '') < (b.claim.at || '') ? -1 : 1; })[0];
+    if (cl) { out[c] = { rig: cl, last: false }; used[cl.rig] = c; }
+  });
+  CALLS.forEach(function(c){
+    if (out[c] || !crews[c] || !crews[c].length || !info[c] || !info[c].primary || used[info[c].primary]) return;
+    out[c] = { rig: rigs.filter(function(r){ return r.rig === info[c].primary; })[0] || { rig: info[c].primary }, last: true }; used[info[c].primary] = c;
+  });
+  return out;
+}
 var CALL_ROLE = { M51: 'First out', M52: 'First out', M53: 'Summer unit', M54: 'Third out' };
 function seatLabel(s) { return s === 'C1' ? 'Crew 1' : s === 'C2' ? 'Crew 2' : 'Crew 3'; }
 function hm(t) { var m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? (m[1].length === 1 ? '0' : '') + m[1] + ':' + m[2] : ''; }
 function shiftUnits(dayKey) {
   if (!HUB || !HUB.crews) return [];
   var crews = HUB.crews[dayKey] || {}, info = HUB.crewInfo || {}, rigs = (HUB.fleet && HUB.fleet.rigs) || [];
+  var assigned = dayKey === HUB.day ? crewRigs() : {};
   return CALLS.filter(function(c){ return crews[c] && crews[c].length; }).map(function(c){
-    var mine = rigs.filter(function(r){ return r.claim && r.claim.crew === c; });
-    var rig = mine[0] || null, last = false;
-    if (!rig && info[c] && info[c].primary) { rig = rigs.filter(function(r){ return r.rig === info[c].primary; })[0] || { rig: info[c].primary }; last = true; }
+    var a = assigned[c], rig = a ? a.rig : null, last = a ? a.last : false;
+    if (!rig && dayKey !== HUB.day && info[c] && info[c].primary) { rig = rigs.filter(function(r){ return r.rig === info[c].primary; })[0] || { rig: info[c].primary }; last = true; }
     var station = String((rig && rig.station) || (info[c] && info[c].station) || '51');
     var bySeat = {};
     crews[c].forEach(function(p){ (bySeat[p.seat] = bySeat[p.seat] || []).push(p); });
@@ -791,14 +815,16 @@ function rigState(r) {
   return { key: 'due', tag: 'Not yet', cls: 'warn', detail: 'Due by 11:00' };
 }
 function fleetSummary() {
-  var rigs = (FLEET.data && FLEET.data.rigs) || [];
+  var rigs = (FLEET.data && FLEET.data.rigs) || [], byRig = {}, cr = crewRigs();
+  Object.keys(cr).forEach(function(c){ if (!cr[c].last) byRig[cr[c].rig.rig] = c; });
+  var hasMap = Object.keys(byRig).length > 0;
   var rows = rigs.map(function(r){
-    var s = rigState(r), crew = r.claim && r.claim.crew;
+    var s = rigState(r), crew = hasMap ? byRig[r.rig] : (r.claim && r.claim.crew);
     var tagLine = crew ? crew + ' today' : (r.oos ? '' : 'Spare');
     return { rig: rigLabel(r.rig), station: String(r.station || ''), state: s, line: [tagLine, s.detail].filter(Boolean).join(' · ') };
   });
   /* 3.9: the percent counts only rigs a crew is on today. Out of service rigs and spares don't count. */
-  rows.forEach(function(x, i){ x.crew = !!(rigs[i].claim && rigs[i].claim.crew); });
+  rows.forEach(function(x, i){ x.crew = hasMap ? !!byRig[rigs[i].rig] : !!(rigs[i].claim && rigs[i].claim.crew); });
   var inSvc = rows.filter(function(x){ return x.state.key !== 'oos' && x.crew; });
   if (!inSvc.length) inSvc = rows.filter(function(x){ return x.state.key !== 'oos'; });
   var done = inSvc.filter(function(x){ return x.state.key === 'ok'; }).length;
