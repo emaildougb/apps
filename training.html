@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NCEMS Training Calendar</title>
+<link rel="icon" href="apple-touch-icon.png">
+<!-- NCEMS Training Calendar, standalone page (Hub 3.11).
+     No sign in, so the Training Department can open and print it from any computer.
+     Reads the same training-events.json as the Hub's Training calendar page. Edit that file, never this page.
+     Links: ?month=2026-12 opens that month. ?print=1 opens the print dialog (one month, landscape).
+     Anything in training-events.json can be read by anyone with this link, so keep notes to scheduling info. -->
+<style>
+:root{--navy:#1F3864;--blue:#2E5090;--gray:#555;--line:#C9D1DD;--bg:#F4F6FA}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#1a1a1a}
+header{background:var(--navy);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px}
+header img{width:34px;height:34px;border-radius:50%;background:#fff}
+header .logo{font-weight:bold;font-size:18px}
+main{max-width:1100px;margin:0 auto;padding:18px 16px}
+h1{color:var(--navy);margin:4px 0 2px;font-size:26px}
+.sub{color:var(--gray);margin:0 0 14px;font-size:14px}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.bar button{border:1px solid var(--line);background:#fff;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit}
+.bar .month{font-size:20px;font-weight:bold;color:var(--navy);min-width:180px;text-align:center}
+.bar .print{margin-left:auto;background:var(--blue);color:#fff;border-color:var(--blue)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;font-weight:bold;font-family:inherit}
+.chip.off{opacity:.35;text-decoration:line-through}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dow{background:var(--blue);color:#fff;font-size:12px;font-weight:bold;text-align:center;padding:6px 0}
+.day{min-height:96px;border-top:1px solid var(--line);border-left:1px solid var(--line);padding:4px;cursor:pointer;min-width:0}
+.day:nth-child(7n+1){border-left:none}
+.day.out{background:#F2F2F2;color:#aaa}
+.day .n{font-size:12px;font-weight:bold;color:var(--navy)}
+.day.out .n{color:#aaa}
+.day.today{outline:3px solid #B71C1C;outline-offset:-3px}
+.day.today .n::after{content:" today";color:#B71C1C;font-weight:normal}
+.day.sel{background:#FFFBEA}
+.ev{font-size:11px;font-weight:bold;border-radius:4px;padding:2px 4px;margin-top:3px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:12px;color:var(--gray)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.15)}
+.side{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.card h3{margin:0 0 8px;color:var(--navy);font-size:16px}
+.de{padding:8px 0;border-top:1px solid #eee}.de:first-of-type{border-top:none;padding-top:0}
+.tag{display:inline-block;font-size:11px;font-weight:bold;border-radius:10px;padding:2px 8px}
+.up{display:flex;gap:10px;padding:7px 0;border-top:1px solid #eee;font-size:13px}.up:first-child{border-top:none}
+.up .d{min-width:110px;font-weight:bold;color:var(--blue)}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex:none;border:1px solid rgba(0,0,0,.2)}
+.none{color:var(--gray);font-size:13px}
+footer{text-align:center;color:var(--gray);font-size:12px;padding:18px}
+.list{display:none}
+.li{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer}
+.li .d{font-weight:bold;color:var(--navy);margin-bottom:4px}
+.li.sel{background:#FFFBEA}
+.ptitle{display:none}
+@media(max-width:600px){.grid{display:none}.list{display:block}.side{grid-template-columns:1fr}.bar .month{min-width:auto;font-size:17px}.up .d{min-width:84px}}
+@media print{
+  @page{size:landscape;margin:.4in}
+  header,.bar,.chips,.side,.list,.sub,footer .np{display:none!important}
+  body{background:#fff}
+  main{max-width:none;padding:0}
+  h1{display:none}
+  .ptitle{display:block;font-size:20px;font-weight:bold;color:var(--navy);margin:0 0 8px}
+  .grid{display:grid!important;break-inside:avoid;border-radius:0}
+  .day{min-height:80px}.day.sel{background:#fff}.day.today{outline:none}.day.today .n::after{content:""}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  footer{padding:8px}
+}
+</style></head><body>
+<header><img src="logo.png" alt=""><span class="logo">NCEMS Training Calendar</span></header>
+<main>
+<h1>Training Calendar</h1>
+<p class="sub">ACLS, PEAC, OTEP, PCEP and FTEP in one place. Tap a day for details.</p>
+<div class="bar"><button id="prev" aria-label="Previous month">◀</button><div class="month" id="mlabel"></div><button id="next" aria-label="Next month">▶</button><button id="todayBtn">Today</button><button class="print" onclick="window.print()">Print</button></div>
+<div class="chips" id="chips"></div>
+<div class="ptitle" id="ptitle"></div>
+<div class="grid" id="grid"></div>
+<div class="list" id="list"></div>
+<div class="legend" id="legend"></div>
+<div class="side"><div class="card" id="detail"><h3>Day details</h3><div class="none">Tap a day on the calendar.</div></div>
+<div class="card"><h3>Upcoming</h3><div id="upcoming"><div class="none">Loading…</div></div></div></div>
+</main>
+<footer>NCEMS Training Division — Doug Boyce<span class="np"> · Also on the NCEMS Hub at hub.northcountryems.org</span></footer>
+<script>
+/* Same rules as the Hub's Training calendar (index.html, TRAINING CALENDAR). Keep them in step. */
+var TYPES={acls:{label:'ACLS',bg:'#F4CCCC',text:'#990000'},pals:{label:'PALS',bg:'#E2F0D9',text:'#375623'},peac:{label:'PEAC',bg:'#DCE6F5',text:'#1F3864'},advcardiac:{label:'Adv Cardiac',bg:'#FCE4D6',text:'#843C0C'},otep:{label:'OTEP',bg:'#E4DFEC',text:'#5B1A86'},pcep:{label:'PCEP',bg:'#DDEBF7',text:'#2E5090'},ftep:{label:'FTEP',bg:'#FFF2CC',text:'#7F6000'},off:{label:'No training',bg:'#D9D9D9',text:'#404040'},holiday:{label:'Holiday',bg:'#FFF2CC',text:'#7F6000'}};
+var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],EVENTS=[],ALL=[],hidden={},sel='',loaded=false,err='';
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function ymd(d){var z=function(n){return(n<10?'0':'')+n};return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())}
+function pd(s){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?new Date(+m[1],+m[2]-1,+m[3],12):null}
+function fmt(s,o){var d=pd(s);return d?d.toLocaleDateString('en-US',o):s}
+function typ(t){return TYPES[t]||{label:t||'Other',bg:'#D9D9D9',text:'#404040'}}
+function expand(list){var o=[];list.forEach(function(e,i){if(!e||!e.title)return;if(e.date){if(pd(e.date))o.push({e:e,i:i,on:e.date});return}
+  var a=pd(e.start),b=pd(e.end||e.start);if(!a||!b)return;var days=(e.days||[]).map(function(x){return String(x).slice(0,3).toLowerCase()}),ex=e.exclude||[];
+  for(var d=new Date(a),n=0;d<=b&&n<800;d.setDate(d.getDate()+1),n++){var k=ymd(d);if(days.length&&days.indexOf(DN[d.getDay()].toLowerCase())<0)continue;if(ex.indexOf(k)>=0)continue;o.push({e:e,i:i,on:k})}});
+  return o.sort(function(x,y){return x.on<y.on?-1:x.on>y.on?1:x.i-y.i})}
+var TODAY=ymd(new Date()),q=new URLSearchParams(location.search),qm=/^(\d{4})-(\d{2})$/.exec(q.get('month')||'');
+var cur=qm?new Date(+qm[1],+qm[2]-1,1,12):new Date(new Date().getFullYear(),new Date().getMonth(),1,12);sel=qm?'':TODAY;
+function vis(){return ALL.filter(function(o){return!hidden[o.e.type]})}
+function pill(o,long){var t=typ(o.e.type),title=long?o.e.title:String(o.e.title).replace(/\s*\(.*\)\s*$/,'');return'<div class="ev" style="background:'+esc(t.bg)+';color:'+esc(t.text)+'" title="'+esc(o.e.title)+'">'+esc(title)+'</div>'}
+function range(e){if(e.date||!e.start)return'';return fmt(e.start,{month:'short',day:'numeric'})+' to '+fmt(e.end||e.start,{month:'short',day:'numeric'})+(e.days&&e.days.length?', '+e.days.join(', '):'')}
+function render(){
+  var keys=Object.keys(TYPES);EVENTS.forEach(function(e){if(e.type&&keys.indexOf(e.type)<0)keys.push(e.type)});
+  var month=cur.toLocaleDateString('en-US',{month:'long',year:'numeric'}),mk=ymd(cur).slice(0,7);
+  $('mlabel').textContent=month;$('ptitle').textContent='NCEMS Training Calendar · '+month;
+  $('chips').innerHTML=keys.map(function(k){var t=typ(k);return'<button type="button" class="chip'+(hidden[k]?' off':'')+'" aria-pressed="'+(!hidden[k])+'" style="background:'+esc(t.bg)+';color:'+esc(t.text)+'" data-k="'+esc(k)+'">'+esc(t.label)+'</button>'}).join('');
+  $('legend').innerHTML=keys.map(function(k){var t=typ(k);return'<span><i class="sw" style="background:'+esc(t.bg)+'"></i>'+esc(t.label)+'</span>'}).join('');
+  var V=vis(),by={};V.forEach(function(o){(by[o.on]=by[o.on]||[]).push(o)});
+  var first=new Date(cur);first.setDate(1-cur.getDay());var g=DN.map(function(n){return'<div class="dow">'+n+'</div>'});
+  for(var i=0;i<42;i++){var d=new Date(first);d.setDate(first.getDate()+i);if(i>=35&&d.getMonth()!==cur.getMonth())break;var k=ymd(d),ev=by[k]||[];
+    g.push('<div class="day'+(d.getMonth()!==cur.getMonth()?' out':'')+(k===TODAY?' today':'')+(k===sel?' sel':'')+'" data-k="'+k+'" role="button" tabindex="0"><div class="n">'+d.getDate()+'</div>'+ev.map(function(o){return pill(o,false)}).join('')+'</div>')}
+  $('grid').innerHTML=g.join('');
+  var ds=Object.keys(by).filter(function(k){return k.slice(0,7)===mk}).sort();
+  $('list').innerHTML=ds.length?ds.map(function(k){return'<div class="li'+(k===sel?' sel':'')+'" data-k="'+k+'" role="button" tabindex="0"><div class="d">'+esc(fmt(k,{weekday:'short',month:'short',day:'numeric'}))+(k===TODAY?' · Today':'')+'</div>'+by[k].map(function(o){return pill(o,true)}).join('')+'</div>'}).join(''):'<div class="li">'+(err?esc(err):loaded?'Nothing scheduled this month.':'Loading…')+'</div>';
+  var s=by[sel]||[];
+  $('detail').innerHTML='<h3>'+(sel?esc(fmt(sel,{weekday:'long',month:'long',day:'numeric'}))+(sel===TODAY?' · Today':''):'Day details')+'</h3>'+(err?'<div class="none">'+esc(err)+'</div>':!sel?'<div class="none">Tap a day on the calendar.</div>':s.length?s.map(function(o){var t=typ(o.e.type),r=range(o.e);
+    return'<div class="de"><span class="tag" style="background:'+esc(t.bg)+';color:'+esc(t.text)+'">'+esc(t.label)+'</span><div style="font-weight:bold;margin-top:4px;color:'+esc(t.text)+'">'+esc(o.e.title)+'</div>'+(o.e.time?'<div style="font-size:13px">'+esc(o.e.time)+'</div>':'')+(r?'<div style="font-size:13px;color:#555">Runs '+esc(r)+'</div>':'')+(o.e.notes?'<div style="font-size:13px;color:#555">'+esc(o.e.notes)+'</div>':'')+'</div>'}).join(''):'<div class="none">Nothing scheduled.</div>');
+  var seen={},up=[];V.forEach(function(o){if(o.on<TODAY||up.length>=10)return;if(!o.e.date){if(seen[o.i])return;seen[o.i]=true}up.push(o)});
+  $('upcoming').innerHTML=up.length?up.map(function(o){var t=typ(o.e.type),w=o.e.date?fmt(o.on,{weekday:'short',month:'short',day:'numeric'}):fmt(o.on,{month:'short',day:'numeric'})+' to '+fmt(o.e.end||o.e.start,{month:'short',day:'numeric'});
+    return'<div class="up"><span class="dot" style="background:'+esc(t.bg)+'"></span><span class="d">'+esc(w)+'</span><span>'+esc(o.e.title)+(o.e.time?' · '+esc(o.e.time):'')+'</span></div>'}).join(''):'<div class="none">'+(err?esc(err):loaded?'Nothing coming up.':'Loading…')+'</div>';
+}
+document.addEventListener('click',function(ev){var c=ev.target.closest('.chip');if(c){var k=c.dataset.k;if(hidden[k])delete hidden[k];else hidden[k]=true;render();return}
+  var d=ev.target.closest('.day,.li');if(d&&d.dataset.k){sel=d.dataset.k;render()}});
+document.addEventListener('keydown',function(ev){if((ev.key==='Enter'||ev.key===' ')&&ev.target.dataset&&ev.target.dataset.k&&ev.target.matches('.day,.li')){ev.preventDefault();sel=ev.target.dataset.k;render()}});
+$('prev').onclick=function(){cur=new Date(cur.getFullYear(),cur.getMonth()-1,1,12);render()};
+$('next').onclick=function(){cur=new Date(cur.getFullYear(),cur.getMonth()+1,1,12);render()};
+$('todayBtn').onclick=function(){var t=new Date();cur=new Date(t.getFullYear(),t.getMonth(),1,12);sel=TODAY;render()};
+render();
+fetch('training-events.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(j){
+  var list=Array.isArray(j)?j:(j.events||[]);if(!Array.isArray(j)&&j.types)Object.keys(j.types).forEach(function(k){TYPES[k]=j.types[k]});
+  EVENTS=list;ALL=expand(list);loaded=true;render();if(q.get('print')==='1')setTimeout(function(){window.print()},400);
+}).catch(function(){err='The training calendar didn’t load. Check the connection and try again.';render()});
+</script></body></html>

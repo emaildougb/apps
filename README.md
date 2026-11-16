@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.10. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.11. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -8,11 +8,16 @@ Version 3.10. Three views at one address: **Wall** (the station TV, cycles on it
 - Clinical (separate since 2.0): [https://clinical.northcountryems.org/](https://clinical.northcountryems.org/)
 - Repo: [https://github.com/emaildougb/apps](https://github.com/emaildougb/apps)
 - Upload: [https://github.com/emaildougb/apps/upload/main](https://github.com/emaildougb/apps/upload/main)
+- Training calendar, printable page (no sign in): [https://hub.northcountryems.org/training.html](https://hub.northcountryems.org/training.html)
+- Training calendar data (edit this): [https://github.com/emaildougb/apps/edit/main/training-events.json](https://github.com/emaildougb/apps/edit/main/training-events.json)
 
 ## Files (upload ALL of these)
 
 - `index.html`: crew-facing hub
 - `apps.json`: the button list (edit this to add, remove or rename apps)
+- `training-events.json`: the training calendar dates (edit this to add or change training, see How to add a training date)
+- `training.html`: the printable training calendar page, no sign in (reads training-events.json)
+- `tools/excel_to_training_json.py`: turns the Event List tab of NCEMS_Training_Calendar.xlsx into training-events.json (for the Training Dept project, not used by the pages)
 - `icons/` folder: the small app pictures on the buttons (shifts.png, fng.png, apparatus.png, ir.png, cgstaff.png). On GitHub, drag the whole icons folder in with the other files
 - `logo.png`: NCEMS round logo (header)
 - `apple-touch-icon.png`: home screen and tab icon
@@ -29,6 +34,43 @@ Version 3.10. Three views at one address: **Wall** (the station TV, cycles on it
 - **Station** picker in the top bar (51 or 52) sets the weather point and is remembered per device
 - **Notice:** chiefs post it from the (i) panel (d.boyce, d.langdon, d.madler, b.shirley see it; the ncems-api Worker is the real gate). Shows on every view and every Wall slide
 - **Incident Report** stays a regular app button. Volunteers who don't sign in to the Hub go straight to reports.northcountryems.org
+
+## Training calendar (since 3.11)
+
+- **On the Hub:** Desk sidebar **Training calendar**, phone tab **Training**. Month grid that opens on this month, arrows for other months, Today button, chips to show or hide each type, tap a day for the full title, time and notes, Upcoming (next 10) and a legend. Phones get a list instead of a grid. **Print** prints just the month, landscape, no buttons
+- **Printable page, no sign in:** https://hub.northcountryems.org/training.html, same data, NCEMS navy and blue, for the training office and for sharing. `?month=2026-12` opens December 2026, `?print=1` opens the print dialog. Example: https://hub.northcountryems.org/training.html?month=2026-12&print=1
+- **Data:** both pages read `training-events.json`. Nobody edits index.html or training.html to change dates
+- **Privacy:** training-events.json and training.html can be opened by anyone with the link (like apps.json). Keep notes to scheduling info: who is on duty for a class is fine, nothing personal or medical
+
+## How to add a training date
+
+The easy way on GitHub (no zip needed for date changes):
+
+1. Open https://github.com/emaildougb/apps/edit/main/training-events.json (sign in to GitHub if asked).
+2. Find the `"events": [` list.
+3. Click at the end of the last event line, right after its closing `}`, and type a comma `,`.
+4. Press Enter and paste one of the examples below on the new line. The last event in the list must **not** end with a comma.
+5. Change the title, type, dates, time and notes. Dates are always `YYYY-MM-DD` (December 10, 2026 is `2026-12-10`).
+6. Click **Commit changes...**, then **Commit changes**.
+7. Wait about a minute, then open https://hub.northcountryems.org/training.html and check the date. If the page says it didn't load, there is a typo (usually a missing or extra comma or quote). Open the file again, fix it and commit.
+
+**One day:**
+
+```json
+{"title":"OTEP: Airway skills","type":"otep","date":"2027-01-14","time":"0900–1100","notes":"Station 51 training room"}
+```
+
+**A range of days** (`days` and `exclude` are optional; leave out `days` for every day in the range):
+
+```json
+{"title":"PEAC Static Station","type":"peac","start":"2026-11-30","end":"2026-12-31","days":["Mon","Tue","Wed","Thu"],"exclude":["2026-12-21","2026-12-22"],"time":"On shift","notes":"Remediation also runs here"}
+```
+
+**Fields:** `title` (required), `type` (one of the types below), `date` for one day, or `start` and `end` for a range, `days` (Sun Mon Tue Wed Thu Fri Sat), `exclude` (dates to skip), `time` and `notes` (optional, shown when someone taps the day).
+
+**Types:** acls, pals, peac, advcardiac, otep, pcep, ftep, off, holiday. **To add a new type**, add one line under `"types"` at the top of training-events.json, for example `"cpr": { "label": "CPR", "bg": "#E2F0D9", "text": "#375623" },` (bg is the box color, text is the word color). No code change.
+
+**To remove or change** a date, edit or delete its line (watch the commas). **To move a whole month of PEAC**, change `start` and `end` on that one line.
 
 ## Home screen address
 
@@ -59,6 +101,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.11 (11/16/2026)
+- **Training calendar.** New Desk page (sidebar, replaces Training and events Soon) and phone tab. Month grid, filter chips, tap a day for details, Upcoming, legend, Print (landscape, one month, no buttons). Phones get a list view under 600 px wide
+- **Printable page** `training.html` with no sign in, in NCEMS navy and blue, for the training office and sharing. `?month=YYYY-MM` and `?print=1`
+- **Data file** `training-events.json`: dates and types live here, so changing training never touches code. Supports one day (`date`) and ranges (`start`, `end`, `days`, `exclude`). New types are one line under `types`
 
 ### v3.10 (11/15/2026)
 - **Rigs on the crew cards match what each unit is really in.** Medic crews always check their primary ambulance first, so the first rig checked today by someone on a unit's crew is that unit's rig (Desk Today, Schedule, Wall). If nobody on the crew has checked yet, it uses a rig claimed for that unit in the Checker, then the unit's usual rig (marked last known). One rig per unit

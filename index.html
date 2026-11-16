@@ -142,7 +142,7 @@ body.pocket [data-tab] { display: none; }
 body.pocket [data-tab].on { display: block; }
 body.pocket .title-row[data-tab].on { display: flex; }
 .tabs { display: none; }
-body.pocket .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: #000; border-top: 1px solid #1a1a1a; padding-bottom: env(safe-area-inset-bottom); }
+body.pocket .tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: #000; border-top: 1px solid #1a1a1a; padding-bottom: env(safe-area-inset-bottom); }
 .tabs button { background: none; border: 0; color: #bbb; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; cursor: pointer; }
 .tabs button.on { color: #fff; }
 .tabs svg { width: 22px; height: 22px; }
@@ -240,6 +240,68 @@ body.deskui.v-apps .app-btn .t { font-size: 15px; }
 .dock a { height: 58px; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 0 16px; text-align: left; }
 .dock img { width: 34px; height: 34px; border-radius: 8px; }
 .dock .t { font-size: 14px; }
+
+/* Training calendar (3.11). Event colors come from training-events.json */
+.tc-bar { flex-wrap: wrap; align-items: center; }
+.tc-month { font-size: 20px !important; }
+.tc-nav { display: flex; gap: 8px; align-items: center; }
+.tc-nav button { height: 36px; min-width: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; cursor: pointer; font-size: 14px; }
+.tc-nav button:hover { background: var(--raised); }
+.tc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 12px; }
+.tc-chip { border: 0; border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.tc-chip.off { opacity: .3; text-decoration: line-through; }
+.tc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.tc-dow { text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); padding: 4px 0 6px; }
+.tc-day { background: var(--raised); border: 0; border-radius: 10px; min-height: 96px; padding: 6px; min-width: 0; text-align: left; color: #fff; display: flex; flex-direction: column; gap: 3px; cursor: pointer; font: inherit; }
+.tc-day:hover { background: var(--nest); }
+.tc-day.out { background: #0b0b0b; }
+.tc-day.out .tc-n { color: var(--dim); }
+.tc-day.today { box-shadow: inset 0 0 0 2px #fff; }
+.tc-day.sel { box-shadow: inset 0 0 0 2px var(--rain); }
+.tc-n { font-size: 12px; font-weight: 600; color: var(--muted); }
+.tc-day.today .tc-n { color: #fff; }
+.tc-ev { font-size: 11px; font-weight: 600; border-radius: 6px; padding: 2px 6px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tc-more { font-size: 11px; color: var(--faint); padding-left: 2px; }
+.tc-list { display: none; }
+.tc-li { width: 100%; background: var(--raised); border: 0; border-radius: 14px; padding: 12px; margin-bottom: 8px; cursor: pointer; color: #fff; text-align: left; display: flex; flex-direction: column; gap: 4px; font: inherit; }
+.tc-li.sel { box-shadow: inset 0 0 0 2px var(--rain); }
+.tc-li .d { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.tc-li .tc-ev { white-space: normal; font-size: 12px; padding: 4px 8px; }
+.tc-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+.tc-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
+.tc-side { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-top: 16px; }
+.tc-card { background: var(--raised); border-radius: 16px; padding: 16px 18px; min-width: 0; }
+.tc-card h3 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+.tc-de { padding: 10px 0; border-top: 1px solid var(--nest); }
+.tc-de:first-of-type { border-top: 0; padding-top: 0; }
+.tc-de .t { font-weight: 600; font-size: 14px; margin-top: 6px; line-height: 1.35; }
+.tc-up { display: flex; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--nest); font-size: 13px; line-height: 1.35; }
+.tc-up:first-child { border-top: 0; padding-top: 0; }
+.tc-up .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; align-self: center; }
+.tc-up .d { min-width: 108px; color: var(--muted); }
+.tc-foot { text-align: center; color: var(--faint); font-size: 12px; margin: 18px 0 0; }
+.tc-print-head { display: none; }
+@media (max-width: 600px) { .tc-grid { display: none; } .tc-list { display: block; } .tc-side { grid-template-columns: 1fr; } .tc-up .d { min-width: 84px; } }
+@media print {
+  @page { size: landscape; margin: .4in; }
+  body.print-tc, body.print-tc #app { background: #fff !important; color: #000; font-family: Arial, Helvetica, sans-serif; padding: 0 !important; }
+  body.print-tc #signin, body.print-tc #wall, body.print-tc .side, body.print-tc .top, body.print-tc .notice, body.print-tc .dock, body.print-tc .tabs, body.print-tc .update-bar, body.print-tc .sheet-bg { display: none !important; }
+  body.print-tc main.desk { display: block !important; padding: 0 !important; max-width: none !important; }
+  body.print-tc main.desk > *:not(#tc-panel) { display: none !important; }
+  body.print-tc #tc-panel { display: block !important; background: #fff !important; color: #000; padding: 0 !important; border-radius: 0; }
+  body.print-tc .tc-bar, body.print-tc #tc-panel > .sub, body.print-tc .tc-chips, body.print-tc .tc-side, body.print-tc .tc-list { display: none !important; }
+  body.print-tc .tc-print-head { display: block; font-size: 20px; font-weight: bold; color: #1F3864; margin-bottom: 10px; }
+  body.print-tc .tc-grid { display: grid !important; gap: 0; border: 1px solid #C9D1DD; break-inside: avoid; }
+  body.print-tc .tc-dow { background: #2E5090; color: #fff; padding: 5px 0; }
+  body.print-tc .tc-day { background: #fff !important; color: #000; border-radius: 0; border-top: 1px solid #C9D1DD; border-left: 1px solid #C9D1DD; min-height: 80px; box-shadow: none !important; }
+  body.print-tc .tc-day.out { background: #F2F2F2 !important; }
+  body.print-tc .tc-day.today { box-shadow: none !important; }
+  body.print-tc .tc-n { color: #1F3864 !important; }
+  body.print-tc .tc-ev { white-space: normal; }
+  body.print-tc .tc-legend, body.print-tc .tc-foot { color: #555; }
+  body.print-tc .tc-pub { display: none; }
+  body.print-tc * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 
 /* Info sheet */
 .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -360,7 +422,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
     <button type="button" data-v="schedule">Schedule</button>
     <button type="button" data-v="shifts">Open shifts</button>
     <button type="button" data-v="duties">Daily tasks</button>
-    <button type="button" data-v="soon" data-soon="training">Training and events <span class="s">Soon</span></button>
+    <button type="button" data-v="training">Training calendar</button>
     <button type="button" data-v="soon" data-soon="videos">Training videos <span class="s">Soon</span></button>
     <button type="button" data-v="checks">Vehicle checks</button>
     <button type="button" data-v="weather">Weather</button>
@@ -404,7 +466,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
   <div class="notice" id="notice" onclick="openInfo()"><b id="notice-kind">Notice</b><span id="notice-text"></span></div>
 
   <main class="desk" id="desk">
-    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather map notes soon apps">
+    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather map notes soon apps training">
       <div>
         <h1 id="d-title">Today</h1>
         <p id="d-sub"></p>
@@ -466,6 +528,29 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
       <p class="map-credit">Radar NOAA. Wildfires NIFC. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map Esri, © OpenStreetMap contributors.</p>
     </section>
 
+    <section class="panel span-12 tc" id="tc-panel" data-tab="training" data-desk="training" aria-labelledby="h-tc">
+      <div class="tc-print-head">NCEMS Training Calendar · <span id="tc-print-month"></span></div>
+      <div class="ph tc-bar">
+        <h2 id="h-tc" class="tc-month">Training calendar</h2>
+        <div class="tc-nav">
+          <button type="button" onclick="tcMove(-1)" aria-label="Previous month">‹</button>
+          <button type="button" onclick="tcMove(0)">Today</button>
+          <button type="button" onclick="tcMove(1)" aria-label="Next month">›</button>
+          <button type="button" class="tc-print-btn" onclick="tcPrint()">Print</button>
+        </div>
+      </div>
+      <p class="sub" style="margin:-4px 0 0">ACLS, PEAC, OTEP, PCEP and FTEP in one place. Tap a day for details.</p>
+      <div class="tc-chips" id="tc-chips" aria-label="Show or hide training types"></div>
+      <div class="tc-grid" id="tc-grid"></div>
+      <div class="tc-list" id="tc-list"></div>
+      <div class="tc-legend" id="tc-legend"></div>
+      <div class="tc-side">
+        <div class="tc-card" id="tc-detail"></div>
+        <div class="tc-card"><h3>Upcoming</h3><div id="tc-up"></div></div>
+      </div>
+      <p class="tc-foot">NCEMS Training Division — Doug Boyce<span class="tc-pub"> · <a href="training.html" target="_blank" rel="noopener">Open the printable page</a> (no sign in, for sharing and the training office)</span></p>
+    </section>
+
     <section class="panel desk-only" data-desk="soon" aria-label="Coming later">
       <div id="soon-body"></div>
     </section>
@@ -489,6 +574,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
     <button type="button" data-go="checks" onclick="goTab('checks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>Checks</button>
     <button type="button" data-go="duties" onclick="goTab('duties')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></svg>Duties</button>
     <button type="button" data-go="weather" onclick="goTab('weather')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.5 3.5 0 0 0 7 18z"/></svg>Weather</button>
+    <button type="button" data-go="training" onclick="goTab('training')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Training</button>
     <button type="button" data-go="apps" onclick="goTab('apps')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Apps</button>
   </nav>
 </div>
@@ -527,7 +613,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.10';
+var HUB_VERSION = '3.11';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1044,12 +1130,11 @@ function renderDeskHome() {
     : '<p class="empty">No station notes right now.' + (isAdmin() ? ' Post one with the link above; it also shows on the Wall and on phones.' : '') + '</p>';
 }
 var SOON = {
-  training: ['Training and events', 'Classes, drills and county events will show here once the training calendar is connected.'],
   videos: ['Training videos', 'Training videos will show here in a later build.'],
   lms: ['Training Status', 'Training records and completion will show here once the new LMS is connected.'],
   fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
 };
-var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Station notes', apps: 'Apps' };
+var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Station notes', apps: 'Apps', training: 'Training calendar' };
 var VIEW = 'home', SOON_KEY = '';
 function goView(v, soonKey) {
   VIEW = VIEW_TITLE[v] || v === 'soon' ? v : 'home'; SOON_KEY = soonKey || '';
@@ -1060,6 +1145,7 @@ function goView(v, soonKey) {
   if (VIEW === 'soon') { var so = SOON[SOON_KEY] || ['Coming later', '']; $('d-title').textContent = so[0]; $('soon-body').innerHTML = '<p class="empty" style="margin:0">' + esc(so[1]) + '</p>'; }
   else $('d-title').textContent = VIEW_TITLE[VIEW];
   if (VIEW === 'map') ensureDeskMap();
+  if (VIEW === 'training') renderTraining();
   if (VIEW === 'shifts') loadShifts();
   window.scrollTo(0, 0);
 }
@@ -1129,6 +1215,7 @@ function goTab(t) {
     el.classList.toggle('on', el.dataset.tab === t || el.dataset.also === t);
   });
   if (t === 'weather') ensureDeskMap();
+  if (t === 'training') renderTraining();
   window.scrollTo(0, 0);
 }
 
@@ -1284,6 +1371,127 @@ window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); }
    Derek's read only Hub feeds (11/15): no names, just the shift. Same Microsoft ID token as everything else.
    Each shift: date "YYYY-MM-DD", unit, crew (1 medic, 2 EMT), start, end, hours, status open or filled.
    We show the next 7 days. Never parse the date with new Date(), build it from the parts. */
+/* ===== TRAINING CALENDAR (3.11) =====
+   Data lives in training-events.json next to this page (Doug edits that file, never this code).
+   It is { "types": { key: {label, bg, text} }, "events": [ ... ] } (a bare list of events also works).
+   An event is one day ("date") or a range ("start" and "end", with optional "days" like ["Mon","Tue"]
+   and "exclude" dates). A new type only needs a new line under "types". */
+var TC_TYPES = {
+  acls: { label: 'ACLS', bg: '#F4CCCC', text: '#990000' }, pals: { label: 'PALS', bg: '#E2F0D9', text: '#375623' },
+  peac: { label: 'PEAC', bg: '#DCE6F5', text: '#1F3864' }, advcardiac: { label: 'Adv Cardiac', bg: '#FCE4D6', text: '#843C0C' },
+  otep: { label: 'OTEP', bg: '#E4DFEC', text: '#5B1A86' }, pcep: { label: 'PCEP', bg: '#DDEBF7', text: '#2E5090' },
+  ftep: { label: 'FTEP', bg: '#FFF2CC', text: '#7F6000' }, off: { label: 'No training', bg: '#D9D9D9', text: '#404040' },
+  holiday: { label: 'Holiday', bg: '#FFF2CC', text: '#7F6000' }
+};
+var TC = { types: TC_TYPES, events: [], occ: [], hidden: {}, cur: null, sel: '', err: '', loaded: false };
+var TC_DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function tcYmd(d) { var z = function(n){ return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+function tcDate(s) { var p = ymdParts(s); return p ? new Date(p.y, p.m - 1, p.d, 12) : null; }
+function tcToday() { return tcYmd(new Date()); }
+function tcType(t) { return TC.types[t] || { label: t || 'Other', bg: '#D9D9D9', text: '#404040' }; }
+function tcFmt(s, o) { var d = tcDate(s); return d ? d.toLocaleDateString('en-US', o) : s; }
+function tcExpand(list) {
+  var out = [];
+  list.forEach(function(e, i){
+    if (!e || !e.title) return;
+    if (e.date) { if (tcDate(e.date)) out.push({ e: e, i: i, on: e.date }); return; }
+    var a = tcDate(e.start), b = tcDate(e.end || e.start); if (!a || !b) return;
+    var days = (e.days || []).map(function(x){ return String(x).slice(0, 3).toLowerCase(); }), ex = e.exclude || [];
+    for (var d = new Date(a), n = 0; d <= b && n < 800; d.setDate(d.getDate() + 1), n++) {
+      var k = tcYmd(d);
+      if (days.length && days.indexOf(TC_DOW[d.getDay()].toLowerCase()) < 0) continue;
+      if (ex.indexOf(k) >= 0) continue;
+      out.push({ e: e, i: i, on: k });
+    }
+  });
+  return out.sort(function(x, y){ return x.on < y.on ? -1 : x.on > y.on ? 1 : x.i - y.i; });
+}
+function loadTraining() {
+  return fetch('training-events.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){
+      var list = Array.isArray(j) ? j : (j.events || []), types = {};
+      Object.keys(TC_TYPES).forEach(function(k){ types[k] = TC_TYPES[k]; });
+      if (!Array.isArray(j) && j.types) Object.keys(j.types).forEach(function(k){ types[k] = j.types[k]; });
+      TC.types = types; TC.events = list; TC.occ = tcExpand(list); TC.loaded = true; TC.err = '';
+      renderTraining();
+    })
+    .catch(function(){ TC.err = 'The training calendar didn’t load. Check the connection and try again.'; renderTraining(); });
+}
+function tcVisible() { return TC.occ.filter(function(o){ return !TC.hidden[o.e.type]; }); }
+function tcPill(o, long) {
+  var t = tcType(o.e.type), title = long ? o.e.title : String(o.e.title).replace(/\s*\(.*\)\s*$/, '');
+  return '<div class="tc-ev" style="background:' + esc(t.bg) + ';color:' + esc(t.text) + '" title="' + esc(o.e.title) + '">' + esc(title) + '</div>';
+}
+function tcRange(e) {
+  if (e.date || !e.start) return '';
+  var r = tcFmt(e.start, { month: 'short', day: 'numeric' }) + ' to ' + tcFmt(e.end || e.start, { month: 'short', day: 'numeric' });
+  return r + (e.days && e.days.length ? ', ' + e.days.join(', ') : '');
+}
+function tcMove(n) {
+  var t = new Date();
+  if (!n) { TC.cur = new Date(t.getFullYear(), t.getMonth(), 1, 12); TC.sel = tcToday(); }
+  else TC.cur = new Date(TC.cur.getFullYear(), TC.cur.getMonth() + n, 1, 12);
+  renderTraining();
+}
+function tcPick(k) { TC.sel = k; renderTraining(); }
+function tcToggle(t) { if (TC.hidden[t]) delete TC.hidden[t]; else TC.hidden[t] = true; renderTraining(); }
+function tcPrint() {
+  document.body.classList.add('print-tc');
+  setTimeout(function(){ window.print(); }, 50);
+}
+window.addEventListener('afterprint', function(){ document.body.classList.remove('print-tc'); });
+function renderTraining() {
+  if (!$('tc-grid')) return;
+  var now = new Date(), today = tcToday();
+  if (!TC.cur) { TC.cur = new Date(now.getFullYear(), now.getMonth(), 1, 12); TC.sel = today; }
+  var cur = TC.cur, month = cur.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), mk = tcYmd(cur).slice(0, 7);
+  $('h-tc').textContent = month; $('tc-print-month').textContent = month;
+  var keys = Object.keys(TC.types);
+  TC.events.forEach(function(e){ if (e.type && keys.indexOf(e.type) < 0) keys.push(e.type); });
+  $('tc-chips').innerHTML = keys.map(function(k){ var t = tcType(k);
+    return '<button type="button" class="tc-chip' + (TC.hidden[k] ? ' off' : '') + '" aria-pressed="' + (!TC.hidden[k]) + '" style="background:' + esc(t.bg) + ';color:' + esc(t.text) + '" onclick="tcToggle(\'' + esc(k) + '\')">' + esc(t.label) + '</button>'; }).join('');
+  $('tc-legend').innerHTML = keys.map(function(k){ var t = tcType(k); return '<span><i class="tc-sw" style="background:' + esc(t.bg) + '"></i>' + esc(t.label) + '</span>'; }).join('');
+  var vis = tcVisible(), byDay = {};
+  vis.forEach(function(o){ (byDay[o.on] = byDay[o.on] || []).push(o); });
+  /* Month grid, Sunday first */
+  var first = new Date(cur); first.setDate(1 - cur.getDay());
+  var g = TC_DOW.map(function(n){ return '<div class="tc-dow">' + n + '</div>'; });
+  for (var i = 0; i < 42; i++) {
+    var d = new Date(first); d.setDate(first.getDate() + i);
+    if (i >= 35 && d.getMonth() !== cur.getMonth()) break;
+    var k = tcYmd(d), evs = byDay[k] || [];
+    g.push('<button type="button" class="tc-day' + (d.getMonth() !== cur.getMonth() ? ' out' : '') + (k === today ? ' today' : '') + (k === TC.sel ? ' sel' : '') + '" onclick="tcPick(\'' + k + '\')" aria-label="' + esc(tcFmt(k, { weekday: 'long', month: 'long', day: 'numeric' })) + (evs.length ? ', ' + evs.length + ' event' + (evs.length === 1 ? '' : 's') : '') + '">' +
+      '<span class="tc-n">' + d.getDate() + (k === today ? ' · Today' : '') + '</span>' + evs.slice(0, 3).map(function(o){ return tcPill(o, false); }).join('') +
+      (evs.length > 3 ? '<span class="tc-more">+' + (evs.length - 3) + ' more</span>' : '') + '</button>');
+  }
+  $('tc-grid').innerHTML = g.join('');
+  /* Phone list: days this month that have something */
+  var days = Object.keys(byDay).filter(function(k){ return k.slice(0, 7) === mk; }).sort();
+  $('tc-list').innerHTML = days.length ? days.map(function(k){
+    return '<button type="button" class="tc-li' + (k === TC.sel ? ' sel' : '') + '" onclick="tcPick(\'' + k + '\')"><span class="d">' + esc(tcFmt(k, { weekday: 'short', month: 'short', day: 'numeric' })) + (k === today ? ' · Today' : '') + '</span>' + byDay[k].map(function(o){ return tcPill(o, true); }).join('') + '</button>';
+  }).join('') : '<p class="empty" style="margin:8px 0">' + (TC.err ? esc(TC.err) : TC.loaded ? 'Nothing scheduled this month.' : 'Loading…') + '</p>';
+  /* Day details */
+  var sel = byDay[TC.sel] || [];
+  $('tc-detail').innerHTML = '<h3>' + (TC.sel ? esc(tcFmt(TC.sel, { weekday: 'long', month: 'long', day: 'numeric' })) + (TC.sel === today ? ' · Today' : '') : 'Day details') + '</h3>' +
+    (TC.err ? '<p class="empty" style="margin:0">' + esc(TC.err) + '</p>' : !TC.loaded ? '<p class="empty" style="margin:0">Loading…</p>' : sel.length ? sel.map(function(o){
+      var t = tcType(o.e.type), rg = tcRange(o.e);
+      return '<div class="tc-de"><span class="tag" style="background:' + esc(t.bg) + ';color:' + esc(t.text) + '">' + esc(t.label) + '</span><div class="t">' + esc(o.e.title) + '</div>' +
+        (o.e.time ? '<div class="sub">' + esc(o.e.time) + '</div>' : '') + (rg ? '<div class="sub">Runs ' + esc(rg) + '</div>' : '') + (o.e.notes ? '<div class="sub" style="color:#d6d6d6">' + esc(o.e.notes) + '</div>' : '') + '</div>';
+    }).join('') : '<p class="empty" style="margin:0">Nothing scheduled.</p>');
+  /* Upcoming: next 10, a range shows once with its dates */
+  var seen = {}, up = [];
+  vis.forEach(function(o){
+    if (o.on < today || up.length >= 10) return;
+    if (!o.e.date) { if (seen[o.i]) return; seen[o.i] = true; }
+    up.push(o);
+  });
+  $('tc-up').innerHTML = up.length ? up.map(function(o){
+    var t = tcType(o.e.type), when = o.e.date ? tcFmt(o.on, { weekday: 'short', month: 'short', day: 'numeric' }) : tcFmt(o.on, { month: 'short', day: 'numeric' }) + ' to ' + tcFmt(o.e.end || o.e.start, { month: 'short', day: 'numeric' });
+    return '<div class="tc-up"><span class="dot" style="background:' + esc(t.bg) + '"></span><span class="d">' + esc(when) + '</span><span>' + esc(o.e.title) + (o.e.time ? ' · ' + esc(o.e.time) : '') + '</span></div>';
+  }).join('') : '<p class="empty" style="margin:0">' + (TC.loaded ? 'Nothing coming up.' : 'Loading…') + '</p>';
+}
+
 /* ===== DUTY BC (3.9) =====
    Derek's board feed (read only, Hub ID token): days["YYYY-MM-DD"].working[unit] = [{seat, role, person, start, end}].
    Doug's rule (11/15): if Derek Langdon or Dennis Madler is on the schedule anywhere that duty day (BC row or any medic unit),
@@ -1606,7 +1814,7 @@ function boot() {
   initMsal().then(function(){
     showView();
     if (!msalAccount) return;
-    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard();
+    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard(); loadTraining();
     if (MODE === 'wall') { loadMapData(); loadAir(); }
   }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
 }
@@ -1620,6 +1828,7 @@ setInterval(function(){
 }, 15000);
 setInterval(function(){ if (msalAccount && !document.hidden) { loadNotice(); loadFleet(); } }, 120000);
 setInterval(function(){ if (msalAccount && !document.hidden) { loadShifts(); loadBoard(); } }, 5 * 60e3);
+setInterval(function(){ if (msalAccount && !document.hidden) loadTraining(); }, 30 * 60e3);
 setInterval(function(){ if (msalAccount) { loadWeather(); checkForUpdate(); } }, 15 * 60e3);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && msalAccount) { loadNotice(); loadFleet(); checkForUpdate(); } });
 

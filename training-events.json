@@ -1,0 +1,21 @@
+{
+  "types": {
+    "acls":       { "label": "ACLS",         "bg": "#F4CCCC", "text": "#990000" },
+    "pals":       { "label": "PALS",         "bg": "#E2F0D9", "text": "#375623" },
+    "peac":       { "label": "PEAC",         "bg": "#DCE6F5", "text": "#1F3864" },
+    "advcardiac": { "label": "Adv Cardiac",  "bg": "#FCE4D6", "text": "#843C0C" },
+    "otep":       { "label": "OTEP",         "bg": "#E4DFEC", "text": "#5B1A86" },
+    "pcep":       { "label": "PCEP",         "bg": "#DDEBF7", "text": "#2E5090" },
+    "ftep":       { "label": "FTEP",         "bg": "#FFF2CC", "text": "#7F6000" },
+    "off":        { "label": "No training",  "bg": "#D9D9D9", "text": "#404040" },
+    "holiday":    { "label": "Holiday",      "bg": "#FFF2CC", "text": "#7F6000" }
+  },
+  "events": [
+    {"title":"ACLS Course (ACLS + EP ACLS + 12-Lead + Static EKG)","type":"acls","date":"2026-12-10","time":"0800–1700","notes":"Full-time medics. On duty: Robertson, Pedersen — attend Dec 29"},
+    {"title":"ACLS Course (ACLS + EP ACLS + 12-Lead + Static EKG)","type":"acls","date":"2026-12-29","time":"0800–1700","notes":"Full-time medics. On duty: Maylone, Komm — attend Dec 10"},
+    {"title":"PEAC Static Station","type":"peac","start":"2026-11-30","end":"2026-12-31","days":["Mon","Tue","Wed","Thu"],"exclude":["2026-12-21","2026-12-22","2026-12-23","2026-12-24"],"time":"On shift","notes":"Remediation also runs here through Dec 31"},
+    {"title":"No training — Training Officer on vacation","type":"off","start":"2026-12-21","end":"2026-12-25"},
+    {"title":"Thanksgiving","type":"holiday","date":"2026-11-26"},
+    {"title":"Christmas","type":"holiday","date":"2026-12-25"}
+  ]
+}
