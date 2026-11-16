@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.11. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.12. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.12 (11/16/2026)
+- **Wall: This week in training.** New slide after Open shifts with today plus the next 6 days from training-events.json (day, type tag, title, time). It is skipped when nothing is on the calendar that week. Up to 8 lines (7 when a notice is up), then "And N more this week on the Hub"
 
 ### v3.11 (11/16/2026)
 - **Training calendar.** New Desk page (sidebar, replaces Training and events Soon) and phone tab. Month grid, filter chips, tap a day for details, Upcoming, legend, Print (landscape, one month, no buttons). Phones get a list view under 600 px wide

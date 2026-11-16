@@ -613,7 +613,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.11';
+var HUB_VERSION = '3.12';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1340,10 +1340,37 @@ function wallToday(idx, n) {
         }).join('') + '</div></div>';
     }).join('') + '</div>';
 }
+/* 3.12: this week in training on the Wall (today plus 6 days, from training-events.json). Skipped when the week is empty */
+function training7() {
+  var today = tcToday(), out = {};
+  tcVisible().forEach(function(o){ var d = ymdDiff(today, o.on); if (d != null && d >= 0 && d <= 6) (out[o.on] = out[o.on] || []).push(o); });
+  return Object.keys(out).sort().map(function(k){ return { date: k, evs: out[k] }; });
+}
+function wallTraining(idx, n) {
+  var days = training7(), budget = hasNotice() ? 7 : 8, shown = [], used = 0, left = 0;
+  days.forEach(function(d){
+    var room = budget - used;
+    if (room <= 0) { left += d.evs.length; return; }
+    var evs = d.evs.slice(0, room); used += evs.length; left += d.evs.length - evs.length;
+    shown.push({ date: d.date, evs: evs });
+  });
+  return wHead('This week in training', 'Next 7 days · full calendar on the Hub, Training calendar', idx, n) +
+    '<div class="w-panel" style="padding:8px 48px;flex:1;min-height:0;overflow:hidden">' + shown.map(function(d){
+      var l = ymdLabel(d.date);
+      return '<div class="w-row" style="min-height:0;padding:16px 0;align-items:flex-start"><div style="width:400px;flex:none;display:flex;align-items:baseline;gap:16px;white-space:nowrap"><span style="font-size:44px;font-weight:600">' + esc(whenWord(d)) + '</span><span style="font-size:28px;color:var(--muted)">' + esc(l.date) + '</span></div>' +
+        '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">' + d.evs.map(function(o){
+          var t = tcType(o.e.type);
+          return '<div style="display:flex;align-items:center;gap:22px;min-width:0"><span class="w-tag" style="flex:none;background:' + esc(t.bg) + ';color:' + esc(t.text) + '">' + esc(t.label) + '</span>' +
+            '<div style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="font-size:42px;font-weight:600">' + esc(String(o.e.title).replace(/\s*\(.*\)\s*$/, '')) + '</span>' +
+            (o.e.time ? '<span style="font-size:30px;color:var(--muted)"> &nbsp;' + esc(o.e.time) + '</span>' : '') + '</div></div>';
+        }).join('') + '</div></div>';
+    }).join('') + (left ? '<div style="font-size:30px;color:var(--muted);padding-top:16px">And ' + left + ' more this week on the Hub</div>' : '') + '</div>';
+}
 function wallSlides() {
   var list = [];
   if (HUB && shiftUnits(HUB.day).length) list.push(wallToday);
   if (openShifts7().length) list.push(wallShifts);
+  if (TC.loaded && training7().length) list.push(wallTraining);
   if (FLEET.data) list.push(wallChecks);
   list.push(wallDuties);
   if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
@@ -1415,6 +1442,7 @@ function loadTraining() {
       if (!Array.isArray(j) && j.types) Object.keys(j.types).forEach(function(k){ types[k] = j.types[k]; });
       TC.types = types; TC.events = list; TC.occ = tcExpand(list); TC.loaded = true; TC.err = '';
       renderTraining();
+      if (MODE === 'wall') renderWall();
     })
     .catch(function(){ TC.err = 'The training calendar didn’t load. Check the connection and try again.'; renderTraining(); });
 }
