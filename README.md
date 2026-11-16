@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.12. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.12.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -9,13 +9,13 @@ Version 3.12. Three views at one address: **Wall** (the station TV, cycles on it
 - Repo: [https://github.com/emaildougb/apps](https://github.com/emaildougb/apps)
 - Upload: [https://github.com/emaildougb/apps/upload/main](https://github.com/emaildougb/apps/upload/main)
 - Training calendar, printable page (no sign in): [https://hub.northcountryems.org/training.html](https://hub.northcountryems.org/training.html)
-- Training calendar data (edit this): [https://github.com/emaildougb/apps/edit/main/training-events.json](https://github.com/emaildougb/apps/edit/main/training-events.json)
+- Training calendar data (built by the Training Dept project, don't edit by hand): [https://raw.githubusercontent.com/emaildougb/apps/main/training-events.json](https://raw.githubusercontent.com/emaildougb/apps/main/training-events.json)
 
 ## Files (upload ALL of these)
 
 - `index.html`: crew-facing hub
 - `apps.json`: the button list (edit this to add, remove or rename apps)
-- `training-events.json`: the training calendar dates (edit this to add or change training, see How to add a training date)
+- `training-events.json`: the training calendar dates. Built from the Excel master by the Training Dept project, never edited by hand (see How to add a training date)
 - `training.html`: the printable training calendar page, no sign in (reads training-events.json)
 - `tools/excel_to_training_json.py`: turns the Event List tab of NCEMS_Training_Calendar.xlsx into training-events.json (for the Training Dept project, not used by the pages)
 - `icons/` folder: the small app pictures on the buttons (shifts.png, fng.png, apparatus.png, ir.png, cgstaff.png). On GitHub, drag the whole icons folder in with the other files
@@ -44,33 +44,33 @@ Version 3.12. Three views at one address: **Wall** (the station TV, cycles on it
 
 ## How to add a training date
 
-The easy way on GitHub (no zip needed for date changes):
+There is one way to change the calendar, so the Excel master and the live calendar never disagree. The master is OneDrive > Claude > Training > NCEMS_Training_Calendar.xlsx, tab **Event List**. Don't edit training-events.json on GitHub by hand: the next rebuild from the Excel would wipe the change out.
 
-1. Open https://github.com/emaildougb/apps/edit/main/training-events.json (sign in to GitHub if asked).
-2. Find the `"events": [` list.
-3. Click at the end of the last event line, right after its closing `}`, and type a comma `,`.
-4. Press Enter and paste one of the examples below on the new line. The last event in the list must **not** end with a comma.
-5. Change the title, type, dates, time and notes. Dates are always `YYYY-MM-DD` (December 10, 2026 is `2026-12-10`).
-6. Click **Commit changes...**, then **Commit changes**.
-7. Wait about a minute, then open https://hub.northcountryems.org/training.html and check the date. If the page says it didn't load, there is a typo (usually a missing or extra comma or quote). Open the file again, fix it and commit.
+1. In the **Training Dept** Claude project, say what changed in plain words, for example "Add OTEP airway skills on January 14, 0900 to 1100" or "Move the December 29 ACLS to January 5".
+2. The project first compares the live training-events.json with the Excel and asks about anything that doesn't match.
+3. It updates the Event List in the Excel, then builds a new training-events.json with `tools/excel_to_training_json.py`.
+4. Open https://github.com/emaildougb/apps/upload/main
+5. Drag in training-events.json (same name, it replaces the old one).
+6. Click **Commit changes**.
+7. Tell the project "uploaded". It checks the raw file for the change and merge conflict markers, and checks https://hub.northcountryems.org/training.html. The Hub, Wall and printable page update within about a minute (an open screen within 30 minutes, or right away on refresh).
 
-**One day:**
+**What the file looks like** (for reference, the Training Dept project writes it):
+
+One day:
 
 ```json
 {"title":"OTEP: Airway skills","type":"otep","date":"2027-01-14","time":"0900–1100","notes":"Station 51 training room"}
 ```
 
-**A range of days** (`days` and `exclude` are optional; leave out `days` for every day in the range):
+A range of days (`days` and `exclude` are optional; leave out `days` for every day in the range). The pages read ranges, but the converter writes one day per Excel row:
 
 ```json
 {"title":"PEAC Static Station","type":"peac","start":"2026-11-30","end":"2026-12-31","days":["Mon","Tue","Wed","Thu"],"exclude":["2026-12-21","2026-12-22"],"time":"On shift","notes":"Remediation also runs here"}
 ```
 
-**Fields:** `title` (required), `type` (one of the types below), `date` for one day, or `start` and `end` for a range, `days` (Sun Mon Tue Wed Thu Fri Sat), `exclude` (dates to skip), `time` and `notes` (optional, shown when someone taps the day).
+**Fields:** `title` (required), `type`, `date` for one day, or `start` and `end` for a range, `days` (Sun Mon Tue Wed Thu Fri Sat), `exclude` (dates to skip), `time` and `notes` (optional, shown when someone taps the day).
 
-**Types:** acls, pals, peac, advcardiac, otep, pcep, ftep, off, holiday. **To add a new type**, add one line under `"types"` at the top of training-events.json, for example `"cpr": { "label": "CPR", "bg": "#E2F0D9", "text": "#375623" },` (bg is the box color, text is the word color). No code change.
-
-**To remove or change** a date, edit or delete its line (watch the commas). **To move a whole month of PEAC**, change `start` and `end` on that one line.
+**Types:** acls, pals, peac, advcardiac, otep, pcep, ftep, off, holiday. **A new type** is one line under `"types"` in training-events.json and one line in the TYPES list at the top of `tools/excel_to_training_json.py` (ask the NCEMS APPS project). No page change.
 
 ## Home screen address
 
@@ -101,6 +101,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.12.1 (11/16/2026)
+- Training calendar has one update path now: the Training Dept project updates the Excel master first, then builds training-events.json. The hand edit on GitHub steps are gone from this README so the Excel and the live calendar can't drift apart. The project also compares the live file with the Excel before each build
 
 ### v3.12 (11/16/2026)
 - **Wall: This week in training.** New slide after Open shifts with today plus the next 6 days from training-events.json (day, type tag, title, time). It is skipped when nothing is on the calendar that week. Up to 8 lines (7 when a notice is up), then "And N more this week on the Hub"
