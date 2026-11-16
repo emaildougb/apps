@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.8. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.9. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -59,6 +59,16 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.9 (11/15/2026)
+- **Duty battalion chief is live** from Derek's board feed (https://ncems-ot.d-langdon.workers.dev/hub/board, Hub ID token). Rule from Doug: if Derek Langdon or Dennis Madler is on the schedule anywhere that duty day (BC row or any medic unit), they are the duty BC. If one of them is on and Doug is too, Doug shows underneath as Training chief. If neither is on, Doug is the duty BC. Duty day rolls over at 07:30. Shows on Desk Today and in the Wall Today subtitle
+- **Apps sit at the end of Today** instead of floating over the page, so nothing scrolls under them. New **Apps** page in the sidebar under Training Status
+- Top bar: search box is shorter and says Search, so Rotate Custom and Wall stay on one line
+- Vehicles checked today counts only rigs a crew is on today. Out of service rigs and spares don't count
+- Crew cards no longer say "Open, 1 of 2 staffed" (Desk, Schedule and Wall)
+- Daily tasks: says "Crew can log in to check complete". No more name and time on who checked a task off (Desk, phone, Wall, search)
+- Weather: the next 24 hours is a line graph (temperature line, chance of rain shaded, dashed line at freezing) on Desk, phone and Wall instead of the boxes
+- District map: air quality and earthquakes removed (Derek: too crowded). Added a QR code for the live helicopter map on phones (globe.adsb.lol, free, no app, same feed the map uses), with an Open it here link on Desk
 
 ### v3.8 (11/15/2026)
 - **Duties per station.** Station 51 and Station 52 each have their own weekly duty list. Station 51 keeps the current checklist and its old check offs. Station 52 starts empty (it says so) until Doug sends its list; chiefs can still add tasks for the day there

@@ -176,21 +176,21 @@ body.deskui .side { display: flex; flex-direction: column; gap: 2px; position: f
 .side button:hover { color: #fff; }
 .side button.on { background: var(--raised); color: #fff; font-weight: 600; }
 .side button .s { font-size: 11px; color: var(--dim); font-weight: 400; }
-body.deskui #app { padding-left: 184px; padding-bottom: 160px; }
+body.deskui #app { padding-left: 184px; padding-bottom: 24px; }
 body.deskui .duty-row { font-size: 14px; min-height: 44px; }
 body.deskui.v-home .notice:not(.urgent) { display: none; }
 body.deskui .top > img, body.deskui .top .brand-wrap, body.deskui .top #wall-btn, body.deskui #d-clock { display: none; }
-body.deskui .search { display: block; position: relative; width: 330px; max-width: 40vw; }
+body.deskui .search { display: block; position: relative; width: 220px; max-width: 26vw; flex: 0 1 auto; }
 .search input { width: 100%; height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 16px; font: inherit; font-size: 13px; }
 .s-res { display: none; position: absolute; top: 42px; left: 0; width: 380px; max-width: 80vw; max-height: 60vh; overflow: auto; background: var(--surface); border-radius: 14px; padding: 6px; box-shadow: 0 12px 40px rgba(0,0,0,.6); z-index: 9; }
 .s-res.show { display: block; }
 .s-res button { display: block; width: 100%; text-align: left; background: none; border: 0; color: #fff; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; }
 .s-res button:hover, .s-res button:focus, .s-res button.hl { background: var(--raised); outline: none; }
 .s-res .k { display: block; color: var(--faint); font-size: 12px; margin-top: 2px; }
-body.deskui .d-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+body.deskui .d-ctl { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
 .d-ctl label { color: var(--faint); font-size: 13px; }
 .d-ctl select, .d-ctl input { height: 36px; border-radius: 999px; border: 1px solid var(--control); background: #000; color: #fff; padding: 0 12px; font: inherit; font-size: 13px; }
-.d-ctl input { width: 76px; }
+.d-ctl input { width: 62px; }
 .d-ctl .pill { height: 36px; padding: 0 16px; font-size: 14px; }
 body.deskui main.desk { max-width: 1400px; }
 body.deskui main.desk > * { display: none; }
@@ -214,6 +214,13 @@ body.deskui.v-home .dtmr { display: none; }
 .cr-seat .n { font-size: 13px; font-weight: 600; margin-top: 1px; }
 .cr-seat .n.open { color: var(--warn); }
 .bc-big { font-size: 22px; margin-top: 8px; }
+.wx-graph { display: block; width: 100%; height: auto; margin-top: 6px; }
+.w-panel .wx-graph { width: 100%; height: 100%; margin: 0; }
+.bc-tc { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.bc-tc .l { font-size: 12px; color: var(--faint); }
+.bc-tc .n { font-size: 16px; font-weight: 600; margin-top: 2px; }
+/* 3.9: the apps sit at the end of Today (no more floating bar), and have their own Apps page */
+body.deskui.v-home .dock { display: grid; }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .stat { display: flex; align-items: center; gap: 16px; padding: 2px 20px; border-left: 1px solid var(--rule); min-width: 0; }
 .stat:first-child { border-left: 0; padding-left: 0; }
@@ -224,7 +231,12 @@ body.deskui.v-home .dtmr { display: none; }
 .note:first-child { border-top: 0; padding-top: 0; }
 .note .t { font-weight: 600; font-size: 14px; line-height: 1.4; }
 .link-btn { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; }
-body.deskui .dock { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; position: fixed; left: 184px; right: 0; bottom: 0; padding: 12px 24px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: #000; border-top: 1px solid #1a1a1a; z-index: 6; }
+body.deskui .dock { display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 1400px; margin: 0 auto; padding: 0 24px 16px; }
+body.deskui main.desk { padding-bottom: 14px; }
+body.deskui.v-apps [data-desk=apps] .ph { display: none; }
+body.deskui.v-apps .app-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body.deskui.v-apps .app-btn { flex-direction: row; justify-content: flex-start; gap: 14px; height: 72px; padding: 0 18px; text-align: left; }
+body.deskui.v-apps .app-btn .t { font-size: 15px; }
 .dock a { height: 58px; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 0 16px; text-align: left; }
 .dock img { width: 34px; height: 34px; border-radius: 8px; }
 .dock .t { font-size: 14px; }
@@ -294,6 +306,10 @@ body.pocket #dmap { height: 340px; }
 body.pocket .cams { grid-template-columns: 1fr 1fr; }
 .ms-sec { padding: 10px 0; border-top: 1px solid var(--rule); }
 .ms-sec:first-child { border-top: 0; padding-top: 0; }
+.ms-qr { display: flex; gap: 12px; align-items: center; }
+.ms-qrc { width: 96px; height: 96px; flex: none; border-radius: 8px; overflow: hidden; }
+.ms-qrc svg { display: block; width: 100%; height: 100%; }
+.ms.big .ms-qrc { width: 190px; height: 190px; border-radius: 12px; }
 .ms-h { font-size: 12px; color: var(--faint); margin-bottom: 6px; }
 .ms-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; }
 .ms-row b { font-size: 18px; }
@@ -351,13 +367,14 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
     <button type="button" data-v="map">District map</button>
     <button type="button" data-v="notes">Station notes</button>
     <button type="button" data-v="soon" data-soon="lms">Training Status <span class="s">Soon</span></button>
+    <button type="button" data-v="apps">Apps</button>
   </aside>
   <header class="top">
     <img src="logo.png" alt="">
     <div class="brand-wrap"><div class="brand">NCEMS Hub</div><div class="who" id="who"></div></div>
     <div class="search" role="search">
       <label class="sr" for="q">Search</label>
-      <input id="q" type="search" autocomplete="off" placeholder="Search a name, rig or task">
+      <input id="q" type="search" autocomplete="off" placeholder="Search">
       <div class="s-res" id="s-res"></div>
     </div>
     <div class="grow"></div>
@@ -387,7 +404,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
   <div class="notice" id="notice" onclick="openInfo()"><b id="notice-kind">Notice</b><span id="notice-text"></span></div>
 
   <main class="desk" id="desk">
-    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather map notes soon">
+    <div class="title-row on" data-tab="home" data-desk="home schedule shifts duties checks weather map notes soon apps">
       <div>
         <h1 id="d-title">Today</h1>
         <p id="d-sub"></p>
@@ -425,6 +442,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
     <section class="panel span-7 d6" data-tab="duties" data-desk="home duties" aria-labelledby="h-duties">
       <div class="ph"><h2 id="h-duties">Duties</h2><span class="meta" id="duties-meta"></span></div>
+      <p class="sub" id="duties-note" style="margin:-6px 0 8px"></p>
       <div id="duties-body"></div>
       <div id="duty-add"></div>
     </section>
@@ -445,7 +463,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
       <div class="map-wrap"><div id="dmap"></div><div id="map-side"></div></div>
       <p class="stn" style="margin-top:18px">Road cameras</p>
       <div class="cams" id="cams"></div>
-      <p class="map-credit">Radar NOAA. Wildfires NIFC. Earthquakes USGS. Air quality Open-Meteo. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map Esri, © OpenStreetMap contributors.</p>
+      <p class="map-credit">Radar NOAA. Wildfires NIFC. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map Esri, © OpenStreetMap contributors.</p>
     </section>
 
     <section class="panel desk-only" data-desk="soon" aria-label="Coming later">
@@ -455,10 +473,10 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
     <section class="panel span-5" data-tab="none" aria-labelledby="h-coming">
       <div class="ph"><h2 id="h-coming">Coming next</h2></div>
       <div class="row"><div class="grow">Open shifts and the week<div class="sub">From Derek's Open Shifts feed</div></div><span class="tag dim">Soon</span></div>
-      <div class="row"><div class="grow">Duty BC<div class="sub">Not in the schedule feed yet</div></div><span class="tag dim">Soon</span></div>
+      <div class="row"><div class="grow">Duty BC<div class="sub">From Derek's board feed</div></div><span class="tag dim">Live</span></div>
     </section>
 
-    <section class="panel span-12" data-tab="apps" aria-labelledby="h-apps">
+    <section class="panel span-12" data-tab="apps" data-desk="apps" aria-labelledby="h-apps">
       <div class="ph"><h2 id="h-apps">Apps</h2></div>
       <div id="apps-body"></div>
     </section>
@@ -509,7 +527,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.8';
+var HUB_VERSION = '3.9';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -652,7 +670,7 @@ function loadApps() {
 }
 function renderApps() {
   if (!APPS) { $('apps-body').innerHTML = '<p class="empty">Loading…</p>'; return; }
-  /* Desk: every app in one line along the bottom of the screen */
+  /* Desk: the apps at the end of Today, two rows of three (3.9) */
   $('dock').innerHTML = APPS.operations.reduce(function(a, sec){ return a.concat(sec.buttons || []); }, []).map(function(b){
     var tt = String(b.title).replace(/\n/g, ' ');
     return '<a href="' + esc(b.url) + '">' + (b.icon ? '<img src="' + esc(b.icon) + '" alt="">' : '') +
@@ -756,7 +774,7 @@ function renderShiftDesk() {
   var html = '<div class="st-grid">' + ['51', '52'].map(function(st){
     var us = units.filter(function(u){ return u.station === st; });
     return '<div><p class="stn">Station ' + st + '</p>' + (us.length ? '<div class="u-cards">' + us.map(function(u){
-      return '<div class="u-card"><div class="u-head"><span class="u-call">' + u.call + '</span>' + (u.short ? '<span class="tag warn">' + u.staffed + '</span>' : '') + '</div>' +
+      return '<div class="u-card"><div class="u-head"><span class="u-call">' + u.call + '</span></div>' +
         '<div class="u-where">' + esc(u.where) + (u.rig ? ' · ' + esc(u.rig) : '') + '</div>' +
         u.seats.map(function(s){ return '<div class="u-seat"><div class="l">' + s.label + '</div>' + esc(s.names) + '</div>'; }).join('') + '</div>';
     }).join('') + '</div>' : '<p class="empty">No unit here right now</p>') + '</div>';
@@ -779,7 +797,10 @@ function fleetSummary() {
     var tagLine = crew ? crew + ' today' : (r.oos ? '' : 'Spare');
     return { rig: rigLabel(r.rig), station: String(r.station || ''), state: s, line: [tagLine, s.detail].filter(Boolean).join(' · ') };
   });
-  var inSvc = rows.filter(function(x){ return x.state.key !== 'oos'; });
+  /* 3.9: the percent counts only rigs a crew is on today. Out of service rigs and spares don't count. */
+  rows.forEach(function(x, i){ x.crew = !!(rigs[i].claim && rigs[i].claim.crew); });
+  var inSvc = rows.filter(function(x){ return x.state.key !== 'oos' && x.crew; });
+  if (!inSvc.length) inSvc = rows.filter(function(x){ return x.state.key !== 'oos'; });
   var done = inSvc.filter(function(x){ return x.state.key === 'ok'; }).length;
   return { rows: rows, total: inSvc.length, done: done, pct: inSvc.length ? Math.round(done / inSvc.length * 100) : 0 };
 }
@@ -837,11 +858,11 @@ function renderDuties() {
   var done = items.filter(function(x){ return x.done; }).length;
   $('h-duties').textContent = day + ' duties';
   $('duties-meta').textContent = done + ' of ' + items.length + ' done';
+  $('duties-note').textContent = 'Crew can log in to check complete';
   var can = !!(HUB && HUB.day);
   $('duties-body').innerHTML = items.map(function(x){
     return '<label class="row duty-row' + (x.done ? ' done' : '') + '"><input type="checkbox" ' + (x.done ? 'checked ' : '') + (can ? '' : 'disabled ') + 'data-duty="' + esc(x.id) + '" data-text="' + esc(x.text) + '"><div class="grow">' + esc(x.text) +
       (x.added ? '<div class="sub" style="color:var(--warn)">' + esc(x.added) + '</div>' : '') + '</div>' +
-      (x.done ? '<span class="sub">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</span>' : '') +
       (x.added && HUB && HUB.canAdd ? '<button class="x-btn" type="button" data-rm="' + esc(x.id) + '">Remove</button>' : '') + '</label>';
   }).join('') + (items.length ? '' : '<p class="sub" style="padding:8px 0">No weekly list for ' + esc(STATIONS[STATION].name) + ' yet. Chiefs can add tasks for today below.</p>') + '<div class="dtmr"><p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + ((stationWeek()[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('') || '<div class="sub" style="padding:4px 0">No weekly list for this station yet.</div>') + '</div>';
   $('duty-add').innerHTML = HUB && HUB.canAdd ? '<div class="add-row"><label class="sr" for="duty-new">Add a task for today</label><input id="duty-new" type="text" maxlength="160" placeholder="BC: add a task for today"><button class="pill ghost" type="button" style="height:36px" onclick="addDuty()">Add</button></div><p class="sub" id="duty-msg"></p>' : '';
@@ -904,18 +925,41 @@ function wxHighLow(w) {
   p.forEach(function(x){ if (x.day && hi == null) hi = x.temp; if (!x.day && lo == null) lo = x.temp; });
   return { hi: hi, lo: lo };
 }
+/* 3.9: next 24 hours as a line graph (temperature line, chance of rain shaded underneath, dashed line at freezing) */
+function wxGraph(hours, W, H, big) {
+  var hs = (hours || []).slice(0, 24); if (hs.length < 2) return '';
+  var fs = big ? 26 : 11, padT = big ? 46 : 20, padB = big ? 44 : 20, padX = big ? 24 : 12;
+  var temps = hs.map(function(x){ return x.temp; }), lo = Math.min.apply(null, temps), hi = Math.max.apply(null, temps);
+  if (lo <= 34 && hi >= 30) { lo = Math.min(lo, 32); hi = Math.max(hi, 32); }
+  lo -= 2; hi += 2;
+  var X = function(i){ return padX + i * (W - 2 * padX) / (hs.length - 1); };
+  var Y = function(t){ return padT + (hi - t) * (H - padT - padB) / (hi - lo); };
+  var base = H - padB, top = padT, every = big ? 3 : 4, out = [];
+  var rain = 'M' + X(0) + ' ' + base + hs.map(function(x, i){ return ' L' + X(i).toFixed(1) + ' ' + (base - (x.pop || 0) / 100 * (base - top)).toFixed(1); }).join('') + ' L' + X(hs.length - 1) + ' ' + base + 'Z';
+  out.push('<path d="' + rain + '" fill="var(--rain)" opacity=".35"/>');
+  if (lo < 32 && hi > 32) out.push('<line x1="' + padX + '" x2="' + (W - padX) + '" y1="' + Y(32).toFixed(1) + '" y2="' + Y(32).toFixed(1) + '" stroke="#9fd3ff" stroke-width="' + (big ? 2 : 1) + '" stroke-dasharray="' + (big ? '10 8' : '4 4') + '" opacity=".7"/>' +
+    '<text x="' + (W - padX) + '" y="' + (Y(32) - (big ? 8 : 4)).toFixed(1) + '" text-anchor="end" font-size="' + (fs * .8) + '" fill="#9fd3ff">32° freezing</text>');
+  out.push('<polyline points="' + hs.map(function(x, i){ return X(i).toFixed(1) + ',' + Y(x.temp).toFixed(1); }).join(' ') + '" fill="none" stroke="#fff" stroke-width="' + (big ? 4 : 2) + '" stroke-linejoin="round" stroke-linecap="round"/>');
+  hs.forEach(function(x, i){
+    if (i % every) return;
+    var cx = X(i).toFixed(1), anchor = i === 0 ? 'start' : 'middle';
+    out.push('<circle cx="' + cx + '" cy="' + Y(x.temp).toFixed(1) + '" r="' + (big ? 6 : 3) + '" fill="#fff"/>' +
+      '<text x="' + cx + '" y="' + (Y(x.temp) - (big ? 14 : 7)).toFixed(1) + '" text-anchor="' + anchor + '" font-size="' + fs + '" font-weight="600" fill="#fff">' + x.temp + '°</text>' +
+      '<text x="' + cx + '" y="' + (H - (big ? 8 : 4)) + '" text-anchor="' + anchor + '" font-size="' + (fs * .85) + '" fill="var(--muted)">' + (i === 0 ? 'Now' : hhmm(new Date(x.t))) + '</text>' +
+      ((x.pop || 0) >= 20 ? '<text x="' + cx + '" y="' + (base - (big ? 10 : 5)) + '" text-anchor="' + anchor + '" font-size="' + (fs * .75) + '" fill="#9fd3ff">' + x.pop + '%</text>' : ''));
+  });
+  return '<svg class="wx-graph" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Temperature and chance of rain, next 24 hours">' + out.join('') + '</svg>';
+}
 function renderWeatherDesk() {
   var b = $('wx-body'), st = STATIONS[STATION];
   $('wx-meta').textContent = st.name + ' · ' + st.place;
   if (!WX.data) { b.innerHTML = '<p class="empty">' + (WX.err ? 'The weather service isn’t reachable right now.' : 'Loading…') + '</p>'; return; }
   var w = WX.data, now = (w.hourly || [])[0], hl = wxHighLow(w);
   var alerts = (w.alerts || []).map(function(a){ return '<div class="row"><span class="tag warn">' + esc(a.event) + '</span></div>'; }).join('');
-  var strip = (w.hourly || []).filter(function(x, i){ return i % 4 === 0; }).slice(0, 6).map(function(x){
-    return '<div class="wx-h' + (x.temp <= 32 ? ' frz' : '') + '">' + hhmm(new Date(x.t)) + '<b>' + x.temp + '°</b>' + x.pop + '%</div>';
-  }).join('');
+  var strip = MODE === 'pocket' ? wxGraph(w.hourly, 340, 170, false) : wxGraph(w.hourly, 520, 170, false);
   b.innerHTML = alerts + (now ? '<div class="wx-now"><span class="t">' + now.temp + '°F</span><span>' + esc(now.short) + '</span></div>' : '') +
     '<div class="sub">' + (hl.hi != null ? 'High ' + hl.hi + '°' : '') + (hl.lo != null ? ' · Low ' + hl.lo + '°' : '') + (now ? ' · Wind ' + esc(now.wind) : '') + '</div>' +
-    '<p class="wx-say">' + esc(wxSay(w)) + '</p><div class="wx-strip">' + strip + '</div>';
+    '<p class="wx-say">' + esc(wxSay(w)) + '</p><div class="sub" style="margin-top:10px">Next 24 hours · <span style="color:#9fd3ff">shaded is chance of rain</span></div>' + strip;
 }
 
 /* ===== DESK / POCKET ===== */
@@ -948,14 +992,13 @@ function renderDeskHome() {
       var us = units.filter(function(u){ return u.station === st; }); if (!us.length) return '';
       return '<div class="cr-grp" style="flex:' + us.length + '"><p class="stn">Station ' + st + '</p><div class="cr-cards" style="grid-template-columns:repeat(' + us.length + ',minmax(0,1fr))">' + us.map(function(u){
         var seats = u.seats.map(function(s){ return '<div class="cr-seat"><div class="l">' + s.label + '</div><div class="n">' + esc(s.names) + '</div></div>'; });
-        u.missing.forEach(function(sk){ seats.push('<div class="cr-seat"><div class="l">' + seatLabel(sk) + '</div><div class="n open">Open, ' + u.staffed + '</div></div>'); });
         return '<div class="cr-card"><div class="cr-top"><span class="cr-call">' + u.call + '</span><span class="cr-shop" title="' + (u.last ? 'Last known rig' : 'Rig today') + '">' + esc(u.shop) + (u.last ? ' · last known' : '') + '</span></div>' + seats.join('') + '</div>';
       }).join('') + '</div></div>';
     }).join('') + '</div>';
   }
-  /* Duty BC (no feed yet) and the weather for the station picked at the top */
+  /* Duty BC (Derek's board feed, 3.9) and the weather for the station picked at the top */
   var st = STATIONS[STATION], w = WX.data, now = w && w.hourly && w.hourly[0];
-  $('bcwx-body').innerHTML = '<h2 id="h-bc">Duty battalion chief</h2><div class="bc-big">Soon</div><div class="sub">Shows here once the duty BC is in a schedule feed</div>' +
+  $('bcwx-body').innerHTML = '<h2 id="h-bc">Duty battalion chief</h2>' + bcHtml() +
     '<h2 style="margin-top:20px">Weather, ' + esc(st.place) + '</h2>' +
     (now ? '<div class="wx-now" style="margin-top:6px"><span class="t" style="font-size:30px">' + now.temp + '°F</span><span class="sub" style="margin:0">' + esc(now.short) + '</span></div><div class="sub">' + esc(wxSay(w)) + '</div>'
          : '<p class="empty" style="margin-top:6px">' + (WX.err ? 'The weather service isn’t reachable right now.' : 'Loading…') + '</p>');
@@ -980,11 +1023,12 @@ var SOON = {
   lms: ['Training Status', 'Training records and completion will show here once the new LMS is connected.'],
   fd13: ['Fire District 13', 'Fire District 13 items will show here in a later build.']
 };
-var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Station notes' };
+var VIEW_TITLE = { home: 'Today', schedule: 'Schedule', shifts: 'Open shifts', duties: 'Daily tasks', checks: 'Vehicle checks', weather: 'Weather', map: 'District map', notes: 'Station notes', apps: 'Apps' };
 var VIEW = 'home', SOON_KEY = '';
 function goView(v, soonKey) {
   VIEW = VIEW_TITLE[v] || v === 'soon' ? v : 'home'; SOON_KEY = soonKey || '';
   document.body.classList.toggle('v-home', VIEW === 'home');
+  document.body.classList.toggle('v-apps', VIEW === 'apps');
   document.querySelectorAll('.side button').forEach(function(b){ b.classList.toggle('on', b.dataset.v === VIEW && (VIEW !== 'soon' || b.dataset.soon === SOON_KEY)); });
   document.querySelectorAll('#desk > *').forEach(function(el){ el.classList.toggle('von', (' ' + (el.dataset.desk || '') + ' ').indexOf(' ' + VIEW + ' ') >= 0); });
   if (VIEW === 'soon') { var so = SOON[SOON_KEY] || ['Coming later', '']; $('d-title').textContent = so[0]; $('soon-body').innerHTML = '<p class="empty" style="margin:0">' + esc(so[1]) + '</p>'; }
@@ -1002,7 +1046,7 @@ function searchItems() {
     shiftUnits(dk[0]).forEach(function(u){ u.seats.forEach(function(s){ s.names.split(', ').forEach(function(n){ out.push({ t: n, k: u.call + ' ' + dk[1] + ' · ' + s.label + ' · Station ' + u.station, v: 'schedule' }); }); }); });
   });
   if (FLEET.data) fleetSummary().rows.forEach(function(x){ out.push({ t: x.rig, k: x.state.tag + (x.station ? ' · Station ' + x.station : '') + (x.line ? ' · ' + x.line : ''), v: 'checks' }); });
-  dutyList().forEach(function(x){ out.push({ t: x.text, k: (x.done ? 'Done' + (x.by ? ' by ' + firstName(x.by) : '') : 'Task for today, not done yet'), v: 'duties' }); });
+  dutyList().forEach(function(x){ out.push({ t: x.text, k: (x.done ? 'Done' : 'Task for today, not done yet'), v: 'duties' }); });
   if (APPS) APPS.operations.forEach(function(sec){ (sec.buttons || []).forEach(function(b){ out.push({ t: String(b.title).replace(/\n/g, ' '), k: 'App · ' + (b.sub || sec.label), href: b.url }); }); });
   Object.keys(VIEW_TITLE).forEach(function(v){ out.push({ t: VIEW_TITLE[v], k: 'Page', v: v }); });
   return out;
@@ -1144,43 +1188,40 @@ function wallChecks(idx, n) {
 }
 function wallDuties(idx, n) {
   var d = dutyDate(), day = DAYS[d.getDay()], next = DAYS[(d.getDay() + 1) % 7];
-  return wHead(day + ' duties', 'Check them off on Desk or your phone', idx, n) +
+  return wHead(day + ' duties', 'Crew can log in to check complete', idx, n) +
     '<div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;flex:1;min-height:0">' +
     '<div class="w-panel" style="padding:24px 48px">' + dutyList().sort(function(a, b){ return (a.done ? 1 : 0) - (b.done ? 1 : 0); }).map(function(x){
       return '<div class="w-task"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="' + (x.done ? '#1f1f1f' : 'none') + '" stroke="' + (x.done ? '#1f1f1f' : '#5a5a5a') + '" stroke-width="3"/>' + (x.done ? '<path d="M12 20.5l5.5 5.5L28 15" fill="none" stroke="#7ed67f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' : '') + '</svg>' +
         '<div class="txt" style="color:' + (x.done ? 'var(--dim)' : '#fff') + '">' + esc(x.text) + (x.added ? '<div style="font-size:26px;font-weight:500;color:var(--warn);margin-top:6px">' + esc(x.added) + '</div>' : '') + '</div>' +
-        (x.done ? '<div style="font-size:28px;color:var(--faint)">' + esc(firstName(x.by)) + (x.at ? ' · ' + hhmm(new Date(x.at)) : '') + '</div>' : '') + '</div>';
+        '</div>';
     }).join('') + '</div>' +
     '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + ((stationWeek()[next] || []).map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') || '<div style="font-size:28px;color:#8a8a8a">No weekly list yet</div>') + '</div></div>';
 }
 function wallWeather(idx, n) {
   var st = STATIONS[STATION], w = WX.data, now = w.hourly[0] || {}, hl = wxHighLow(w);
   var alert = (w.alerts || [])[0];
-  var hours = (w.hourly || []).filter(function(x, i){ return i % 2 === 0; }).slice(0, 12).map(function(x){
-    return '<div style="background:' + (x.temp <= 32 ? '#2a2a2a' : '#1a1a1a') + ';border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:0">' +
-      '<div style="font-size:24px;color:var(--muted)">' + hhmm(new Date(x.t)) + '</div><div style="font-size:40px;font-weight:600">' + x.temp + '°</div>' +
-      '<div style="flex:1;width:44px;min-height:0;display:flex;align-items:flex-end"><div style="width:44px;height:' + Math.max(4, x.pop) + '%;background:var(--rain);border-radius:6px 6px 0 0"></div></div><div style="font-size:24px;color:#d6d6d6">' + x.pop + '%</div></div>';
-  }).join('');
+  var hours = wxGraph(w.hourly, 1700, 250, true);
   return wHead('Weather', esc(st.name) + ' · ' + esc(st.place), idx, n) +
     '<div style="display:grid;grid-template-columns:560px minmax(0,1fr);gap:24px">' +
     '<div class="w-panel" style="display:flex;flex-direction:column;gap:12px;padding:28px 40px"><div class="w-label">Right now</div><div style="display:flex;align-items:flex-start;gap:8px"><div style="font-size:150px;font-weight:600;line-height:.85">' + (now.temp != null ? now.temp : '–') + '</div><div style="font-size:64px;color:var(--muted);margin-top:8px">°F</div></div>' +
     '<div style="font-size:38px;font-weight:500">' + esc(now.short || '') + '</div><div style="font-size:30px;color:var(--muted)">' + (hl.hi != null ? 'High <b style="color:#fff">' + hl.hi + '°</b>' : '') + (hl.lo != null ? ' &nbsp; Low <b style="color:#fff">' + hl.lo + '°</b>' : '') + '</div></div>' +
     '<div class="w-panel" style="display:flex;flex-direction:column;justify-content:center;gap:22px">' + (alert ? '<div style="font-size:34px;font-weight:600;color:var(--warn)">' + esc(alert.event) + '</div>' : '<div class="w-label">What it means for us</div>') + '<p style="margin:0;font-size:52px;font-weight:600;line-height:1.2">' + esc(wxSay(w)) + '</p></div></div>' +
     '<div class="w-panel" style="padding:28px 36px 24px;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0"><div style="display:flex;justify-content:space-between;align-items:baseline"><div class="w-label">Next 24 hours</div>' +
-    '<div style="display:flex;gap:28px;font-size:24px;color:var(--muted)"><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:var(--rain);vertical-align:-3px"></i> Chance of rain</span><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:#2a2a2a;vertical-align:-3px"></i> At or below freezing</span></div></div>' +
-    '<div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;flex:1;min-height:0">' + hours + '</div></div>';
+    '<div style="display:flex;gap:28px;font-size:24px;color:var(--muted)"><span><i style="display:inline-block;width:22px;height:22px;border-radius:4px;background:var(--rain);vertical-align:-3px"></i> Chance of rain</span><span><i style="display:inline-block;width:30px;height:0;border-top:3px dashed #9fd3ff;vertical-align:6px"></i> Freezing</span></div></div>' +
+    '<div style="flex:1;min-height:0;display:flex">' + hours + '</div></div>';
 }
 function wallToday(idx, n) {
   var units = shiftUnits(HUB.day), dd = dutyDate();
   var groups = ['51', '52'].map(function(st){ return { st: st, us: units.filter(function(u){ return u.station === st; }) }; }).filter(function(g){ return g.us.length; });
   var cols = groups.map(function(g){ return 'minmax(0,' + g.us.length + 'fr)'; }).join(' ');
-  return wHead('Today', DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate(), idx, n) +
+  var bc = dutyBC(), bcLine = bc && bc.bcs.length ? ' · Duty BC: ' + bc.bcs.map(function(x){ return x.title; }).join(' and ') + (bc.tc ? ' · Training chief: ' + bc.tc.title : '') : '';
+  return wHead('Today', DAYS[dd.getDay()] + ', ' + MONTHS[dd.getMonth()] + ' ' + dd.getDate() + esc(bcLine), idx, n) +
     '<div style="display:grid;grid-template-columns:' + cols + ';gap:48px;flex:1;min-height:0">' + groups.map(function(g){
       return '<div style="display:flex;flex-direction:column;gap:18px;min-width:0"><h2 style="margin:0;font-size:40px;font-weight:600;color:var(--muted)">Station ' + g.st + '</h2>' +
         '<div style="display:grid;grid-template-columns:repeat(' + g.us.length + ',minmax(0,1fr));gap:24px;flex:1;min-height:0">' + g.us.map(function(u){
           return '<div class="w-panel" style="padding:40px 44px;display:flex;flex-direction:column;gap:30px">' +
             '<div><div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px"><div style="font-size:140px;font-weight:600;line-height:.85">' + u.call + '</div>' +
-            (u.short ? '<div style="padding:8px 20px;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:28px;font-weight:600;white-space:nowrap">' + u.staffed + '</div>' : '') + '</div>' +
+            '</div>' +
             '<div style="font-size:32px;color:var(--muted);margin-top:18px">' + esc(u.where) + (u.rig ? ' · <b style="color:#fff">' + esc(u.rig) + '</b>' : '') + '</div></div>' +
             u.seats.map(function(s){ return '<div><div style="font-size:28px;color:var(--faint)">' + s.label + '</div><div style="font-size:52px;font-weight:500;line-height:1.1;margin-top:4px">' + esc(s.names) + '</div></div>'; }).join('') + '</div>';
         }).join('') + '</div></div>';
@@ -1217,6 +1258,50 @@ window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); }
    Derek's read only Hub feeds (11/15): no names, just the shift. Same Microsoft ID token as everything else.
    Each shift: date "YYYY-MM-DD", unit, crew (1 medic, 2 EMT), start, end, hours, status open or filled.
    We show the next 7 days. Never parse the date with new Date(), build it from the parts. */
+/* ===== DUTY BC (3.9) =====
+   Derek's board feed (read only, Hub ID token): days["YYYY-MM-DD"].working[unit] = [{seat, role, person, start, end}].
+   Doug's rule (11/15): if Derek Langdon or Dennis Madler is on the schedule anywhere that duty day (BC row or any medic unit),
+   they are the duty BC. Doug is the training chief: if one of them is on, Doug shows under them as Training chief;
+   if neither is on and Doug is, Doug is the duty BC. The duty day rolls over at 07:30 like everything else. */
+var BOARD_URL = 'https://ncems-ot.d-langdon.workers.dev/hub/board';
+var BOARD = { data: null, err: '', at: 0 };
+var BC_PEOPLE = [{ re: /\blangdon\b/i, title: 'BC Langdon' }, { re: /\bmadler\b/i, title: 'BC Madler' }];
+var TC_PERSON = { re: /\bboyce\b/i, title: 'BC Boyce' };
+function loadBoard() {
+  if (!msalAccount) return Promise.resolve();
+  return idToken().then(function(t){ return fetch(BOARD_URL, { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' }); })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){ BOARD.data = j; BOARD.err = ''; BOARD.at = Date.now(); renderAll(); })
+    .catch(function(){ BOARD.err = 'The schedule feed is not answering right now'; renderAll(); });
+}
+function dutyKey() { var d = dutyDate(), z = function(n){ return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+function bcWhere(list) {
+  var row = list.filter(function(p){ return p.unit === 'BC'; })[0] || list[0];
+  if (row.unit === 'BC') return 'Duty BC' + (row.start ? ', ' + row.start + ' to ' + row.end : '');
+  if (row.unit === 'TC') return 'Training chief' + (row.start ? ', ' + row.start + ' to ' + row.end : '');
+  return 'On ' + row.unit + ' today';
+}
+function dutyBC() {
+  if (!BOARD.data) return null;
+  var day = (BOARD.data.days || {})[dutyKey()] || {}, ppl = [];
+  Object.keys(day.working || {}).forEach(function(u){ (day.working[u] || []).forEach(function(p){ ppl.push({ unit: u, role: p.role || '', person: String(p.person || ''), start: p.start || '', end: p.end || '' }); }); });
+  var bcs = [];
+  BC_PEOPLE.forEach(function(b){ var hit = ppl.filter(function(p){ return b.re.test(p.person); }); if (hit.length) bcs.push({ title: b.title, where: bcWhere(hit), bcRow: hit.some(function(p){ return p.unit === 'BC'; }) }); });
+  bcs.sort(function(a, b){ return (b.bcRow ? 1 : 0) - (a.bcRow ? 1 : 0); });
+  var me = ppl.filter(function(p){ return TC_PERSON.re.test(p.person); });
+  var tc = me.length ? { title: TC_PERSON.title, where: bcWhere(me) } : null;
+  if (bcs.length) return { bcs: bcs, tc: tc };
+  if (tc) return { bcs: [tc], tc: null };
+  return { bcs: [], tc: null };
+}
+function bcHtml() {
+  var bc = dutyBC();
+  if (!bc) return BOARD.err ? '<div class="bc-big">—</div><div class="sub">' + esc(BOARD.err) + '</div>' : '<div class="sub" style="margin-top:8px">Loading…</div>';
+  if (!bc.bcs.length) return '<div class="bc-big">None on the schedule</div><div class="sub">No BC on the schedule for this duty day</div>';
+  return bc.bcs.map(function(x){ return '<div class="bc-big">' + esc(x.title) + '</div><div class="sub">' + esc(x.where) + '</div>'; }).join('') +
+    (bc.tc ? '<div class="bc-tc"><div class="l">Training chief</div><div class="n">' + esc(bc.tc.title) + '</div><div class="sub">' + esc(bc.tc.where.replace(/^Training chief, /, '')) + '</div></div>' : '');
+}
+
 var OS_URLS = { 1: 'https://ncems-ot.d-langdon.workers.dev/hub/open-shifts', 2: 'https://ncems-c2.d-langdon.workers.dev/hub/open-shifts' };
 var OS = { list: [], err: '', at: 0, loaded: false };
 function pacificToday() {
@@ -1292,8 +1377,8 @@ function wallShifts(idx, n) {
 }
 
 /* ===== DISTRICT MAP (3.6) =====
-   Free public feeds, no keys: CARTO dark map, NOAA radar (NWS MRMS), wildfires from NIFC (WFIGS), earthquakes from USGS,
-   air quality from Open-Meteo, WSDOT road cameras. Helicopters come from public ADS-B through ncems-checks /fleet/air,
+   Free public feeds, no keys: CARTO dark map, NOAA radar (NWS MRMS), wildfires from NIFC (WFIGS). Air quality and earthquakes came off in 3.9 (Derek: too crowded).
+   WSDOT road cameras. Helicopters come from public ADS-B through ncems-checks /fleet/air,
    because those feeds don't allow browser calls. Inspired by God's Eye View (godseyeview.ai), kept to our district. */
 var DM_CENTER = [45.95, -122.40], DM_ZOOM = 10;
 var DM_BOX = '-123.2,45.3,-121.4,46.6';
@@ -1304,7 +1389,9 @@ var CAMS = [
   { name: 'SR 503 at 179th St', url: 'https://images.wsdot.wa.gov/sw/503vc00608.jpg' },
   { name: 'I-5 at Woodland', url: 'https://images.wsdot.wa.gov/sw/005vc02098.jpg' }
 ];
-var DM = { fires: [], perims: null, rx: 0, quakes: [], aqi: {}, air: null, airErr: '', at: 0, loaded: false };
+var DM = { fires: [], perims: null, rx: 0, air: null, airErr: '', at: 0, loaded: false };
+var HELI_MAP_URL = 'https://globe.adsb.lol/?lat=45.95&lon=-122.40&zoom=9';
+var HELI_QR = '<svg viewBox="0 0 37 37" shape-rendering="crispEdges" aria-label="QR code for the live helicopter map"><rect width="37" height="37" fill="#fff"/><path d="M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM20 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM26 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM30 2h1v1h-1zM31 2h1v1h-1zM32 2h1v1h-1zM33 2h1v1h-1zM34 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM14 3h1v1h-1zM19 3h1v1h-1zM21 3h1v1h-1zM28 3h1v1h-1zM34 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM14 4h1v1h-1zM17 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM28 4h1v1h-1zM30 4h1v1h-1zM31 4h1v1h-1zM32 4h1v1h-1zM34 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM21 5h1v1h-1zM22 5h1v1h-1zM23 5h1v1h-1zM24 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM31 5h1v1h-1zM32 5h1v1h-1zM34 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM17 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM31 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM13 7h1v1h-1zM14 7h1v1h-1zM16 7h1v1h-1zM19 7h1v1h-1zM22 7h1v1h-1zM23 7h1v1h-1zM25 7h1v1h-1zM26 7h1v1h-1zM28 7h1v1h-1zM34 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM31 8h1v1h-1zM32 8h1v1h-1zM33 8h1v1h-1zM34 8h1v1h-1zM11 9h1v1h-1zM12 9h1v1h-1zM14 9h1v1h-1zM15 9h1v1h-1zM20 9h1v1h-1zM21 9h1v1h-1zM22 9h1v1h-1zM2 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM11 10h1v1h-1zM17 10h1v1h-1zM19 10h1v1h-1zM20 10h1v1h-1zM26 10h1v1h-1zM27 10h1v1h-1zM30 10h1v1h-1zM32 10h1v1h-1zM33 10h1v1h-1zM34 10h1v1h-1zM5 11h1v1h-1zM6 11h1v1h-1zM9 11h1v1h-1zM10 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM16 11h1v1h-1zM17 11h1v1h-1zM18 11h1v1h-1zM20 11h1v1h-1zM21 11h1v1h-1zM24 11h1v1h-1zM25 11h1v1h-1zM30 11h1v1h-1zM31 11h1v1h-1zM32 11h1v1h-1zM3 12h1v1h-1zM4 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM11 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM22 12h1v1h-1zM24 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM27 12h1v1h-1zM30 12h1v1h-1zM31 12h1v1h-1zM32 12h1v1h-1zM34 12h1v1h-1zM2 13h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM14 13h1v1h-1zM16 13h1v1h-1zM19 13h1v1h-1zM22 13h1v1h-1zM24 13h1v1h-1zM26 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM32 13h1v1h-1zM33 13h1v1h-1zM2 14h1v1h-1zM5 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM12 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM18 14h1v1h-1zM19 14h1v1h-1zM20 14h1v1h-1zM25 14h1v1h-1zM27 14h1v1h-1zM28 14h1v1h-1zM29 14h1v1h-1zM34 14h1v1h-1zM5 15h1v1h-1zM6 15h1v1h-1zM13 15h1v1h-1zM14 15h1v1h-1zM15 15h1v1h-1zM18 15h1v1h-1zM19 15h1v1h-1zM22 15h1v1h-1zM24 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM31 15h1v1h-1zM32 15h1v1h-1zM2 16h1v1h-1zM3 16h1v1h-1zM4 16h1v1h-1zM7 16h1v1h-1zM8 16h1v1h-1zM9 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1zM14 16h1v1h-1zM16 16h1v1h-1zM18 16h1v1h-1zM19 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM23 16h1v1h-1zM24 16h1v1h-1zM26 16h1v1h-1zM28 16h1v1h-1zM30 16h1v1h-1zM3 17h1v1h-1zM9 17h1v1h-1zM10 17h1v1h-1zM12 17h1v1h-1zM13 17h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM25 17h1v1h-1zM27 17h1v1h-1zM29 17h1v1h-1zM31 17h1v1h-1zM32 17h1v1h-1zM34 17h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM26 18h1v1h-1zM27 18h1v1h-1zM28 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM2 19h1v1h-1zM3 19h1v1h-1zM6 19h1v1h-1zM9 19h1v1h-1zM10 19h1v1h-1zM12 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM18 19h1v1h-1zM21 19h1v1h-1zM22 19h1v1h-1zM23 19h1v1h-1zM24 19h1v1h-1zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM33 19h1v1h-1zM34 19h1v1h-1zM3 20h1v1h-1zM4 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM9 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM12 20h1v1h-1zM15 20h1v1h-1zM16 20h1v1h-1zM17 20h1v1h-1zM18 20h1v1h-1zM21 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM28 20h1v1h-1zM29 20h1v1h-1zM31 20h1v1h-1zM32 20h1v1h-1zM33 20h1v1h-1zM34 20h1v1h-1zM5 21h1v1h-1zM9 21h1v1h-1zM10 21h1v1h-1zM11 21h1v1h-1zM15 21h1v1h-1zM18 21h1v1h-1zM19 21h1v1h-1zM20 21h1v1h-1zM25 21h1v1h-1zM28 21h1v1h-1zM30 21h1v1h-1zM31 21h1v1h-1zM32 21h1v1h-1zM34 21h1v1h-1zM2 22h1v1h-1zM3 22h1v1h-1zM6 22h1v1h-1zM7 22h1v1h-1zM8 22h1v1h-1zM9 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM22 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM27 22h1v1h-1zM31 22h1v1h-1zM33 22h1v1h-1zM34 22h1v1h-1zM2 23h1v1h-1zM3 23h1v1h-1zM7 23h1v1h-1zM9 23h1v1h-1zM10 23h1v1h-1zM11 23h1v1h-1zM12 23h1v1h-1zM15 23h1v1h-1zM18 23h1v1h-1zM19 23h1v1h-1zM20 23h1v1h-1zM21 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM26 23h1v1h-1zM27 23h1v1h-1zM30 23h1v1h-1zM31 23h1v1h-1zM2 24h1v1h-1zM4 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM9 24h1v1h-1zM11 24h1v1h-1zM12 24h1v1h-1zM15 24h1v1h-1zM16 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM25 24h1v1h-1zM26 24h1v1h-1zM27 24h1v1h-1zM28 24h1v1h-1zM29 24h1v1h-1zM30 24h1v1h-1zM31 24h1v1h-1zM32 24h1v1h-1zM33 24h1v1h-1zM34 24h1v1h-1zM2 25h1v1h-1zM5 25h1v1h-1zM7 25h1v1h-1zM9 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM18 25h1v1h-1zM19 25h1v1h-1zM22 25h1v1h-1zM24 25h1v1h-1zM26 25h1v1h-1zM27 25h1v1h-1zM28 25h1v1h-1zM29 25h1v1h-1zM32 25h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM13 26h1v1h-1zM16 26h1v1h-1zM17 26h1v1h-1zM22 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1zM27 26h1v1h-1zM28 26h1v1h-1zM29 26h1v1h-1zM30 26h1v1h-1zM31 26h1v1h-1zM34 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1zM23 27h1v1h-1zM24 27h1v1h-1zM26 27h1v1h-1zM30 27h1v1h-1zM32 27h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM4 28h1v1h-1zM5 28h1v1h-1zM6 28h1v1h-1zM7 28h1v1h-1zM8 28h1v1h-1zM10 28h1v1h-1zM12 28h1v1h-1zM13 28h1v1h-1zM14 28h1v1h-1zM17 28h1v1h-1zM20 28h1v1h-1zM21 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM30 28h1v1h-1zM32 28h1v1h-1zM33 28h1v1h-1zM2 29h1v1h-1zM8 29h1v1h-1zM10 29h1v1h-1zM11 29h1v1h-1zM12 29h1v1h-1zM14 29h1v1h-1zM15 29h1v1h-1zM18 29h1v1h-1zM21 29h1v1h-1zM22 29h1v1h-1zM25 29h1v1h-1zM26 29h1v1h-1zM30 29h1v1h-1zM31 29h1v1h-1zM32 29h1v1h-1zM2 30h1v1h-1zM4 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM11 30h1v1h-1zM13 30h1v1h-1zM14 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM20 30h1v1h-1zM22 30h1v1h-1zM24 30h1v1h-1zM25 30h1v1h-1zM26 30h1v1h-1zM27 30h1v1h-1zM28 30h1v1h-1zM29 30h1v1h-1zM30 30h1v1h-1zM33 30h1v1h-1zM2 31h1v1h-1zM4 31h1v1h-1zM5 31h1v1h-1zM6 31h1v1h-1zM8 31h1v1h-1zM10 31h1v1h-1zM11 31h1v1h-1zM13 31h1v1h-1zM15 31h1v1h-1zM21 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM25 31h1v1h-1zM26 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM33 31h1v1h-1zM34 31h1v1h-1zM2 32h1v1h-1zM4 32h1v1h-1zM5 32h1v1h-1zM6 32h1v1h-1zM8 32h1v1h-1zM11 32h1v1h-1zM12 32h1v1h-1zM14 32h1v1h-1zM15 32h1v1h-1zM16 32h1v1h-1zM18 32h1v1h-1zM19 32h1v1h-1zM21 32h1v1h-1zM24 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM30 32h1v1h-1zM33 32h1v1h-1zM34 32h1v1h-1zM2 33h1v1h-1zM8 33h1v1h-1zM11 33h1v1h-1zM12 33h1v1h-1zM14 33h1v1h-1zM15 33h1v1h-1zM17 33h1v1h-1zM18 33h1v1h-1zM20 33h1v1h-1zM24 33h1v1h-1zM25 33h1v1h-1zM27 33h1v1h-1zM28 33h1v1h-1zM29 33h1v1h-1zM30 33h1v1h-1zM31 33h1v1h-1zM32 33h1v1h-1zM33 33h1v1h-1zM34 33h1v1h-1zM2 34h1v1h-1zM3 34h1v1h-1zM4 34h1v1h-1zM5 34h1v1h-1zM6 34h1v1h-1zM7 34h1v1h-1zM8 34h1v1h-1zM10 34h1v1h-1zM11 34h1v1h-1zM12 34h1v1h-1zM14 34h1v1h-1zM16 34h1v1h-1zM18 34h1v1h-1zM19 34h1v1h-1zM26 34h1v1h-1zM27 34h1v1h-1zM28 34h1v1h-1zM29 34h1v1h-1zM30 34h1v1h-1z" fill="#000"/></svg>';
 var MAPS = [];
 function miles(lat1, lon1, lat2, lon2) {
   var R = 3958.8, r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
@@ -1328,17 +1415,7 @@ function loadMapData() {
         return { name: p.IncidentName || 'Fire', acres: p.IncidentSize, pct: p.PercentContained, lat: c[1], lon: c[0], mi: fromSt51(c[1], c[0]) };
       }).sort(function(a, b){ return a.mi - b.mi; });
     }),
-    getJSON(arcQuery('WFIGS_Interagency_Perimeters_Current', 'poly_IncidentName')).then(function(j){ DM.perims = j; }),
-    getJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson').then(function(j){
-      DM.quakes = (j.features || []).map(function(f){
-        var c = f.geometry.coordinates;
-        return { mag: f.properties.mag, place: f.properties.place || '', t: f.properties.time, lat: c[1], lon: c[0], depth: c[2] };
-      }).filter(function(q){ return q.mag != null && miles(46.05, -122.3, q.lat, q.lon) <= 40; }).sort(function(a, b){ return b.t - a.t; });
-    }),
-    getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + STATIONS['51'].lat + ',' + STATIONS['52'].lat + '&longitude=' + STATIONS['51'].lon + ',' + STATIONS['52'].lon + '&current=us_aqi,pm2_5').then(function(j){
-      var arr = Array.isArray(j) ? j : [j];
-      DM.aqi = { '51': arr[0] && arr[0].current, '52': arr[1] && arr[1].current };
-    })
+    getJSON(arcQuery('WFIGS_Interagency_Perimeters_Current', 'poly_IncidentName')).then(function(j){ DM.perims = j; })
   ];
   return Promise.allSettled(jobs).then(function(){ DM.loaded = true; DM.at = Date.now(); drawMaps(); renderMapSide(); });
 }
@@ -1368,25 +1445,19 @@ function heliList() { return (DM.air && DM.air.heli) || []; }
 function mapSideHtml(big) {
   var cls = big ? 'ms big' : 'ms';
   var h = '<div class="' + cls + '">';
-  h += '<div class="ms-sec"><div class="ms-h">Air quality</div>' + ['51', '52'].map(function(st){
-    var a = DM.aqi[st], v = a && a.us_aqi != null ? Math.round(a.us_aqi) : null, i = aqiInfo(v);
-    return '<div class="ms-row"><span>Station ' + st + '</span><b style="color:' + i.c + '">' + (v == null ? '–' : v) + '</b><span class="ms-sub" style="color:' + i.c + '">' + i.t + '</span></div>';
-  }).join('') + '</div>';
   var fires = DM.fires.filter(function(f){ return f.mi <= 75; });
   h += '<div class="ms-sec"><div class="ms-h">Wildfires within 75 miles</div>' + (fires.length ? fires.slice(0, big ? 2 : 4).map(function(f){
     return '<div class="ms-item"><b style="color:#ff8a4c">' + esc(f.name) + '</b><span class="ms-sub">' + f.mi + ' mi from 51' + (f.acres ? ' · ' + Math.round(f.acres).toLocaleString() + ' acres' : '') + (f.pct != null ? ' · ' + f.pct + '% contained' : '') + '</span></div>';
   }).join('') : '<div class="ms-none">None right now</div>') + (DM.rx ? '<div class="ms-sub">' + DM.rx + ' prescribed burn' + (DM.rx === 1 ? '' : 's') + ' in the area</div>' : '') + '</div>';
-  var qs = DM.quakes, big1 = qs.slice().sort(function(a, b){ return b.mag - a.mag; })[0];
-  h += '<div class="ms-sec"><div class="ms-h">Earthquakes, last 7 days</div>' + (qs.length
-    ? '<div class="ms-row"><span>' + qs.length + ' within 40 miles of the district</span></div>' +
-      '<div class="ms-item"><b style="color:#ffd84c">Largest M' + big1.mag.toFixed(1) + '</b><span class="ms-sub">' + esc(big1.place) + ' · ' + ago(big1.t) + '</span></div>'
-    : '<div class="ms-none">None</div>') + '</div>';
   var hs = heliList();
   h += '<div class="ms-sec"><div class="ms-h">Helicopters in the air</div>' + (DM.airErr && !DM.air ? '<div class="ms-none">' + esc(DM.airErr) + '</div>'
     : hs.length ? hs.slice(0, big ? 2 : 5).map(function(a){
       return '<div class="ms-item"><b style="color:#5ad1ff">' + esc(a.flight || a.reg || a.hex) + '</b><span class="ms-sub">' + esc(a.type || 'Helicopter') +
         (a.alt != null && a.alt !== 'ground' ? ' · ' + Math.round(a.alt).toLocaleString() + ' ft' : a.alt === 'ground' ? ' · on the ground' : '') + ' · ' + fromSt51(a.lat, a.lon) + ' mi from 51</span></div>';
     }).join('') : '<div class="ms-none">' + (DM.air ? 'None right now' : 'Loading…') + '</div>') + '</div>';
+  /* 3.9: scan for the live flight map on a phone (adsb.lol, free, no app, same feed the map uses) */
+  h += '<div class="ms-sec ms-qr"><div class="ms-qrc">' + HELI_QR + '</div><div><div class="ms-h">Helicopters live</div><div class="ms-sub">Scan for the live flight map on your phone</div>' +
+    (big ? '' : '<a class="link-btn" href="' + HELI_MAP_URL + '" target="_blank" rel="noopener">Open it here</a>') + '</div></div>';
   return h + '</div>';
 }
 function renderMapSide() {
@@ -1402,7 +1473,7 @@ function makeMap(el, wall) {
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Esri, HERE, Garmin, © OpenStreetMap contributors' }).addTo(map);
   var radar = L.tileLayer.wms('https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows', { layers: 'conus_bref_qcd', format: 'image/png', transparent: true, opacity: 0.4, attribution: 'Radar NOAA' }).addTo(map);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'shadowPane' }).addTo(map);
-  var g = { perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), quakes: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
+  var g = { perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
   var lab = function(t, cls){ return L.divIcon({ className: 'dm-lab ' + (cls || ''), html: '<span>' + t + '</span>', iconSize: [0, 0] }); };
   ['51', '52'].forEach(function(st){
     var s = STATIONS[st];
@@ -1418,16 +1489,12 @@ function makeMap(el, wall) {
 }
 function drawMap(o) {
   var g = o.g, w = o.wall;
-  g.perim.clearLayers(); g.fires.clearLayers(); g.quakes.clearLayers();
+  g.perim.clearLayers(); g.fires.clearLayers();
   if (DM.perims && DM.perims.features && DM.perims.features.length) L.geoJSON(DM.perims, { style: { color: '#ff7a3c', weight: 2, fillColor: '#ff7a3c', fillOpacity: 0.18 }, interactive: false }).addTo(g.perim);
   DM.fires.forEach(function(f){
     var r = Math.max(w ? 9 : 6, Math.min(w ? 30 : 20, Math.sqrt(f.acres || 1) / 3));
     L.circleMarker([f.lat, f.lon], { radius: r, color: '#ff7a3c', weight: 2, fillColor: '#ff4d1a', fillOpacity: 0.6 })
       .bindTooltip(esc(f.name) + (f.acres ? ' · ' + Math.round(f.acres) + ' ac' : ''), { permanent: w, direction: 'right', className: 'dm-tip' }).addTo(g.fires);
-  });
-  DM.quakes.forEach(function(q){
-    L.circleMarker([q.lat, q.lon], { radius: Math.max(3, q.mag * (w ? 5 : 3.5)), color: '#ffd84c', weight: 1.5, fillColor: '#ffd84c', fillOpacity: Date.now() - q.t < 864e5 ? 0.6 : 0.2 })
-      .bindTooltip('M' + q.mag.toFixed(1) + ' · ' + esc(q.place) + ' · ' + ago(q.t), { className: 'dm-tip' }).addTo(g.quakes);
   });
 }
 function drawAirOn(o) {
@@ -1513,7 +1580,7 @@ function boot() {
   initMsal().then(function(){
     showView();
     if (!msalAccount) return;
-    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts();
+    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard();
     if (MODE === 'wall') { loadMapData(); loadAir(); }
   }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
 }
@@ -1526,7 +1593,7 @@ setInterval(function(){
   if (MODE !== 'wall') $('d-clock').textContent = hhmm(new Date());
 }, 15000);
 setInterval(function(){ if (msalAccount && !document.hidden) { loadNotice(); loadFleet(); } }, 120000);
-setInterval(function(){ if (msalAccount && !document.hidden) loadShifts(); }, 5 * 60e3);
+setInterval(function(){ if (msalAccount && !document.hidden) { loadShifts(); loadBoard(); } }, 5 * 60e3);
 setInterval(function(){ if (msalAccount) { loadWeather(); checkForUpdate(); } }, 15 * 60e3);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && msalAccount) { loadNotice(); loadFleet(); checkForUpdate(); } });
 
