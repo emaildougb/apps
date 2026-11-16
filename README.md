@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.14. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.14.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.14.1 (11/16/2026)
+- Desk and phone Daily Snapshot now match the Wall: cleaned title plus the BC's short line. Raw card details never show anywhere on the Hub
 
 ### v3.14 (11/16/2026)
 - **Wall Daily Snapshot shows plain words, not copied text.** Each briefing item shows a cleaned title (source tags like "(10/15-10/17 shift notes)" and RE:/FW: removed) and under it the short line a BC wrote in CG Staff (**Line for the Hub Wall**, CG Staff 1.34). With no line, it shows who has it and the group. The raw card details never show on the Wall. The Desk card shows the line too, or the details when there is no line

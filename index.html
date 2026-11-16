@@ -632,7 +632,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.14';
+var HUB_VERSION = '3.14.1';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1443,6 +1443,7 @@ window.addEventListener('resize', function(){ if (MODE === 'wall') fitStage(); }
    Doug 11/16: the Station notes page is now the Daily Snapshot page (sidebar 'Daily Snapshot', view 'notes'); the posted notice still shows under it.
    Line 1: neuro interventional coverage today at PeaceHealth Southwest (PHSW). Then the Shift Ops items flagged for briefing in CG Staff.
    3.14 Doug: the Wall never shows the card details (often pasted email text). It shows the BC's short 'say' line, or just the title.
+   3.14.1 Doug: same on Desk and phones. Card details never show anywhere on the Hub, only the cleaned title and the 'say' line.
    Flow: the PeaceHealth Transfer Center's monthly Excel (Chief Shirley forwards it) -> scheduled Claude task -> CG Staff SharePoint "Neuro IR Coverage (do not delete)/nir-coverage.json".
    CG Staff (when Doug, Derek, Dennis or Bryce opens it) sends that file plus the Briefing = Yes items to ncems-checks POST /fleet/brief/sync.
    The Hub reads GET /fleet/brief (any NCEMS sign in). Crews never need access to the CG Staff site. */
@@ -1483,7 +1484,7 @@ function renderSnapshot() {
   $('snap-meta').textContent = SNAP.itemsAt ? 'Briefing list from CG Staff · ' + hhmm(new Date(SNAP.itemsAt)) + (briefStale() ? ', ' + new Date(SNAP.itemsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '') : '';
   b.innerHTML = nirHtml() + '<div class="br-h">For shift briefing</div>' + (items.length ? items.map(function(i){
     return '<div class="br-row"><span class="tri" style="background:' + (TRI_COLOR[i.triage] || 'var(--dim)') + '"></span><div style="min-width:0"><div class="t">' + esc(briefTitle(i.title)) + '</div>' +
-      (i.say ? '<div class="d">' + esc(i.say) + '</div>' : i.details ? '<div class="d">' + esc(String(i.details).slice(0, 220)) + '</div>' : '') +
+      (i.say ? '<div class="d">' + esc(i.say) + '</div>' : '') +
       (i.assigned && i.assigned !== 'Unassigned' ? '<div class="sub">' + esc(i.assigned) + (i.category ? ' · ' + esc(i.category) : '') + '</div>' : '') + '</div></div>';
   }).join('') + (items.length > 4 && VIEW === 'home' && MODE === 'desk' ? '<button class="link-btn" onclick="goView(\'notes\')" style="margin-top:8px">See all ' + items.length + '</button>' : '')
     : '<p class="empty" style="margin:6px 0 0">Nothing flagged for briefing.</p>') +
