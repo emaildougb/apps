@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.12.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.12.2. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.12.2 (11/16/2026)
+- Wall: This week in training shows every rotation now. When nothing is on the calendar this week it says so and lists what's coming up next (up to 5)
 
 ### v3.12.1 (11/16/2026)
 - Training calendar has one update path now: the Training Dept project updates the Excel master first, then builds training-events.json. The hand edit on GitHub steps are gone from this README so the Excel and the live calendar can't drift apart. The project also compares the live file with the Excel before each build

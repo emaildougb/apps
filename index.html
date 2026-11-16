@@ -613,7 +613,7 @@ body.pocket .cams { grid-template-columns: 1fr 1fr; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.12';
+var HUB_VERSION = '3.12.2';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1346,8 +1346,29 @@ function training7() {
   tcVisible().forEach(function(o){ var d = ymdDiff(today, o.on); if (d != null && d >= 0 && d <= 6) (out[o.on] = out[o.on] || []).push(o); });
   return Object.keys(out).sort().map(function(k){ return { date: k, evs: out[k] }; });
 }
+/* 3.12.2: when the week is empty, show what's next instead of skipping the slide (Doug 11/16) */
+function trainingNext(max) {
+  var today = tcToday(), seen = {}, out = [];
+  tcVisible().forEach(function(o){
+    if (o.on < today || out.length >= max) return;
+    if (!o.e.date) { if (seen[o.i]) return; seen[o.i] = true; }
+    out.push(o);
+  });
+  return out;
+}
 function wallTraining(idx, n) {
   var days = training7(), budget = hasNotice() ? 7 : 8, shown = [], used = 0, left = 0;
+  if (!days.length) {
+    var nx = trainingNext(hasNotice() ? 4 : 5);
+    return wHead('This week in training', 'Nothing on the training calendar this week', idx, n) +
+      '<div class="w-panel" style="padding:8px 48px;flex:1;min-height:0;overflow:hidden"><div class="w-label" style="padding:18px 0 4px">Coming up</div>' + (nx.length ? nx.map(function(o){
+        var t = tcType(o.e.type), l = ymdLabel(o.on), when = o.e.date ? l.day + ' ' + l.date : l.date + ' to ' + ymdLabel(o.e.end || o.e.start).date;
+        return '<div class="w-row" style="min-height:0;padding:16px 0"><div style="width:400px;flex:none;font-size:40px;font-weight:600;white-space:nowrap">' + esc(when) + '</div>' +
+          '<span class="w-tag" style="flex:none;background:' + esc(t.bg) + ';color:' + esc(t.text) + '">' + esc(t.label) + '</span>' +
+          '<div style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="font-size:42px;font-weight:600">' + esc(String(o.e.title).replace(/\s*\(.*\)\s*$/, '')) + '</span>' +
+          (o.e.time ? '<span style="font-size:30px;color:var(--muted)"> &nbsp;' + esc(o.e.time) + '</span>' : '') + '</div></div>';
+      }).join('') : '<div style="font-size:40px;color:var(--muted);padding:24px 0">Nothing scheduled yet</div>') + '</div>';
+  }
   days.forEach(function(d){
     var room = budget - used;
     if (room <= 0) { left += d.evs.length; return; }
@@ -1370,7 +1391,7 @@ function wallSlides() {
   var list = [];
   if (HUB && shiftUnits(HUB.day).length) list.push(wallToday);
   if (openShifts7().length) list.push(wallShifts);
-  if (TC.loaded && training7().length) list.push(wallTraining);
+  if (TC.loaded && (training7().length || trainingNext(1).length)) list.push(wallTraining);
   if (FLEET.data) list.push(wallChecks);
   list.push(wallDuties);
   if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
