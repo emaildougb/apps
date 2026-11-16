@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.14.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.14.2. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,10 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.14.2 (11/16/2026)
+- **Daily Snapshot never drops off.** The Hub keeps the last good briefing list on the device and shows it right away. If a load fails (phone waking up, TV reconnecting) it keeps what it had and tries again in 1 minute, and again whenever the app comes back to the front. The Wall's Daily Snapshot slide is always first
+- **Shorter.** Neuro line reads "Neuro IR at PHSW: covered today" (hours only show when it's part of a day). Each briefing item is the title and the BC's one line. The who and group line is gone
 
 ### v3.14.1 (11/16/2026)
 - Desk and phone Daily Snapshot now match the Wall: cleaned title plus the BC's short line. Raw card details never show anywhere on the Hub
