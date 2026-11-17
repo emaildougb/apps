@@ -657,7 +657,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.15.1';
+var HUB_VERSION = '3.16';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -708,7 +708,7 @@ function applySide() {
   document.title = f ? 'FD13 Hub' : 'NCEMS Hub';
   if (f && VIEW === 'shifts') goView('home');
 }
-function setStation(v) { var lk = lockedStation(); if (lk && !(lk === '51' && v === 'fd13')) v = lk; STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; applySide(); loadWeather(); if (isFire()) { loadFire(); loadFireNotice(); } if (typeof drawMaps === 'function' && MAPS.length) drawMaps(); renderAll(); if (MODE === 'wall') { WALL.i = 0; renderWall(); } }
+function setStation(v) { var lk = lockedStation(); if (lk && !(lk === '51' && v === 'fd13')) v = lk; STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; applySide(); loadWeather(); if (isFire()) { loadFire(); loadFireNotice(); } if (typeof drawMaps === 'function' && MAPS.length) { drawMaps(); if (typeof renderMapSide === 'function') renderMapSide(); } renderAll(); if (MODE === 'wall') { WALL.i = 0; renderWall(); } }
 /* 3.8: the station accounts (station51@ and station52@) lock the Hub to their own station.
    Personal accounts keep the picker. 3.15: station51@ can also switch to FD13 (same building), not to 52. */
 function lockedStation() { var m = /^station(5[12])@northcountryems\.org$/.exec(email()); return m ? m[1] : ''; }
@@ -737,13 +737,36 @@ var WEEK51 = {
   Saturday:  ['Clean Station 51 office windows, inside and out', 'Check station refrigerators, toss expired food', 'Start and check the station generator']
 };
 var WEEK52 = {};
-var WEEKFD13 = {};   /* 3.15: Doug is sending the FD13 daily list */
-var WEEKS = { '51': WEEK51, '52': WEEK52, 'fd13': WEEKFD13 };
+var WEEKS = { '51': WEEK51, '52': WEEK52 };
+/* ===== 3.16 FD13 DAILY LIST (Doug 11/17, from the FD13 "Shift Responsibilities" slide) =====
+   Minimums every day, plus reserve apparatus inspections on their days. Anyone can check them off.
+   Any paid person signed in with their own @northcountryems.org account can add tasks for the day (ncems-checks 1.13). */
+var FIRE_DAILY = [
+  ['lounge', 'Fire lounge and bathrooms: sweep and mop, wipe down hard surfaces'],
+  ['stairs', 'Fire bay stairs: sweep and mop'],
+  ['bay',    'Fire bay: blow out or sweep the bay floor, Windex windows, wipe down hard surfaces'],
+  ['ops',    'Ops office and bathroom: vacuum, sweep and mop, wipe down hard surfaces, Windex windows']
+];
+var FIRE_NOTE = 'Assist NCEMS crews as needed';
+function fireDayTasks(d) {
+  var dow = d.getDay(), nth = Math.floor((d.getDate() - 1) / 7) + 1, out = FIRE_DAILY.map(function(t){ return { id: 'wfd13:' + t[0], text: t[1] }; });
+  if (dow === 1 && (nth === 1 || nth === 3)) out.push({ id: 'wfd13:insp:e94wt20', text: 'Reserve apparatus inspection: Engine 94 (52) and Water Tender 20 (51)', insp: true });
+  if (dow === 1 && (nth === 2 || nth === 4)) out.push({ id: 'wfd13:insp:b17e05', text: 'Reserve apparatus inspection: Brush 17 (51) and Engine 05 (50)', insp: true });
+  if (dow === 5) out.push({ id: 'wfd13:insp:wt72', text: 'Reserve apparatus inspection: Water Tender 72 (52), every other Friday (check if this is the week)', insp: true });
+  if (dow === 3 && nth === 5) out.push({ id: 'wfd13:insp:r9r10', text: 'Reserve apparatus inspection: Rescue 9 (C52) and Rescue 10 (C51), 5th Wednesday', insp: true });
+  return out;
+}
+function tomorrowTasks() {
+  var d = dutyDate(); d.setDate(d.getDate() + 1);
+  return isFire() ? fireDayTasks(d).map(function(t){ return t.text; }) : (stationWeek()[DAYS[d.getDay()]] || []);
+}
+function canAddDuty() { return !!(HUB && (isFire() ? HUB.canAddFire : HUB.canAdd)); }
+function canRemoveDuty(x) { return !!(HUB && (HUB.canAdd || (isFire() && String(x.addedBy || '').toLowerCase() === email()))); }
 function stationWeek() { return WEEKS[STATION] || {}; }
 /* Saved ids: Station 51 weekly items keep w:Day:n so old check offs stay; Station 52 uses w52:Day:n.
    Added tasks are a:51:... or a:52:... (ncems-checks 1.9); older a:... ids without a station belong to 51. */
 function weeklyId(day, i) { return (STATION === '51' ? 'w:' : 'w' + STATION + ':') + day + ':' + i; }
-function addedStation(id) { var m = /^a:(5\d):/.exec(id); return m ? m[1] : '51'; }
+function addedStation(id) { var m = /^a:(5\d|fd13):/.exec(id); return m ? m[1] : '51'; }
 var RIG_DAYS = { Monday: ['Rescue 2'], Tuesday: ['Rescue 7', 'Rescue 8'], Wednesday: ['Rescue 3', 'Rescue 4', 'Rescue 5'], Thursday: ['Rescue 1'], Friday: ['M14', 'M12'] };
 
 /* ===== MICROSOFT SIGN IN (NCEMS Hub app registration) ===== */
@@ -1082,9 +1105,10 @@ function renderChecksDesk() {
 function dutyList() {
   var d = dutyDate(), day = DAYS[d.getDay()];
   var saved = {}; ((HUB && HUB.duties) || []).forEach(function(x){ saved[x.id] = x; });
-  var items = (stationWeek()[day] || []).map(function(t, i){ var id = weeklyId(day, i), s = saved[id] || {}; return { id: id, text: t, done: !!s.done_at, by: s.done_name || '', at: s.done_at || '', added: '' }; });
+  var base = isFire() ? fireDayTasks(d) : (stationWeek()[day] || []).map(function(t, i){ return { id: weeklyId(day, i), text: t }; });
+  var items = base.map(function(t){ var s = saved[t.id] || {}; return { id: t.id, text: t.text, done: !!s.done_at, by: s.done_name || '', at: s.done_at || '', added: '', insp: !!t.insp }; });
   ((HUB && HUB.duties) || []).filter(function(x){ return x.id.indexOf('a:') === 0 && addedStation(x.id) === STATION; }).forEach(function(x){
-    items.push({ id: x.id, text: x.text, done: !!x.done_at, by: x.done_name || '', at: x.done_at || '', added: 'Added by ' + adderTitle(x) });
+    items.push({ id: x.id, text: x.text, done: !!x.done_at, by: x.done_name || '', at: x.done_at || '', added: 'Added by ' + adderTitle(x), addedBy: x.added_by || '' });
   });
   return items;
 }
@@ -1108,9 +1132,9 @@ function renderDuties() {
   $('duties-body').innerHTML = items.map(function(x){
     return '<label class="row duty-row' + (x.done ? ' done' : '') + '"><input type="checkbox" ' + (x.done ? 'checked ' : '') + (can ? '' : 'disabled ') + 'data-duty="' + esc(x.id) + '" data-text="' + esc(x.text) + '"><div class="grow">' + esc(x.text) +
       (x.added ? '<div class="sub" style="color:var(--warn)">' + esc(x.added) + '</div>' : '') + '</div>' +
-      (x.added && HUB && HUB.canAdd ? '<button class="x-btn" type="button" data-rm="' + esc(x.id) + '">Remove</button>' : '') + '</label>';
-  }).join('') + (items.length ? '' : '<p class="sub" style="padding:8px 0">' + (isFire() ? 'The FD13 daily task list is coming soon.' : 'No weekly list for ' + esc(STATIONS[STATION].name) + ' yet. Chiefs can add tasks for today below.') + '</p>') + '<div class="dtmr"><p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + ((stationWeek()[next] || []).map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('') || '<div class="sub" style="padding:4px 0">No weekly list for this station yet.</div>') + '</div>';
-  $('duty-add').innerHTML = HUB && HUB.canAdd && !isFire() ? '<div class="add-row"><label class="sr" for="duty-new">Add a task for today</label><input id="duty-new" type="text" maxlength="160" placeholder="BC: add a task for today"><button class="pill ghost" type="button" style="height:36px" onclick="addDuty()">Add</button></div><p class="sub" id="duty-msg"></p>' : '';
+      (x.added && canRemoveDuty(x) ? '<button class="x-btn" type="button" data-rm="' + esc(x.id) + '">Remove</button>' : '') + '</label>';
+  }).join('') + (items.length ? '' : '<p class="sub" style="padding:8px 0">' + 'No weekly list for ' + esc(STATIONS[STATION].name) + ' yet. Chiefs can add tasks for today below.' + '</p>') + (isFire() ? '<p class="sub" style="padding:8px 0 0">' + esc(FIRE_NOTE) + '</p>' : '') + '<div class="dtmr"><p class="stn" style="margin-top:16px">Tomorrow, ' + next + '</p>' + (tomorrowTasks().map(function(t){ return '<div class="sub" style="padding:4px 0">' + esc(t) + '</div>'; }).join('') || '<div class="sub" style="padding:4px 0">No weekly list for this station yet.</div>') + '</div>';
+  $('duty-add').innerHTML = canAddDuty() ? '<div class="add-row"><label class="sr" for="duty-new">Add a task for today</label><input id="duty-new" type="text" maxlength="160" placeholder="' + (isFire() ? 'Add a task for today' : 'BC: add a task for today') + '"><button class="pill ghost" type="button" style="height:36px" onclick="addDuty()">Add</button></div><p class="sub" id="duty-msg"></p>' : '';
   $('duties-body').querySelectorAll('[data-duty]').forEach(function(cb){
     cb.addEventListener('change', function(){ tickDuty(cb.dataset.duty, cb.dataset.text, cb.checked, cb); });
   });
@@ -1460,7 +1484,7 @@ function wallDuties(idx, n) {
         '<div class="txt" style="color:' + (x.done ? 'var(--dim)' : '#fff') + '">' + esc(x.text) + (x.added ? '<div style="font-size:26px;font-weight:500;color:var(--warn);margin-top:6px">' + esc(x.added) + '</div>' : '') + '</div>' +
         '</div>';
     }).join('') + '</div>' +
-    '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + ((stationWeek()[next] || []).map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') || '<div style="font-size:28px;color:#8a8a8a">No weekly list yet</div>') + '</div></div>';
+    '<div class="w-panel" style="display:flex;flex-direction:column;gap:18px"><p class="w-faint">Tomorrow, ' + next + '</p>' + (tomorrowTasks().map(function(t){ return '<div style="font-size:32px;color:#8a8a8a;line-height:1.3">' + esc(t) + '</div>'; }).join('') || '<div style="font-size:28px;color:#8a8a8a">No weekly list yet</div>') + '</div></div>';
 }
 function wallWeather(idx, n) {
   var st = STATIONS[STATION], w = WX.data, now = w.hourly[0] || {}, hl = wxHighLow(w);
@@ -1961,7 +1985,7 @@ function arcQuery(layer, fields) {
 }
 function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }); }
 function loadMapData() {
-  loadDangerZones();
+  loadDangerZones(); loadFdMap();
   var jobs = [
     getJSON(arcQuery('WFIGS_Incident_Locations_Current', 'IncidentName,IncidentSize,PercentContained,IncidentTypeCategory,FireDiscoveryDateTime')).then(function(j){
       var fs = (j.features || []).filter(function(f){ return f.geometry && f.geometry.coordinates; });
@@ -2001,6 +2025,10 @@ function heliList() { return (DM.air && DM.air.heli) || []; }
 function mapSideHtml(big) {
   var cls = big ? 'ms big' : 'ms';
   var h = '<div class="' + cls + '">';
+  if (isFire()) h += '<div class="ms-sec"><div class="ms-h">FD13 coverage</div>' +
+    '<div class="ms-item"><b style="color:#6fcf97">Green lines</b><span class="ms-sub">FD13 response areas 131 and 132</span></div>' +
+    '<div class="ms-item"><b style="color:#d4a72c">Mustard</b><span class="ms-sub">FD13 initial response, DNR primary on wildland fire</span></div>' +
+    '<div class="ms-item"><b style="color:#4cb3f0">Blue dots</b><span class="ms-sub">County hydrants' + (FDMAP ? ' (' + FDMAP.hydrants.length + ')' : '') + '</span></div></div>';
   var fires = DM.fires.filter(function(f){ return f.mi <= 75; });
   h += '<div class="ms-sec"><div class="ms-h">Wildfires within 75 miles</div>' + (fires.length ? fires.slice(0, big ? 2 : 4).map(function(f){
     return '<div class="ms-item"><b style="color:#ff8a4c">' + esc(f.name) + '</b><span class="ms-sub">' + f.mi + ' mi from 51' + (f.acres ? ' · ' + Math.round(f.acres).toLocaleString() + ' acres' : '') + (f.pct != null ? ' · ' + f.pct + '% contained' : '') + '</span></div>';
@@ -2029,7 +2057,7 @@ function makeMap(el, wall) {
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Esri, HERE, Garmin, © OpenStreetMap contributors' }).addTo(map);
   var radar = L.tileLayer.wms('https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows', { layers: 'conus_bref_qcd', format: 'image/png', transparent: true, opacity: 0.4, attribution: 'Radar NOAA' }).addTo(map);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'shadowPane' }).addTo(map);
-  var g = { danger: L.layerGroup().addTo(map), perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
+  var g = { cover: L.layerGroup().addTo(map), danger: L.layerGroup().addTo(map), perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
   var lab = function(t, cls){ return L.divIcon({ className: 'dm-lab ' + (cls || ''), html: '<span>' + t + '</span>', iconSize: [0, 0] }); };
   ['51', '52'].forEach(function(st){
     var s = STATIONS[st];
@@ -2045,7 +2073,19 @@ function makeMap(el, wall) {
 }
 function drawMap(o) {
   var g = o.g, w = o.wall;
-  g.perim.clearLayers(); g.fires.clearLayers(); g.danger.clearLayers();
+  g.perim.clearLayers(); g.fires.clearLayers(); g.danger.clearLayers(); g.cover.clearLayers();
+  /* 3.16 Doug: FD13 coverage. Green lines = FD13 (131 Yacolt, 132 southeast to Larch); mustard = FD13 initial response, DNR primary on wildland
+     fire; dashed ring = 10 miles from Yacolt; blue dots = county hydrants. Only on the Fire District 13 side */
+  if (isFire() && FDMAP) {
+    L.geoJSON(FDMAP.areas, { interactive: !w, style: function(f){ var fd = f.properties.kind === 'fd13';
+        return fd ? { color: '#6fcf97', weight: w ? 4 : 3, opacity: 0.95, fillColor: '#6fcf97', fillOpacity: 0.08 } : { color: '#d4a72c', weight: w ? 3 : 2, opacity: 0.9, dashArray: '6 6', fillColor: '#d4a72c', fillOpacity: 0.16 }; } })
+      .bindTooltip(function(l){ return esc(l.feature.properties.name); }, { sticky: true, className: 'dm-tip' }).addTo(g.cover);
+    FDMAP.areas.features.forEach(function(f){ if (f.properties.station) { var b = L.geoJSON(f).getBounds(); L.marker(b.getCenter(), { icon: L.divIcon({ className: 'dm-lab', html: '<span style="color:#6fcf97;font-weight:700">' + esc(f.properties.station) + '</span>', iconSize: [0, 0] }), interactive: false }).addTo(g.cover); } });
+    L.circle(FDMAP.center, { radius: (FDMAP.ringMiles || 10) * 1609.34, color: '#fff', weight: 1.5, opacity: 0.6, dashArray: '6 8', fill: false, interactive: false }).addTo(g.cover);
+    FDMAP.hydrants.forEach(function(h){ L.circleMarker([h.lat, h.lon], { radius: h.main >= 12 ? (w ? 6 : 5) : (w ? 4.5 : 3.5), color: '#0b2a3d', weight: 1, fillColor: '#4cb3f0', fillOpacity: 0.95, interactive: !w })
+      .bindTooltip(esc(h.id) + ' · ' + h.main + '" main', { className: 'dm-tip' }).addTo(g.cover); });
+    if (!o.fireFit) { o.fireFit = true; o.map.fitBounds(L.geoJSON(FDMAP.areas).getBounds().pad(0.08)); }
+  } else if (o.fireFit) { o.fireFit = false; o.map.setView(DM_CENTER, DM_ZOOM); }
   /* 3.15.1 Doug: WA DNR fire danger areas tinted by level. Always on the FD13 side; on NCEMS only at Moderate or higher (summer) */
   if (DZ.geo && (isFire() || DZ.max >= 2)) L.geoJSON(DZ.geo, { interactive: !w, style: function(f){ var c = FDR_COLOR[f.properties.FIRE_DANGER_LEVEL_CD] || '#b4b4b4', lo = f.properties.FIRE_DANGER_LEVEL_CD <= 1;
       return { color: c, weight: w ? 3 : 2, opacity: 0.8, dashArray: lo ? '6 6' : null, fillColor: c, fillOpacity: lo ? 0.05 : 0.18 }; } })
@@ -2059,6 +2099,8 @@ function drawMap(o) {
   });
 }
 var DZ = { geo: null, max: 0, at: 0 };
+var FDMAP = null;   /* 3.16: fd13-map.json (FD13 coverage areas and county hydrants) */
+function loadFdMap() { if (FDMAP) return; getJSON('fd13-map.json?v=' + HUB_VERSION).then(function(j){ FDMAP = j; if (typeof drawMaps === 'function') drawMaps(); }).catch(function(){}); }
 function loadDangerZones() {   /* the DNR fire danger areas around the district, as shapes for the map (hourly) */
   if (DZ.geo && Date.now() - DZ.at < 60 * 60e3) return;
   var u = 'https://gis.dnr.wa.gov/site3/rest/services/Public_Wildfire/WADNR_PUBLIC_WD_WildfireDanger/MapServer/0/query?geometry=' + encodeURIComponent('-123.2,45.4,-121.4,46.6') +

@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.15.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.16. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.16 (11/17/2026)
+- **FD13 daily list.** Minimums every day, from the FD13 Shift Responsibilities slide: fire lounge and bathrooms, fire bay stairs, fire bay, ops office and bathroom, plus "Assist NCEMS crews as needed". Reserve apparatus inspections show on their days: Engine 94 (52) and Water Tender 20 (51) on the 1st and 3rd Monday, Brush 17 (51) and Engine 05 (50) on the 2nd and 4th Monday, Water Tender 72 (52) every other Friday (shows every Friday until we know which week), Rescue 9 (C52) and Rescue 10 (C51) on a 5th Wednesday. Anyone signed in can check them off
+- **Anyone paid can add FD13 tasks.** On the Fire District 13 side, anyone signed in with their own @northcountryems.org account can add a task for the day (not the shared station accounts). They can remove their own; chiefs can remove any. Needs ncems-checks 1.13 (`canAddFire`, ids a:fd13:...)
+- **FD13 coverage on the District map** (Fire District 13 side): green lines for FD13 response areas 131 (Yacolt) and 132 (southeast to Larch), mustard for the areas with no district on the county map where FD13 is initial response and DNR has primary on wildland fire, a 10 mile ring from Yacolt, and the 79 county hydrants. The map opens framed on FD13. New file `fd13-map.json` (public Clark County GIS shapes and hydrants)
 
 ### v3.15.1 (11/17/2026)
 - Station picker says **Fire District 13**
