@@ -1,5 +1,5 @@
 {
-  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. Every button shows to everyone (no sign-in on the hub since 2.0; each app signs you in itself). style: dark for the darker green, red for red. Use \\n in a title for a line break. Clinical reference lives in the clinical repo (clinical.northcountryems.org). icon: the small picture on the button (files in the icons folder). Order on the Hub: 3 across, top row first (Doug 11/15: HOSCAP, Open Shifts, Apparatus Checker, then Facilities & Grounds, Incident Report, CG Staff).",
+  "note": "NCEMS hub buttons. Edit this file to add, remove or rename apps. Every button shows to everyone (no sign-in on the hub since 2.0; each app signs you in itself). style: dark for the darker green, red for red. Use \\n in a title for a line break. Clinical reference lives in the clinical repo (clinical.northcountryems.org). icon: the small picture on the button (files in the icons folder). Order on the Hub: 3 across, top row first (Doug 11/15: HOSCAP, Open Shifts, Apparatus Checker, then Facilities & Grounds, Incident Report, CG Staff). 3.15 (Doug 11/17): 'fire' is the FD13 side's list (picked with FD13 in the station picker). No HOSCAP or Open Shifts there; Apparatus Checker is the FD13 one at apparatus.fd13.org.",
   "operations": [
     {
       "label": "Operations",
@@ -46,6 +46,44 @@
           "url": "https://cgstaff.northcountryems.org/",
           "style": "dark",
           "icon": "icons/cgstaff.png"
+        }
+      ]
+    }
+  ],
+  "fire": [
+    {
+      "label": "FD13",
+      "buttons": [
+        {
+          "title": "FD13 Apparatus\nCheck",
+          "sub": "FD13 daily apparatus checks",
+          "url": "https://apparatus.fd13.org/",
+          "icon": "icons/apparatus.png"
+        },
+        {
+          "title": "Incident Report",
+          "sub": "Service related reporting",
+          "url": "https://reports.northcountryems.org/",
+          "icon": "icons/ir.png"
+        },
+        {
+          "title": "CG Staff",
+          "sub": "CG Staff only",
+          "url": "https://cgstaff.northcountryems.org/",
+          "style": "dark",
+          "icon": "icons/cgstaff.png"
+        }
+      ]
+    },
+    {
+      "label": "More",
+      "buttons": [
+        {
+          "title": "Facilities\n& Grounds",
+          "sub": "Buildings and grounds",
+          "url": "https://fng.northcountryems.org/",
+          "style": "dark",
+          "icon": "icons/fng.png"
         }
       ]
     }

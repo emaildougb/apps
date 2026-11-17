@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.14.2. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.15. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,15 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.15 (11/17/2026): the FD13 side
+- **FD13 in the station picker.** Picking FD13 turns the whole Hub (Wall, Desk, phones) dark oxblood (#7A0A0A on near black), puts the FD13 logo and "FD13 Hub" in the header, and switches the content to the fire department. The picker remembers it on that computer. The station51@ account can switch between Station 51 and FD13 (same building); station52@ stays on 52
+- **Schedule and crews:** Engine 51, Engine 52 and Engine 50 from Derek's schedule, every filled seat (Chief 52, EMS 51, Lieutenant, Career FF, FT Firefighter, Resident, Fire AO, volunteers), with times when someone isn't on the full 07:30 to 07:30. Comes from ncems-checks 1.12 `/fleet/fire` (through ncems-schedule-crews 1.3, `/days?fire=1`). The Duty BC card becomes **Chief officer** (whoever is in the Chief 52 seat)
+- **Daily Snapshot (FD13):** fire danger and DNR burn ban for our area from the WA DNR public map (Vancouver fire danger area, read at Station 51, refreshed hourly), the FD13 notice, then the CG Staff cards flagged for briefing in the **General, Chief and Fire Dept** groups only
+- **FD13 notice:** its own notice, separate from the NCEMS one. Posted from the i panel while on FD13 by Chief Shirley, DC Andrus, the three BCs or Lt Wagner (ncems-checks `/fleet/fire/notice`, kv col fd13)
+- **Apps (FD13):** `fire` list in apps.json: FD13 Apparatus Check (apparatus.fd13.org), Incident Report, CG Staff, Facilities & Grounds. No HOSCAP, no Open Shifts
+- Open shifts are hidden on the FD13 side (sidebar, Wall, the Today number). Vehicle checks link to apparatus.fd13.org until the FD13 checker shares its checks. Daily tasks say the FD13 list is coming (adding a chief task is off on FD13 for now). Weather, District map, Training calendar, Training videos and Training Status are the same as NCEMS
+- New file `fd13-logo.png` (from the FD13-apparatus-checker repo)
 
 ### v3.14.2 (11/16/2026)
 - **Daily Snapshot never drops off.** The Hub keeps the last good briefing list on the device and shows it right away. If a load fails (phone waking up, TV reconnecting) it keeps what it had and tries again in 1 minute, and again whenever the app comes back to the front. The Wall's Daily Snapshot slide is always first
