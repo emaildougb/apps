@@ -420,7 +420,8 @@ body.fire .top select, body.fire .icon-btn, body.fire .pill.ghost { background: 
 body.fire.deskui .side { background: #0c0203; border-right-color: #2e0c0e; }
 body.fire .side button.on { background: var(--fire); }
 body.fire .sb-title { display: flex; align-items: center; gap: 8px; }
-.sb-title img { display: none; width: 26px; height: 26px; }
+.sb-title img { display: none; width: auto; height: 42px; }
+body.fire .top > img { border-radius: 0; width: auto; height: 48px; }
 body.fire .sb-title img { display: block; }
 body.fire.pocket .tabs { background: #0c0203; border-top-color: #2e0c0e; }
 body.fire .tabs button.on { color: #fff; }
@@ -482,7 +483,7 @@ body.fire .ems-only { display: none !important; }
     <select id="stn-pick" onchange="setStation(this.value)">
       <option value="51">Station 51</option>
       <option value="52">Station 52</option>
-      <option value="fd13">FD13</option>
+      <option value="fd13">Fire District 13</option>
     </select>
       <div class="d-ctl">
       <label for="spd">Rotate</label>
@@ -656,7 +657,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.15';
+var HUB_VERSION = '3.15.1';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -695,7 +696,7 @@ var STATIONS = {
   '51': { name: 'Station 51', place: 'Yacolt', lat: 45.8653, lon: -122.4069 },
   '52': { name: 'Station 52', place: 'Fargher Lake', lat: 45.8786, lon: -122.5409 },
   /* 3.15 (Doug 11/17): the FD13 side. Same building and weather as Station 51, fire content and an oxblood look */
-  'fd13': { name: 'FD13', place: 'Yacolt', lat: 45.8653, lon: -122.4069, fire: true }
+  'fd13': { name: 'Fire District 13', place: 'Yacolt', lat: 45.8653, lon: -122.4069, fire: true }
 };
 function isFire() { return !!(STATIONS[STATION] && STATIONS[STATION].fire); }
 function applySide() {
@@ -707,7 +708,7 @@ function applySide() {
   document.title = f ? 'FD13 Hub' : 'NCEMS Hub';
   if (f && VIEW === 'shifts') goView('home');
 }
-function setStation(v) { var lk = lockedStation(); if (lk && !(lk === '51' && v === 'fd13')) v = lk; STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; applySide(); loadWeather(); if (isFire()) { loadFire(); loadFireNotice(); } renderAll(); if (MODE === 'wall') { WALL.i = 0; renderWall(); } }
+function setStation(v) { var lk = lockedStation(); if (lk && !(lk === '51' && v === 'fd13')) v = lk; STATION = STATIONS[v] ? v : '51'; store('ncems_hub_station', STATION); WX.data = null; applySide(); loadWeather(); if (isFire()) { loadFire(); loadFireNotice(); } if (typeof drawMaps === 'function' && MAPS.length) drawMaps(); renderAll(); if (MODE === 'wall') { WALL.i = 0; renderWall(); } }
 /* 3.8: the station accounts (station51@ and station52@) lock the Hub to their own station.
    Personal accounts keep the picker. 3.15: station51@ can also switch to FD13 (same building), not to 52. */
 function lockedStation() { var m = /^station(5[12])@northcountryems\.org$/.exec(email()); return m ? m[1] : ''; }
@@ -1429,7 +1430,7 @@ function fitStage() {
 }
 function wHead(title, sub, idx, n) {
   var nt = hasNotice(), NOTICE = curNotice();
-  return '<div class="w-head"><div><h1>' + (isFire() ? '<img src="fd13-logo.png" alt="" style="height:64px;vertical-align:-10px;margin-right:18px">' : '') + esc(title) + '</h1><p>' + sub + '</p></div><div class="w-right"><div class="w-clock" data-clock>' + hhmm(new Date()) + '</div>' +
+  return '<div class="w-head"><div><h1>' + (isFire() ? '<img src="fd13-logo.png" alt="" style="height:96px;vertical-align:-24px;margin-right:22px">' : '') + esc(title) + '</h1><p>' + sub + '</p></div><div class="w-right"><div class="w-clock" data-clock>' + hhmm(new Date()) + '</div>' +
     '<div class="w-prog"><i style="width:' + Math.round((idx + 1) / n * 100) + '%"></i></div></div></div>' +
     '<div class="w-notice' + (nt ? ' show' + (NOTICE.urgent ? ' urgent' : '') : '') + '"><b>' + (nt && NOTICE.urgent ? 'Urgent' : 'Notice') + '</b><span>' + (nt ? esc(NOTICE.message) : '') + '</span></div>';
 }
@@ -1960,6 +1961,7 @@ function arcQuery(layer, fields) {
 }
 function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }); }
 function loadMapData() {
+  loadDangerZones();
   var jobs = [
     getJSON(arcQuery('WFIGS_Incident_Locations_Current', 'IncidentName,IncidentSize,PercentContained,IncidentTypeCategory,FireDiscoveryDateTime')).then(function(j){
       var fs = (j.features || []).filter(function(f){ return f.geometry && f.geometry.coordinates; });
@@ -2027,7 +2029,7 @@ function makeMap(el, wall) {
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Esri, HERE, Garmin, © OpenStreetMap contributors' }).addTo(map);
   var radar = L.tileLayer.wms('https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows', { layers: 'conus_bref_qcd', format: 'image/png', transparent: true, opacity: 0.4, attribution: 'Radar NOAA' }).addTo(map);
   L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'shadowPane' }).addTo(map);
-  var g = { perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
+  var g = { danger: L.layerGroup().addTo(map), perim: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), base: L.layerGroup().addTo(map), air: L.layerGroup().addTo(map) };
   var lab = function(t, cls){ return L.divIcon({ className: 'dm-lab ' + (cls || ''), html: '<span>' + t + '</span>', iconSize: [0, 0] }); };
   ['51', '52'].forEach(function(st){
     var s = STATIONS[st];
@@ -2043,13 +2045,29 @@ function makeMap(el, wall) {
 }
 function drawMap(o) {
   var g = o.g, w = o.wall;
-  g.perim.clearLayers(); g.fires.clearLayers();
+  g.perim.clearLayers(); g.fires.clearLayers(); g.danger.clearLayers();
+  /* 3.15.1 Doug: WA DNR fire danger areas tinted by level. Always on the FD13 side; on NCEMS only at Moderate or higher (summer) */
+  if (DZ.geo && (isFire() || DZ.max >= 2)) L.geoJSON(DZ.geo, { interactive: !w, style: function(f){ var c = FDR_COLOR[f.properties.FIRE_DANGER_LEVEL_CD] || '#b4b4b4', lo = f.properties.FIRE_DANGER_LEVEL_CD <= 1;
+      return { color: c, weight: w ? 3 : 2, opacity: 0.8, dashArray: lo ? '6 6' : null, fillColor: c, fillOpacity: lo ? 0.05 : 0.18 }; } })
+    .bindTooltip(function(l){ var a = l.feature.properties; return 'Fire danger: ' + esc(a.FIRE_DANGER_LEVEL_NM) + ' · ' + esc(a.FIREDANGER_AREA_NM) + (a.BURN_BAN_LEVEL_CD !== 99 ? ' · ' + esc(a.BURN_BAN_LEVEL_NM) : ''); }, { sticky: true, className: 'dm-tip' })
+    .addTo(g.danger);
   if (DM.perims && DM.perims.features && DM.perims.features.length) L.geoJSON(DM.perims, { style: { color: '#ff7a3c', weight: 2, fillColor: '#ff7a3c', fillOpacity: 0.18 }, interactive: false }).addTo(g.perim);
   DM.fires.forEach(function(f){
     var r = Math.max(w ? 9 : 6, Math.min(w ? 30 : 20, Math.sqrt(f.acres || 1) / 3));
     L.circleMarker([f.lat, f.lon], { radius: r, color: '#ff7a3c', weight: 2, fillColor: '#ff4d1a', fillOpacity: 0.6 })
       .bindTooltip(esc(f.name) + (f.acres ? ' · ' + Math.round(f.acres) + ' ac' : ''), { permanent: w, direction: 'right', className: 'dm-tip' }).addTo(g.fires);
   });
+}
+var DZ = { geo: null, max: 0, at: 0 };
+function loadDangerZones() {   /* the DNR fire danger areas around the district, as shapes for the map (hourly) */
+  if (DZ.geo && Date.now() - DZ.at < 60 * 60e3) return;
+  var u = 'https://gis.dnr.wa.gov/site3/rest/services/Public_Wildfire/WADNR_PUBLIC_WD_WildfireDanger/MapServer/0/query?geometry=' + encodeURIComponent('-123.2,45.4,-121.4,46.6') +
+    '&geometryType=esriGeometryEnvelope&inSR=4326&outSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FIREDANGER_AREA_NM,FIRE_DANGER_LEVEL_NM,FIRE_DANGER_LEVEL_CD,BURN_BAN_LEVEL_CD,BURN_BAN_LEVEL_NM&maxAllowableOffset=0.003&geometryPrecision=4&f=geojson';
+  getJSON(u).then(function(j){
+    if (!j || !j.features) return;
+    DZ.geo = j; DZ.at = Date.now(); DZ.max = j.features.reduce(function(m, f){ return Math.max(m, (f.properties && f.properties.FIRE_DANGER_LEVEL_CD) || 0); }, 0);
+    drawMaps();
+  }).catch(function(){});
 }
 function drawAirOn(o) {
   o.g.air.clearLayers();

@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.15. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.15.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -101,6 +101,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.15.1 (11/17/2026)
+- Station picker says **Fire District 13**
+- FD13 logo: white background removed (transparent), sharper and bigger (phones top bar 48px, Desk sidebar 42px, Wall headings 96px)
+- **Fire danger on the District map:** the WA DNR fire danger areas around the district are drawn on the map, colored by level (Low dashed and faint, Moderate and up filled), hover for the level and any DNR burn ban. Always on the Fire District 13 side; on the NCEMS side only when the danger is Moderate or higher (summer)
 
 ### v3.15 (11/17/2026): the FD13 side
 - **FD13 in the station picker.** Picking FD13 turns the whole Hub (Wall, Desk, phones) dark oxblood (#7A0A0A on near black), puts the FD13 logo and "FD13 Hub" in the header, and switches the content to the fire department. The picker remembers it on that computer. The station51@ account can switch between Station 51 and FD13 (same building); station52@ stays on 52
