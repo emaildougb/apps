@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.16. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.17. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -8,6 +8,8 @@ Version 3.16. Three views at one address: **Wall** (the station TV, cycles on it
 - Clinical (separate since 2.0): [https://clinical.northcountryems.org/](https://clinical.northcountryems.org/)
 - Repo: [https://github.com/emaildougb/apps](https://github.com/emaildougb/apps)
 - Upload: [https://github.com/emaildougb/apps/upload/main](https://github.com/emaildougb/apps/upload/main)
+- Weekly Protocol Review station screen (no sign in, replaces the WWYD PNG): [https://hub.northcountryems.org/This%20Week%20in%20Training/](https://hub.northcountryems.org/This%20Week%20in%20Training/)
+- Weekly Protocol Review upload (week.json): [https://github.com/emaildougb/apps/upload/main/This%20Week%20in%20Training](https://github.com/emaildougb/apps/upload/main/This%20Week%20in%20Training)
 - Training calendar, printable page (no sign in): [https://hub.northcountryems.org/training.html](https://hub.northcountryems.org/training.html)
 - Training calendar data (built by the Training Dept project, don't edit by hand): [https://raw.githubusercontent.com/emaildougb/apps/main/training-events.json](https://raw.githubusercontent.com/emaildougb/apps/main/training-events.json)
 
@@ -16,6 +18,7 @@ Version 3.16. Three views at one address: **Wall** (the station TV, cycles on it
 - `index.html`: crew-facing hub
 - `apps.json`: the button list (edit this to add, remove or rename apps)
 - `training-events.json`: the training calendar dates. Built from the Excel master by the Training Dept project, never edited by hand (see How to add a training date)
+- `This Week in Training/` folder: the Weekly Protocol Review screen. `index.html` (the page), `week.json` (this week's topic, scenario and form IDs, the only file that changes each week), `qrcode.js` (QR maker, MIT license, Kazuhiko Arase)
 - `training.html`: the printable training calendar page, no sign in (reads training-events.json)
 - `tools/excel_to_training_json.py`: turns the Event List tab of NCEMS_Training_Calendar.xlsx into training-events.json (for the Training Dept project, not used by the pages)
 - `icons/` folder: the small app pictures on the buttons (shifts.png, fng.png, apparatus.png, ir.png, cgstaff.png). On GitHub, drag the whole icons folder in with the other files
@@ -72,6 +75,25 @@ A range of days (`days` and `exclude` are optional; leave out `days` for every d
 
 **Types:** acls, pals, peac, advcardiac, otep, pcep, ftep, off, holiday. **A new type** is one line under `"types"` in training-events.json and one line in the TYPES list at the top of `tools/excel_to_training_json.py` (ask the NCEMS APPS project). No page change.
 
+## Weekly Protocol Review (since 3.17)
+
+One file drives everything: `This Week in Training/week.json`. The station screen page, the Hub Wall slide (every station, FD13 too, right after This week in training) and the Desk and phone Training page all read it. QR codes are drawn from the form IDs, so there are no images to make.
+
+Each week, change these lines in week.json and nothing else:
+
+```
+"topic": "Pleural Decompression",
+"page": "108",                      (use "39-40" for two pages)
+"date": "November 16, 2026",
+"scenario": [ one sentence per line, last line is the question ],
+"blsFormId": "the id= part of the BLS form link",
+"alsFormId": "the id= part of the ALS form link",
+```
+
+The form ID is everything after `id=` in `https://forms.office.com/Pages/ResponsePage.aspx?id=...`. Scenario lines come from the form's own stem, same facts as the crew email. Screens pick up the new week within 10 to 30 minutes.
+
+Station screen layout: 1920 x 1080 (16:9). All content sits inside 2.00 in (288 px) from the left and right edges so the 4:3 center crop never cuts anything. Add `?guides=1` to the address to see the crop lines.
+
 ## Home screen address
 
 Tell everyone to save **https://hub.northcountryems.org/** to their home screen. Never hand out the github.io address. If the hub ever moves hosts, only the DNS record changes and nobody re-saves anything.
@@ -101,6 +123,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.17 (11/18/2026)
+- **Weekly Protocol Review.** New folder `This Week in Training/` with a station screen page that replaces the What Would You Do? PNG: topic, protocol page, the scenario from the form, and live BLS and ALS QR codes to the forms.office.com response pages. Laid out at 16:9 inside the 2.00 in side margins so it survives the 4:3 crop. No sign in. Updated each week by editing `week.json` only
+- **Hub Wall:** new "What would you do?" slide right after This week in training, on every station including FD13, with both QR codes
+- **Desk and phones:** Weekly Protocol Review card at the top of the Training page (Desk sidebar Training calendar, phone Training tab). QR codes on Desk (click to open the form), BLS and ALS buttons on phones
 
 ### v3.16 (11/17/2026)
 - **FD13 daily list.** Minimums every day, from the FD13 Shift Responsibilities slide: fire lounge and bathrooms, fire bay stairs, fire bay, ops office and bathroom, plus "Assist NCEMS crews as needed". Reserve apparatus inspections show on their days: Engine 94 (52) and Water Tender 20 (51) on the 1st and 3rd Monday, Brush 17 (51) and Engine 05 (50) on the 2nd and 4th Monday, Water Tender 72 (52) every other Friday (shows every Friday until we know which week), Rescue 9 (C52) and Rescue 10 (C51) on a 5th Wednesday. Anyone signed in can check them off

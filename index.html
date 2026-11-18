@@ -21,6 +21,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="This%20Week%20in%20Training/qrcode.js"></script>
 <style>
 /* Hub 3.0: Wall (station TV), Desk (computers) and Pocket (phones). One dark look, true black,
    panels one shade lighter, color only on data. Text sizes on the Wall are about 3x Desk so it reads at 10 feet. */
@@ -286,6 +287,23 @@ body.deskui.v-apps .app-btn .t { font-size: 15px; }
 .tc-side { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-top: 16px; }
 .tc-card { background: var(--raised); border-radius: 16px; padding: 16px 18px; min-width: 0; }
 .tc-card h3 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+/* 3.17 weekly protocol review */
+.pr-wrap { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: start; }
+.pr-pill { display: inline-block; background: #c8102e; color: #fff; font-weight: 700; font-size: 12px; letter-spacing: .5px; padding: 4px 10px; border-radius: 999px; }
+.pr-topic { font-size: 22px; font-weight: 700; margin: 10px 0 2px; }
+.pr-scen p { margin: 0 0 6px; line-height: 1.45; }
+.pr-scen p.ask { font-weight: 600; }
+.pr-codes { display: flex; gap: 18px; }
+.pr-code { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+.pr-code .sq { background: #fff; padding: 8px; border-radius: 6px; width: 132px; height: 132px; box-sizing: border-box; }
+.pr-code .sq svg { width: 100%; height: 100%; display: block; }
+.pr-code b { font-size: 16px; }
+.pr-bls { color: #f5a623; } .pr-als { color: #e8423a; }
+.pr-btns { display: none; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.pr-btns a { flex: 1; text-align: center; padding: 12px; border-radius: 12px; background: var(--raised); color: inherit; text-decoration: none; font-weight: 600; }
+@media (max-width: 760px) { .pr-wrap { grid-template-columns: 1fr; } .pr-codes { display: none; } .pr-btns { display: flex; } }
+.w-pr-sq { background: #fff; width: 300px; height: 300px; padding: 18px; box-sizing: border-box; border-radius: 10px; }
+.w-pr-sq svg { width: 100%; height: 100%; display: block; }
 .tc-de { padding: 10px 0; border-top: 1px solid var(--nest); }
 .tc-de:first-of-type { border-top: 0; padding-top: 0; }
 .tc-de .t { font-weight: 600; font-size: 14px; margin-top: 6px; line-height: 1.35; }
@@ -572,6 +590,11 @@ body.fire .ems-only { display: none !important; }
       <p class="map-credit">Radar NOAA. Wildfires NIFC. Helicopters from public ADS-B (adsb.lol). Cameras WSDOT. Map Esri, © OpenStreetMap contributors.</p>
     </section>
 
+    <section class="panel span-12" id="pr-panel" data-tab="training" data-desk="training" aria-labelledby="h-pr">
+      <div class="ph"><h2 id="h-pr">Weekly Protocol Review</h2><a class="sub" href="This%20Week%20in%20Training/" target="_blank" rel="noopener">Open the station screen page</a></div>
+      <div id="pr-body"><p class="empty" style="margin:0">Loading…</p></div>
+    </section>
+
     <section class="panel span-12 tc" id="tc-panel" data-tab="training" data-desk="training" aria-labelledby="h-tc">
       <div class="tc-print-head">NCEMS Training Calendar · <span id="tc-print-month"></span></div>
       <div class="ph tc-bar">
@@ -657,7 +680,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.16';
+var HUB_VERSION = '3.17';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1574,12 +1597,60 @@ function wallTraining(idx, n) {
         }).join('') + '</div></div>';
     }).join('') + (left ? '<div style="font-size:30px;color:var(--muted);padding-top:16px">And ' + left + ' more this week on the Hub</div>' : '') + '</div>';
 }
+/* 3.17: Weekly Protocol Review (Doug 11/18). Data lives in "This Week in Training/week.json", the same file the station screen page reads.
+   Shows on the Wall right after This week in training (every station, FD13 too) and on the Desk/phone Training page. */
+var PR = { data: null };
+var PR_FORM = 'https://forms.office.com/Pages/ResponsePage.aspx?id=';
+function loadProtocol() {
+  return fetch('This%20Week%20in%20Training/week.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){ PR.data = j; renderProtocol(); if (MODE === 'wall') renderWall(); })
+    .catch(function(){ renderProtocol(); });
+}
+function prLines(w) {
+  var l = Array.isArray(w.scenario) ? w.scenario : String(w.scenario || '').split(/\n+/);
+  return l.map(function(x){ return String(x).trim(); }).filter(Boolean);
+}
+function prQr(id) {
+  id = String(id || '').trim();
+  if (!id || typeof qrcode !== 'function') return '';
+  var q = qrcode(0, 'H'); q.addData(PR_FORM + id); q.make();
+  return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+function prSub(w) {
+  var pg = String(w.page || '').trim();
+  return [w.protocols || '2026 Protocols v1.22', pg ? (/[-to]/.test(pg) ? 'pp. ' : 'p. ') + pg : '', w.date || ''].filter(Boolean).join(' · ');
+}
+function renderProtocol() {
+  var el = $('pr-body'); if (!el) return;
+  var w = PR.data;
+  if (!w) { el.innerHTML = '<p class="empty" style="margin:0">This week’s review didn’t load yet.</p>'; return; }
+  var lines = prLines(w), codes = [['BLS', 'pr-bls', w.blsFormId], ['ALS', 'pr-als', w.alsFormId]].filter(function(c){ return String(c[2] || '').trim(); });
+  el.innerHTML = '<div class="pr-wrap"><div><span class="pr-pill">WHAT WOULD YOU DO?</span><div class="pr-topic">' + esc(w.topic || '') + '</div>' +
+    '<p class="sub" style="margin:0 0 12px">' + esc(prSub(w)) + '</p><div class="pr-scen">' + lines.map(function(x, i){
+      return '<p' + (i === lines.length - 1 && /\?\s*$/.test(x) ? ' class="ask"' : '') + '>' + esc(x) + '</p>'; }).join('') + '</div>' +
+    '<div class="pr-btns">' + codes.map(function(c){ return '<a href="' + esc(PR_FORM + c[2]) + '" target="_blank" rel="noopener"><span class="' + c[1] + '">' + c[0] + '</span> review</a>'; }).join('') + '</div></div>' +
+    '<div class="pr-codes">' + codes.map(function(c){ return '<a class="pr-code" href="' + esc(PR_FORM + c[2]) + '" target="_blank" rel="noopener" title="Open the ' + c[0] + ' form"><div class="sq">' + prQr(c[2]) + '</div><b class="' + c[1] + '">' + c[0] + '</b></a>'; }).join('') + '</div></div>' +
+    '<p class="sub" style="margin:12px 0 0">BLS for EMTs, ALS for medics. Scan or click to answer, about three minutes.</p>';
+}
+function wallProtocol(idx, n) {
+  var w = PR.data, lines = prLines(w), many = lines.join(' ').length > 260 || hasNotice();
+  var codes = [['BLS', '#f5a623', w.blsFormId], ['ALS', '#e8423a', w.alsFormId]].filter(function(c){ return String(c[2] || '').trim(); });
+  return wHead('What would you do?', esc(w.topic || '') + ' · ' + esc(prSub(w)), idx, n) +
+    '<div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px">' +
+    '<div class="w-panel" style="padding:36px 44px;overflow:hidden"><div class="w-label" style="color:#f5a623;font-weight:700;margin-bottom:18px">THE CALL</div>' +
+      lines.map(function(x, i){ return '<div style="font-size:' + (many ? 38 : 46) + 'px;line-height:1.3;margin-bottom:18px;' + (i === lines.length - 1 && /\?\s*$/.test(x) ? 'font-weight:700' : '') + '">' + esc(x) + '</div>'; }).join('') + '</div>' +
+    '<div class="w-panel" style="padding:36px 44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px">' +
+      '<div style="display:flex;gap:48px">' + codes.map(function(c){ return '<div style="display:flex;flex-direction:column;align-items:center;gap:14px"><div class="w-pr-sq">' + prQr(c[2]) + '</div><div style="font-size:54px;font-weight:700;color:' + c[1] + '">' + c[0] + '</div></div>'; }).join('') + '</div>' +
+      '<div style="font-size:30px;color:var(--muted);text-align:center;line-height:1.4">Scan to answer. About three minutes.<br>BLS for EMTs, ALS for medics.</div></div></div>';
+}
 function wallSlides() {
   var list = [];
   list.push(wallSnapshot);   /* 3.14.2: always the first slide, even before the list loads */
   if (isFire() ? fireUnits(fireDay(0)).length : HUB && shiftUnits(HUB.day).length) list.push(wallToday);
   if (!isFire() && openShifts7().length) list.push(wallShifts);
   if (TC.loaded && (training7().length || trainingNext(1).length)) list.push(wallTraining);
+  if (PR.data && PR.data.topic && (PR.data.blsFormId || PR.data.alsFormId)) list.push(wallProtocol);
   if (FLEET.data && !isFire()) list.push(wallChecks);
   list.push(wallDuties);
   if (WX.data && WX.data.hourly && WX.data.hourly.length) list.push(wallWeather);
@@ -2194,7 +2265,7 @@ function boot() {
   initMsal().then(function(){
     showView();
     if (!msalAccount) return;
-    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard(); loadTraining(); loadSnapshot(); loadFire(); loadFireNotice(); loadDanger();
+    loadApps(); loadNotice(); loadFleet(); loadWeather(); loadShifts(); loadBoard(); loadTraining(); loadProtocol(); loadSnapshot(); loadFire(); loadFireNotice(); loadDanger();
     if (MODE === 'wall') { loadMapData(); loadAir(); }
   }).catch(function(e){ $('signin').classList.remove('hide'); $('si-err').textContent = e.message || String(e); });
 }
@@ -2211,6 +2282,7 @@ setInterval(function(){ if (msalAccount && !document.hidden) { loadNotice(); loa
 setInterval(function(){ if (msalAccount && !document.hidden && isFire()) { loadFire(); loadDanger(); } }, 15 * 60e3);
 setInterval(function(){ if (msalAccount && !document.hidden) { loadShifts(); loadBoard(); loadSnapshot(); } }, 5 * 60e3);
 setInterval(function(){ if (msalAccount && !document.hidden) loadTraining(); }, 30 * 60e3);
+setInterval(function(){ if (msalAccount) loadProtocol(); }, 30 * 60e3);
 setInterval(function(){ if (msalAccount) { loadWeather(); checkForUpdate(); } }, 15 * 60e3);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && msalAccount) { loadNotice(); loadFleet(); loadSnapshot(); checkForUpdate(); } });
 
