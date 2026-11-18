@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Protocol Review</title>
+<!--
+  Weekly Protocol Review display (replaces the WWYD PNG on the station screens).
+  Version 1.0, 11/18/2026.
+  To change the week: edit week.json in this folder only (topic, page, date,
+  scenario lines, blsFormId, alsFormId). No code changes needed.
+  Layout: 1920 x 1080 (16:9) stage. Everything sits inside the safe zone,
+  288px (2.00 in at 13.333 in wide) from the left and right edges, so the
+  screen's 4:3 center crop never cuts anything. Add ?guides=1 to see the crop lines.
+-->
+<style>
+  :root{
+    --bg1:#2a3d63; --bg2:#1c2742; --bg3:#141b2e;
+    --card:rgba(20,26,44,.62); --card2:rgba(20,26,44,.40);
+    --red:#c8102e; --amber:#f5a623; --alsred:#e8423a;
+    --text:#ffffff; --muted:#c9d1e3; --dim:#97a3bd;
+  }
+  html,body{margin:0;height:100%;background:#0d1220;overflow:hidden}
+  body{font-family:Arial,"Liberation Sans",Helvetica,sans-serif;color:var(--text)}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #stage{width:1920px;height:1080px;position:relative;flex:none;transform-origin:center center;
+    background:radial-gradient(ellipse at 40% 35%,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%)}
+  #safe{position:absolute;left:288px;right:288px;top:0;bottom:0}
+  .pill{position:absolute;left:0;top:75px;height:76px;padding:0 34px;border-radius:38px;background:var(--red);
+    display:flex;align-items:center;font-weight:700;font-size:40px;letter-spacing:.5px;white-space:nowrap}
+  h1{position:absolute;left:0;right:0;top:178px;margin:0;font-size:72px;line-height:84px;font-weight:700;
+    text-shadow:0 3px 8px rgba(0,0,0,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub{position:absolute;left:0;right:0;top:272px;font-size:31px;color:var(--muted);text-shadow:0 2px 6px rgba(0,0,0,.5);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card{position:absolute;top:332px;height:522px;box-sizing:border-box}
+  #call{left:0;width:674px;background:var(--card);padding:40px 38px}
+  #qr{left:715px;width:629px;background:var(--card2);padding:40px 20px 30px;display:flex;flex-direction:column;align-items:center}
+  .label{color:var(--amber);font-weight:700;font-size:30px;margin-bottom:22px;text-shadow:0 2px 5px rgba(0,0,0,.5)}
+  #scen{position:absolute;left:38px;right:38px;top:104px;bottom:34px;overflow:hidden}
+  #scen p{margin:0 0 .55em;line-height:1.28;text-shadow:0 2px 5px rgba(0,0,0,.55)}
+  #scen p.ask{font-weight:700}
+  .codes{display:flex;gap:68px;justify-content:center}
+  .code{display:flex;flex-direction:column;align-items:center}
+  .sq{width:246px;height:246px;background:#fff;display:flex;align-items:center;justify-content:center}
+  .sq svg,.sq img{width:224px;height:224px;display:block}
+  .lvl{font-size:48px;font-weight:700;margin-top:14px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+  .bls{color:var(--amber)} .als{color:var(--alsred)}
+  .note{white-space:pre-line;margin-top:22px;font-size:28px;line-height:1.45;color:var(--muted);text-align:center;padding:0 10px}
+  .foot{position:absolute;left:0;right:0;top:940px;font-size:30px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .miss{font-size:24px;color:var(--dim);width:224px;text-align:center;line-height:1.3}
+  /* crop guides, only with ?guides=1 */
+  .guide{position:absolute;top:0;bottom:0;width:0;border-left:3px dashed #ff3b3b;display:none}
+  body.guides .guide{display:block}
+  #status{position:absolute;right:300px;bottom:22px;font-size:18px;color:#5e6a85}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <div class="guide" style="left:288px"></div><div class="guide" style="left:1632px"></div>
+  <div id="safe">
+    <div class="pill">WHAT WOULD YOU DO?</div>
+    <h1 id="topic">Weekly Protocol Review</h1>
+    <div class="sub" id="sub"></div>
+    <div class="card" id="call">
+      <div class="label">THE CALL</div>
+      <div id="scen"></div>
+    </div>
+    <div class="card" id="qr">
+      <div class="codes">
+        <div class="code"><div class="sq" id="qbls"></div><div class="lvl bls">BLS</div></div>
+        <div class="code"><div class="sq" id="qals"></div><div class="lvl als">ALS</div></div>
+      </div>
+      <div class="note" id="note"></div>
+    </div>
+    <div class="foot" id="foot"></div>
+  </div>
+  <div id="status"></div>
+</div></div>
+<script src="qrcode.js"></script>
+<script>
+(function(){
+  var FORM = 'https://forms.office.com/Pages/ResponsePage.aspx?id=';
+  var CACHE = 'ncems_wpr_week_v1';
+  var stage = document.getElementById('stage');
+  if (/[?&]guides=1/.test(location.search)) document.body.classList.add('guides');
+
+  function fit(){
+    var s = Math.min(innerWidth/1920, innerHeight/1080);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  addEventListener('resize', fit); fit();
+
+  function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function qr(el, id){
+    id = String(id || '').trim();
+    if (!id){ el.innerHTML = '<div class="miss">Form link coming</div>'; return; }
+    var q = qrcode(0, 'H');            // error correction H, same as the old slides
+    q.addData(FORM + id);
+    q.make();
+    el.innerHTML = q.createSvgTag({cellSize: 4, margin: 0, scalable: true});
+    el.title = FORM + id;
+  }
+
+  // shrink the scenario text until it fits its card
+  function fitScen(){
+    var box = document.getElementById('scen'), size = 40;
+    box.style.fontSize = size + 'px';
+    while (size > 22 && box.scrollHeight > box.clientHeight){ size -= 1; box.style.fontSize = size + 'px'; }
+  }
+
+  function render(w){
+    var page = String(w.page || '').trim();
+    var pg = page ? (/[-to]/.test(page) ? 'pp. ' : 'p. ') + page : '';
+    document.getElementById('topic').textContent = w.topic || 'Weekly Protocol Review';
+    document.title = 'Weekly Protocol Review: ' + (w.topic || '');
+    document.getElementById('sub').textContent =
+      ['Weekly Protocol Review', [w.protocols || '2026 Protocols v1.22', pg].filter(Boolean).join(', '), w.date].filter(Boolean).join(' | ');
+    var lines = Array.isArray(w.scenario) ? w.scenario : String(w.scenario || '').split(/\n+/);
+    lines = lines.map(function(s){ return String(s).trim(); }).filter(Boolean);
+    document.getElementById('scen').innerHTML = lines.map(function(s, i){
+      var ask = i === lines.length - 1 && /\?\s*$/.test(s);
+      return '<p' + (ask ? ' class="ask"' : '') + '>' + esc(s) + '</p>';
+    }).join('');
+    fitScen();
+    qr(document.getElementById('qbls'), w.blsFormId);
+    qr(document.getElementById('qals'), w.alsFormId);
+    document.getElementById('note').textContent = w.note || 'Scan to answer. BLS for EMTs, ALS for medics.';
+    document.getElementById('foot').textContent =
+      'North Country EMS Training Division' + (page ? ' | Page ' + page + ' is attached to this week’s email' : '');
+  }
+
+  function load(){
+    fetch('week.json?nc=' + Date.now(), {cache: 'no-store'})
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(w){
+        render(w);
+        try { localStorage.setItem(CACHE, JSON.stringify(w)); } catch(e){}
+        document.getElementById('status').textContent = '';
+      })
+      .catch(function(){
+        var w = null;
+        try { w = JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch(e){}
+        if (w) render(w);
+        document.getElementById('status').textContent = 'Offline, showing the last saved week';
+      });
+  }
+  load();
+  setInterval(load, 10 * 60 * 1000);                       // picks up a new week.json within 10 minutes
+  setTimeout(function(){ location.reload(); }, 6 * 3600 * 1000); // fresh page code a few times a day
+})();
+</script>
+</body>
+</html>
