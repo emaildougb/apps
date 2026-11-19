@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.19.2. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.20. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -123,6 +123,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.20 (11/19/2026)
+- **FD13 required checks match FD13 Apparatus Check 1.6.2.** Shifts A, B, C repeat every day (11/18/2026 is A shift; A green, B blue, C red). Each day has three required checks at 33% each: Engine 51 and Squad 51 (mandatory daily) and the shift rig (Water Tender 51 on A, Engine 52 on B, Water Tender 52 on C). A check counts when a Pre Shift check was submitted for that rig that day
+- **Sunday** adds Engine 50 and Brush 51 (Station 132), done if a Pre Shift check was submitted any day Monday to Sunday, for 5 checks. The Hub reads the earlier days of the week from the FD13 Worker (/fire/today?day=) on Sundays only
+- Desk card, Wall slide and the Today tile show today's percent with the shift tag in its color, the three checks (done or not yet), and on Sunday the weekly line. All rigs still listed underneath; a required rig with only a non Pre Shift check shows "No Pre Shift yet"
 
 ### v3.19.2 (11/19/2026)
 

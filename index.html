@@ -685,7 +685,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.19.2';
+var HUB_VERSION = '3.20';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1014,8 +1014,21 @@ function loadFireChecks() {
   var get = function(path, t){ return fetch(FD13_URL + path, { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' })
     .then(function(r){ if (!r.ok) throw new Error(r.status === 404 || r.status === 401 || r.status === 403 ? 'not connected yet' : 'error ' + r.status); return r.json(); }); };
   return idToken().then(function(t){ return Promise.all([get('/fire/today', t), get('/fire/problems', t)]); })
-    .then(function(a){ FCHK.data = a[0]; FCHK.probs = (a[1] && a[1].problems) || []; FCHK.err = ''; FCHK.at = Date.now(); if (isFire()) renderAll(); })
+    .then(function(a){ FCHK.data = a[0]; FCHK.probs = (a[1] && a[1].problems) || []; FCHK.err = ''; FCHK.at = Date.now(); if (isFire()) renderAll(); return loadFireWeek(); })
     .catch(function(e){ FCHK.err = e.message || String(e); if (isFire()) renderAll(); });
+}
+/* 3.20: on Sunday the weekly rigs count if a Pre Shift check was done any day Monday to Sunday.
+   /fire/today?day= gives each earlier day; past days are kept for 30 minutes. */
+FCHK.days = {};
+function loadFireWeek() {
+  var day = FCHK.data && FCHK.data.day;
+  if (!day || !fxIsSunday(day)) return Promise.resolve();
+  var want = fxWeekDays(day).filter(function(d){ return d !== day && !(FCHK.days[d] && Date.now() - FCHK.days[d].at < 30 * 60e3); });
+  if (!want.length) return Promise.resolve();
+  return idToken().then(function(t){ return Promise.all(want.map(function(d){
+    return fetch(FD13_URL + '/fire/today?day=' + d, { headers: { 'Authorization': 'Bearer ' + t }, cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.rigs) FCHK.days[d] = { at: Date.now(), rigs: j.rigs }; }).catch(function(){});
+  })); }).then(function(){ if (isFire()) { renderAll(); if (MODE === 'wall') renderWall(); } }).catch(function(){});
 }
 function fxWhen(ms) {
   var d = new Date(ms), t = new Date();
@@ -1024,8 +1037,41 @@ function fxWhen(ms) {
 /* 3.19 (Doug 11/18): the minimum standard is Engine 51 and Squad 51 checked every day. The percent counts only these.
    Ids are the FD13 Apparatus Check unit ids. Other rigs still show, as Not due when nobody has checked them. */
 var FD13_REQUIRED = ['eng51', 'sq51'];
-function fxRequired(r) { return FD13_REQUIRED.indexOf(r.id) >= 0; }
+/* 3.20 (Doug 11/19): same rules as FD13 Apparatus Check 1.6.2.
+   Shifts A, B, C repeat daily, 2026-11-18 is A. Each day: Engine 51, Squad 51 (mandatory daily) and the shift rig, 33% each.
+   Sunday adds Engine 50 and Brush 51 (done if a Pre Shift check was submitted any day Monday to Sunday), 5 checks.
+   Done = a Pre Shift check submitted for that rig that day. */
+var FX_SCHED = { anchor: '2026-11-18', shifts: ['A', 'B', 'C'], shiftRigs: { A: 'wt51', B: 'eng52', C: 'wt52' }, weekly: ['eng50', 'brush51'],
+  colors: { A: '#2E6B2E', B: '#1F5C8B', C: '#B3261E' } };
+function fxUtc(day) { var p = String(day).split('-').map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+function fxShift(day) { var n = Math.round((fxUtc(day) - fxUtc(FX_SCHED.anchor)) / 864e5); return FX_SCHED.shifts[((n % 3) + 3) % 3]; }
+function fxIsSunday(day) { return new Date(fxUtc(day)).getUTCDay() === 0; }
+function fxWeekDays(day) {   /* Monday to Sunday holding day */
+  var t = fxUtc(day), mon = t - ((new Date(t).getUTCDay() + 6) % 7) * 864e5, out = [];
+  for (var i = 0; i < 7; i++) out.push(new Date(mon + i * 864e5).toISOString().slice(0, 10));
+  return out;
+}
+function fxPre(r) { return !!(r && (r.checksToday || []).some(function(c){ return /pre\s*shift/i.test(c.chk || ''); })); }
+function fxRig(id) { return ((FCHK.data && FCHK.data.rigs) || []).filter(function(r){ return r.id === id; })[0] || null; }
+function fxName(id) { var r = fxRig(id); return r ? r.name : ({ eng51: 'Engine 51', sq51: 'Squad 51', wt51: 'Water Tender 51', eng52: 'Engine 52', wt52: 'Water Tender 52', eng50: 'Engine 50', brush51: 'Brush 51' })[id] || id; }
+function fxWeekDone(id) {
+  var day = FCHK.data && FCHK.data.day; if (fxPre(fxRig(id))) return true;
+  return fxWeekDays(day).some(function(d){ var x = FCHK.days[d]; return x && x.rigs.some(function(r){ return r.id === id && fxPre(r); }); });
+}
+function fxPlan() {
+  var day = (FCHK.data && FCHK.data.day) || tcToday(), sh = fxShift(day), sun = fxIsSunday(day), sid = FX_SCHED.shiftRigs[sh];
+  var items = FD13_REQUIRED.map(function(id){ return { id: id, name: fxName(id), why: 'Mandatory daily', done: fxPre(fxRig(id)) }; });
+  items.push({ id: sid, name: fxName(sid), why: sh + ' shift', done: fxPre(fxRig(sid)) });
+  var weekly = sun ? FX_SCHED.weekly.map(function(id){ return { id: id, name: fxName(id), why: 'Weekly, Station 132', done: fxWeekDone(id), weekly: true }; }) : [];
+  return { day: day, shift: sh, color: FX_SCHED.colors[sh], sunday: sun, items: items, weekly: weekly };
+}
+function fxShiftTag(sh, big) { return '<span class="' + (big ? 'w-tag' : 'tag') + '" style="background:' + FX_SCHED.colors[sh] + ';color:#fff">' + sh + ' shift</span>'; }
+function fxRequired(r) { var p = fxPlan(); return p.items.concat(p.weekly).some(function(x){ return x.id === r.id; }); }
 function fxState(r) {
+  var req = fxRequired(r), wk = FX_SCHED.weekly.indexOf(r.id) >= 0;
+  if (fxPre(r)) return { tag: 'Pre Shift done', cls: 'good' };
+  if (req && wk && fxWeekDone(r.id)) return { tag: 'Done this week', cls: 'good' };
+  if (r.checked && req) return { tag: 'No Pre Shift yet', cls: 'warn' };
   if (r.checked) return { tag: 'Checked', cls: 'good' };
   if (r.pct > 0) return { tag: 'In progress ' + r.pct + '%', cls: 'warn' };
   return fxRequired(r) ? { tag: 'Due today', cls: 'warn' } : { tag: 'Not due', cls: 'dim' };
@@ -1037,11 +1083,11 @@ function fxLine(r) {
 }
 function fxStations() { var out = []; ((FCHK.data && FCHK.data.rigs) || []).forEach(function(r){ if (out.indexOf(r.station) < 0) out.push(r.station); }); return out; }
 function fxSummary() {
-  var rigs = (FCHK.data && FCHK.data.rigs) || [], req = rigs.filter(fxRequired);
-  if (!req.length) req = rigs;   /* if the required rigs are ever renamed away, fall back to all rigs */
-  var c = req.filter(function(r){ return r.checked; }).length, n = req.length;
-  var extra = rigs.filter(function(r){ return r.checked && req.indexOf(r) < 0; }).length;
-  return { n: n, c: c, pct: n ? Math.round(c / n * 100) : 0, extra: extra, names: req.map(function(r){ return r.name; }).join(' and ') };
+  var p = fxPlan(), all = p.items.concat(p.weekly), c = all.filter(function(x){ return x.done; }).length, n = all.length;
+  return { n: n, c: c, pct: n ? Math.round(c / n * 100) : 0, plan: p, names: p.items.map(function(x){ return x.name; }).join(', ') };
+}
+function fxCheckRow(x) {
+  return '<div class="row"><div class="grow"><b>' + esc(x.name) + '</b><div class="sub">' + esc(x.why) + '</div></div><span class="tag ' + (x.done ? 'good' : 'warn') + '">' + (x.done ? 'Done' : 'Not yet') + '</span></div>';
 }
 function fxProbHtml(p) {
   return '<div class="fx-prob"><div class="t">' + esc(p.apName) + ' · ' + esc(p.item) + '</div>' + (p.note ? '<div class="sub">' + esc(p.note) + '</div>' : '') +
@@ -1056,7 +1102,11 @@ function renderFireChecks() {
   }
   var s = fxSummary(), col = gaugeColor(s.pct), rigs = FCHK.data.rigs || [];
   $('checks-meta').textContent = FCHK.err ? 'Reconnecting' : '';
-  var html = '<div class="gauge">' + ring(64, 7, s.pct, col) + '<div><div class="num">' + s.pct + '% <span class="lbl">' + s.c + ' of ' + s.n + ' required checked today' + (s.extra ? ', plus ' + s.extra + ' more' : '') + '</span></div><div class="lbl">Minimum: ' + esc(s.names) + ' every day</div><div class="lbl" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + (FCHK.probs.length === 1 ? ' open problem' : ' open problems') : 'No open problems') + '</div></div></div>';
+  var p = s.plan;
+  var html = '<div class="gauge">' + ring(64, 7, s.pct, col) + '<div><div class="num">' + s.pct + '% ' + fxShiftTag(p.shift) + ' <span class="lbl">' + s.c + ' of ' + s.n + ' required today' + (p.sunday ? ' (Sunday, 5 checks)' : '') + '</span></div><div class="lbl">Done means a Pre Shift check was submitted</div><div class="lbl" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + (FCHK.probs.length === 1 ? ' open problem' : ' open problems') : 'No open problems') + '</div></div></div>';
+  html += '<p class="stn">Required today</p>' + p.items.map(fxCheckRow).join('');
+  if (p.sunday) html += '<p class="stn">Weekly, Monday to Sunday</p>' + p.weekly.map(fxCheckRow).join('');
+  html += '<p class="stn" style="margin-top:18px">All rigs</p>';
   fxStations().forEach(function(st){
     html += '<p class="stn">' + esc(st) + '</p>' + rigs.filter(function(r){ return r.station === st; }).map(function(r){
       var x = fxState(r);
@@ -1078,13 +1128,13 @@ function wallFireChecks(idx, n) {
         '<div class="w-detail" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(fxLine(r)) + '</div></div>';
     }).join('') + '</div>';
   }).join('');
-  return wHead('FD13 Apparatus Check', s.c + ' of ' + s.n + ' required rigs checked today (' + esc(s.names) + ')' + (FCHK.probs.length ? ' · ' + FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : ''), idx, n) +
+  var p = s.plan, wrow = function(x){ return '<div style="display:flex;align-items:center;gap:14px;min-width:0"><div style="flex:1;min-width:0"><div style="font-size:30px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(x.name) + '</div><div style="font-size:22px;color:var(--muted)">' + esc(x.why) + '</div></div><span class="w-tag" style="flex:none;background:var(--' + (x.done ? 'good' : 'warn') + '-bg);color:var(--' + (x.done ? 'good' : 'warn') + ')">' + (x.done ? 'Done' : 'Not yet') + '</span></div>'; };
+  return wHead('FD13 Apparatus Check', p.shift + ' shift · ' + s.c + ' of ' + s.n + ' required done today' + (p.sunday ? ' (Sunday, weekly rigs included)' : '') + (FCHK.probs.length ? ' · ' + FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : ''), idx, n) +
     '<div style="display:grid;grid-template-columns:520px minmax(0,1fr);gap:24px;flex:1;min-height:0">' +
-    '<div class="w-panel" style="display:flex;flex-direction:column;gap:20px;overflow:hidden"><div class="w-label">Checked today</div>' +
-    '<div style="position:relative;width:260px;height:260px;align-self:center">' + ring(260, 20, s.pct, col) + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div class="w-big" style="font-size:96px">' + s.pct + '<span style="font-size:44px;color:var(--muted)">%</span></div><div style="font-size:26px;color:var(--muted)">' + s.c + ' of ' + s.n + ' required</div></div></div></div>' +
-    '<div class="w-label" style="margin-top:8px">Open problems</div>' + (probs.length ? probs.map(function(p){
-      return '<div style="min-width:0"><div style="font-size:30px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.apName) + ' · ' + esc(p.item) + '</div><div style="font-size:24px;color:var(--muted)">Reported ' + esc(fxWhen(p.openedAt)) + '</div></div>';
-    }).join('') + (FCHK.probs.length > probs.length ? '<div style="font-size:24px;color:var(--muted)">And ' + (FCHK.probs.length - probs.length) + ' more on the Hub</div>' : '') : '<div style="font-size:30px;color:var(--muted)">None</div>') + '</div>' +
+    '<div class="w-panel" style="display:flex;flex-direction:column;gap:16px;overflow:hidden"><div style="display:flex;align-items:center;gap:16px"><div class="w-label">Required today</div>' + fxShiftTag(p.shift, true) + '</div>' +
+    '<div style="display:flex;align-items:center;gap:24px"><div style="position:relative;width:170px;height:170px;flex:none">' + ring(170, 16, s.pct, col) + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="w-big" style="font-size:60px">' + s.pct + '<span style="font-size:30px;color:var(--muted)">%</span></div></div></div><div style="font-size:30px;color:var(--muted)">' + s.c + ' of ' + s.n + ' done</div></div>' +
+    p.items.map(wrow).join('') + (p.sunday ? '<div class="w-label" style="margin-top:4px">Weekly, Station 132</div>' + p.weekly.map(wrow).join('') : '') +
+    (FCHK.probs.length ? '<div style="font-size:26px;color:var(--bad);margin-top:auto">' + FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') + (probs[0] ? ': ' + esc(probs[0].apName) + ' · ' + esc(probs[0].item) : '') + '</div>' : '') + '</div>' +
     '<div class="w-panel" style="padding:24px 40px;display:grid;grid-template-columns:repeat(' + Math.max(1, Math.min(2, fxStations().length)) + ',minmax(0,1fr));column-gap:48px;align-content:start;overflow:hidden">' + cols + '</div></div>';
 }
 
@@ -1398,7 +1448,7 @@ function renderDeskHome() {
   var veh;
   if (isFire() && FCHK.data) {   /* 3.18 */
     var fs = fxSummary(), fcol = gaugeColor(fs.pct);
-    veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, fs.pct, fcol) + '<div><div class="l">FD13 Apparatus Check</div><div class="v">' + fs.pct + '% \u00b7 ' + fs.c + ' of ' + fs.n + ' required</div><div class="w" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : 'No open problems') + '</div></div></a>';
+    veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, fs.pct, fcol) + '<div><div class="l">FD13 Apparatus Check ' + fxShiftTag(fs.plan.shift) + '</div><div class="v">' + fs.pct + '% \u00b7 ' + fs.c + ' of ' + fs.n + ' required</div><div class="w" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : 'No open problems') + '</div></div></a>';
   }
   else if (isFire()) veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, 0, '#3b1013') + '<div><div class="l">FD13 Apparatus Check</div><div class="v">\u2014</div><div class="w sub">' + (FCHK.err ? (FCHK.err === 'not connected yet' ? 'Not connected to the Hub yet' : 'Can\u2019t reach the checks right now') : 'Loading') + '</div></div></a>';
   else if (FLEET.data) {
