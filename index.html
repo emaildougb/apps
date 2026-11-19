@@ -685,7 +685,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.19.1';
+var HUB_VERSION = '3.19.2';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1048,7 +1048,7 @@ function fxProbHtml(p) {
     '<div class="sub">Reported ' + esc(fxWhen(p.openedAt)) + (p.by ? ' · ' + esc(p.by) : '') + (p.photo && /^https:\/\//.test(p.photo) ? ' · <a href="' + esc(p.photo) + '" target="_blank" rel="noopener">Photo</a>' : '') + '</div></div>';
 }
 function renderFireChecks() {
-  var body = $('checks-body'), link = '<a class="pill" style="margin-top:14px;text-decoration:none" href="https://apparatus.fd13.org/">Open FD13 Apparatus Check</a>';
+  var body = $('checks-body'), link = '';   /* 3.19.2: no button here, the checker is opened from the Apps tab */
   if (!FCHK.data) {
     $('checks-meta').textContent = '';
     body.innerHTML = '<p class="empty" style="margin-top:0">' + (FCHK.err ? (FCHK.err === 'not connected yet' ? 'FD13 checks aren\u2019t connected to the Hub yet.' : 'Can\u2019t reach FD13 Apparatus Check right now.') : 'Loading…') + '</p>' + link;
