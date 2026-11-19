@@ -685,7 +685,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.18';
+var HUB_VERSION = '3.19';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -1014,10 +1014,14 @@ function fxWhen(ms) {
   var d = new Date(ms), t = new Date();
   return (d.toDateString() === t.toDateString() ? '' : MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ' ') + hhmm(d);
 }
+/* 3.19 (Doug 11/18): the minimum standard is Engine 51 and Squad 51 checked every day. The percent counts only these.
+   Ids are the FD13 Apparatus Check unit ids. Other rigs still show, as Not due when nobody has checked them. */
+var FD13_REQUIRED = ['eng51', 'sq51'];
+function fxRequired(r) { return FD13_REQUIRED.indexOf(r.id) >= 0; }
 function fxState(r) {
   if (r.checked) return { tag: 'Checked', cls: 'good' };
   if (r.pct > 0) return { tag: 'In progress ' + r.pct + '%', cls: 'warn' };
-  return { tag: 'Not yet', cls: 'dim' };
+  return fxRequired(r) ? { tag: 'Due today', cls: 'warn' } : { tag: 'Not due', cls: 'dim' };
 }
 function fxLine(r) {
   if (r.checked && r.checksToday && r.checksToday[0]) { var c = r.checksToday[0]; return c.chk + ' · ' + hhmm(new Date(c.at)) + ' · ' + c.by + (c.abnormal ? ' · ' + c.abnormal + ' abnormal' : ''); }
@@ -1025,7 +1029,13 @@ function fxLine(r) {
   return r.last ? 'Last check ' + fxWhen(r.last.at) + ' · ' + r.last.by : 'No checks on record yet';
 }
 function fxStations() { var out = []; ((FCHK.data && FCHK.data.rigs) || []).forEach(function(r){ if (out.indexOf(r.station) < 0) out.push(r.station); }); return out; }
-function fxSummary() { var d = FCHK.data || {}, n = d.rigCount || 0, c = d.checkedToday || 0; return { n: n, c: c, pct: n ? Math.round(c / n * 100) : 0 }; }
+function fxSummary() {
+  var rigs = (FCHK.data && FCHK.data.rigs) || [], req = rigs.filter(fxRequired);
+  if (!req.length) req = rigs;   /* if the required rigs are ever renamed away, fall back to all rigs */
+  var c = req.filter(function(r){ return r.checked; }).length, n = req.length;
+  var extra = rigs.filter(function(r){ return r.checked && req.indexOf(r) < 0; }).length;
+  return { n: n, c: c, pct: n ? Math.round(c / n * 100) : 0, extra: extra, names: req.map(function(r){ return r.name; }).join(' and ') };
+}
 function fxProbHtml(p) {
   return '<div class="fx-prob"><div class="t">' + esc(p.apName) + ' · ' + esc(p.item) + '</div>' + (p.note ? '<div class="sub">' + esc(p.note) + '</div>' : '') +
     '<div class="sub">Reported ' + esc(fxWhen(p.openedAt)) + (p.by ? ' · ' + esc(p.by) : '') + (p.photo && /^https:\/\//.test(p.photo) ? ' · <a href="' + esc(p.photo) + '" target="_blank" rel="noopener">Photo</a>' : '') + '</div></div>';
@@ -1039,7 +1049,7 @@ function renderFireChecks() {
   }
   var s = fxSummary(), col = gaugeColor(s.pct), rigs = FCHK.data.rigs || [];
   $('checks-meta').textContent = FCHK.err ? 'Reconnecting' : '';
-  var html = '<div class="gauge">' + ring(64, 7, s.pct, col) + '<div><div class="num">' + s.c + ' of ' + s.n + ' <span class="lbl">FD13 rigs checked today</span></div><div class="lbl" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + (FCHK.probs.length === 1 ? ' open problem' : ' open problems') : 'No open problems') + '</div></div></div>';
+  var html = '<div class="gauge">' + ring(64, 7, s.pct, col) + '<div><div class="num">' + s.pct + '% <span class="lbl">' + s.c + ' of ' + s.n + ' required checked today' + (s.extra ? ', plus ' + s.extra + ' more' : '') + '</span></div><div class="lbl">Minimum: ' + esc(s.names) + ' every day</div><div class="lbl" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + (FCHK.probs.length === 1 ? ' open problem' : ' open problems') : 'No open problems') + '</div></div></div>';
   fxStations().forEach(function(st){
     html += '<p class="stn">' + esc(st) + '</p>' + rigs.filter(function(r){ return r.station === st; }).map(function(r){
       var x = fxState(r);
@@ -1061,10 +1071,10 @@ function wallFireChecks(idx, n) {
         '<div class="w-detail" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(fxLine(r)) + '</div></div>';
     }).join('') + '</div>';
   }).join('');
-  return wHead('FD13 Apparatus Check', s.c + ' of ' + s.n + ' rigs checked today' + (FCHK.probs.length ? ' · ' + FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : ''), idx, n) +
+  return wHead('FD13 Apparatus Check', s.c + ' of ' + s.n + ' required rigs checked today (' + esc(s.names) + ')' + (FCHK.probs.length ? ' · ' + FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : ''), idx, n) +
     '<div style="display:grid;grid-template-columns:520px minmax(0,1fr);gap:24px;flex:1;min-height:0">' +
     '<div class="w-panel" style="display:flex;flex-direction:column;gap:20px;overflow:hidden"><div class="w-label">Checked today</div>' +
-    '<div style="position:relative;width:260px;height:260px;align-self:center">' + ring(260, 20, s.pct, col) + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="w-big" style="font-size:96px">' + s.c + '<span style="font-size:44px;color:var(--muted)">/' + s.n + '</span></div></div></div>' +
+    '<div style="position:relative;width:260px;height:260px;align-self:center">' + ring(260, 20, s.pct, col) + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div class="w-big" style="font-size:96px">' + s.pct + '<span style="font-size:44px;color:var(--muted)">%</span></div><div style="font-size:26px;color:var(--muted)">' + s.c + ' of ' + s.n + ' required</div></div></div></div>' +
     '<div class="w-label" style="margin-top:8px">Open problems</div>' + (probs.length ? probs.map(function(p){
       return '<div style="min-width:0"><div style="font-size:30px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.apName) + ' · ' + esc(p.item) + '</div><div style="font-size:24px;color:var(--muted)">Reported ' + esc(fxWhen(p.openedAt)) + '</div></div>';
     }).join('') + (FCHK.probs.length > probs.length ? '<div style="font-size:24px;color:var(--muted)">And ' + (FCHK.probs.length - probs.length) + ' more on the Hub</div>' : '') : '<div style="font-size:30px;color:var(--muted)">None</div>') + '</div>' +
@@ -1381,9 +1391,9 @@ function renderDeskHome() {
   var veh;
   if (isFire() && FCHK.data) {   /* 3.18 */
     var fs = fxSummary(), fcol = gaugeColor(fs.pct);
-    veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, fs.pct, fcol) + '<div><div class="l">FD13 Apparatus Check</div><div class="v">' + fs.c + ' of ' + fs.n + ' checked today</div><div class="w" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : 'No open problems') + '</div></div></a>';
+    veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, fs.pct, fcol) + '<div><div class="l">FD13 Apparatus Check</div><div class="v">' + fs.pct + '% \u00b7 ' + fs.c + ' of ' + fs.n + ' required</div><div class="w" style="color:' + (FCHK.probs.length ? 'var(--bad)' : 'var(--muted)') + '">' + (FCHK.probs.length ? FCHK.probs.length + ' open ' + (FCHK.probs.length === 1 ? 'problem' : 'problems') : 'No open problems') + '</div></div></a>';
   }
-  else if (isFire()) veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, 0, '#3b1013') + '<div><div class="l">FD13 Apparatus Check</div><div class="v">Open the checker</div><div class="w sub">' + (FCHK.err === 'not connected yet' ? 'Not connected to the Hub yet' : 'Loading') + '</div></div></a>';
+  else if (isFire()) veh = '<a class="stat" href="https://apparatus.fd13.org/" style="color:inherit;text-decoration:none">' + ring(52, 7, 0, '#3b1013') + '<div><div class="l">FD13 Apparatus Check</div><div class="v">\u2014</div><div class="w sub">' + (FCHK.err ? (FCHK.err === 'not connected yet' ? 'Not connected to the Hub yet' : 'Can\u2019t reach the checks right now') : 'Loading') + '</div></div></a>';
   else if (FLEET.data) {
     var s = fleetSummary(), col = gaugeColor(s.pct), left = s.total - s.done;
     veh = '<div class="stat">' + ring(52, 7, s.pct, col) + '<div><div class="l">Vehicles checked today</div><div class="v">' + s.pct + '% · ' + s.done + ' of ' + s.total + '</div><div class="w" style="color:' + col + '">' + (left > 0 ? 'Watch: ' + left + ' due by 11:00' : 'All checked') + '</div></div></div>';

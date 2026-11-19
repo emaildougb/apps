@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.18. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.19. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -123,6 +123,11 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.19 (11/18/2026)
+- FD13 Apparatus Check percent now measures the minimum standard: Engine 51 and Squad 51 checked every day (`FD13_REQUIRED` in index.html, FD13 unit ids). Desk Today, the FD13 Apparatus Check page, phones and the FD13 Wall slide show the percent and how many of the required rigs are checked, plus any extra rigs checked
+- Other FD13 rigs still list, as Not due until someone checks them. Engine 51 and Squad 51 show Due today until checked
+- The Desk Today tile no longer says Open the checker; it shows the percent, or says why the checks aren't loading
 
 ### v3.18 (11/18/2026)
 - **FD13 Apparatus Check panel, Fire District 13 side only.** Red panel named FD13 Apparatus Check (the FD13 name for Vehicle checks) on Desk, phones and the Wall. Shows each FD13 rig checked today or not, percent done while a check is open, who did the last check, open problems with a photo link, and a top line of how many rigs are checked today. The Wall gets an FD13 Apparatus Check slide in the FD13 rotation only
