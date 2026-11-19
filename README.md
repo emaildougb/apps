@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.17. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.18. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -123,6 +123,15 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.18 (11/18/2026)
+- **FD13 Apparatus Check panel, Fire District 13 side only.** Red panel named FD13 Apparatus Check (the FD13 name for Vehicle checks) on Desk, phones and the Wall. Shows each FD13 rig checked today or not, percent done while a check is open, who did the last check, open problems with a photo link, and a top line of how many rigs are checked today. The Wall gets an FD13 Apparatus Check slide in the FD13 rotation only
+- Data comes read only from the FD13 Worker (fd13-apparatus 1.3, `GET /fire/today` and `GET /fire/problems`), signed in with the Hub's Microsoft app. Nothing from ncems-checks. Stations 51 and 52 never call the FD13 Worker and show no FD13 content; the NCEMS Vehicle checks code is unchanged
+- Until the FD13 Worker answers, the panel says FD13 checks aren't connected yet and links to the checker
+- Includes the 3.17.1 phone Add button fix
+
+### v3.17.1 (11/18/2026)
+- Fix: on phones, the Add button next to "Add a task for today" on the Daily duties tab ran off the right edge (only chiefs, and anyone on the FD13 side, see that box). The text box now shrinks to fit and the button stays on screen. CSS only, nothing else changed
 
 ### v3.17 (11/18/2026)
 - **Weekly Protocol Review.** New folder `This Week in Training/` with a station screen page that replaces the What Would You Do? PNG: topic, protocol page, the scenario from the form, and live BLS and ALS QR codes to the forms.office.com response pages. Laid out at 16:9 inside the 2.00 in side margins so it survives the 4:3 crop. No sign in. Updated each week by editing `week.json` only
