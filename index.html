@@ -685,7 +685,7 @@ body.fire .ems-only { display: none !important; }
 
 <script>
 /* ===== VERSION + SELF UPDATE ===== Bump HUB_VERSION every time index.html changes. */
-var HUB_VERSION = '3.19';
+var HUB_VERSION = '3.19.1';
 function checkForUpdate() {
   fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
     var m = t.match(/HUB_VERSION\s*=\s*'([0-9.]+)'/);
@@ -842,9 +842,16 @@ function signOut() {
   else location.reload();
 }
 /* An ID token for our Workers. On the Wall nobody is there to tap, so never redirect from there. */
+function idFresh(t) {
+  try { var p = JSON.parse(atob(String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); return p.exp * 1000 - Date.now() > 5 * 60e3; } catch (e) { return false; }
+}
 function idToken() {
   if (!msalApp || !msalAccount) return Promise.reject(new Error('Not signed in'));
-  return msalApp.acquireTokenSilent({ scopes: ['User.Read'], account: msalAccount }).then(function(r){ $('wall-sign').textContent = ''; return r.idToken; })
+  /* 3.19.1: MSAL can hand back a cached ID token that has already expired (they last an hour), and every Worker then
+     answers 401 until the page reloads. If it has under 5 minutes left, ask Microsoft for a fresh one. */
+  return msalApp.acquireTokenSilent({ scopes: ['User.Read'], account: msalAccount })
+    .then(function(r){ return idFresh(r.idToken) ? r : msalApp.acquireTokenSilent({ scopes: ['User.Read'], account: msalAccount, forceRefresh: true }); })
+    .then(function(r){ $('wall-sign').textContent = ''; return r.idToken; })
     .catch(function(e){
       if (MODE !== 'wall' && e && /interaction_required|login_required|consent_required/.test(e.errorCode || '')) {
         msalApp.acquireTokenRedirect({ scopes: ['User.Read'], account: msalAccount }); return new Promise(function(){});

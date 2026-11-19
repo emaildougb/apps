@@ -1,6 +1,6 @@
 # NCEMS Hub
 
-Version 3.19. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
+Version 3.19.1. Three views at one address: **Wall** (the station TV, cycles on its own), **Desk** (station and office computers) and **Pocket** (phones and iPads). Everyone signs in with their NCEMS Microsoft account because the Hub shows crew information. Clinical reference lives at clinical.northcountryems.org (repo `clinical`).
 
 ## Links
 
@@ -123,6 +123,9 @@ If `apps.json` has a typo or can't load, phones keep the last good list, or the 
 3. Firebase is no longer used (2.1). The usage counter is on the `ncems-checks` Worker
 
 ## Changelog
+
+### v3.19.1 (11/18/2026)
+- Fix: after the Hub sat open about an hour, Microsoft's cached sign in token expired and every Worker (ncems-checks and the FD13 Worker) answered 401 until the page was reloaded. That is why the FD13 tile said not connected. The Hub now asks for a fresh token when the cached one has under 5 minutes left. Nothing else changed
 
 ### v3.19 (11/18/2026)
 - FD13 Apparatus Check percent now measures the minimum standard: Engine 51 and Squad 51 checked every day (`FD13_REQUIRED` in index.html, FD13 unit ids). Desk Today, the FD13 Apparatus Check page, phones and the FD13 Wall slide show the percent and how many of the required rigs are checked, plus any extra rigs checked
